@@ -1,0 +1,286 @@
+﻿using UnityEngine;
+using System.Collections;
+
+public class MonoInputManager : MonoBehaviour 
+{
+	
+	//private Vector3 			m_prevMousePosition;
+	private Vector2				m_prevTouchMovedPos = Vector3.zero;
+	private GameObject			m_TouchedObject = null;
+	private bool				m_permitEvent_DropTouch = true;
+	public bool permitEvent_DropTouch
+	{
+		get {
+			return m_permitEvent_DropTouch;
+		}
+		set {
+			m_permitEvent_DropTouch = value;
+		}
+	}
+
+	public Vector2 prevTouchMovedPos
+	{
+		get
+		{
+			return m_prevTouchMovedPos;
+		}
+	}
+
+	void Awake()
+	{
+		Input.simulateMouseWithTouches = false;	
+		Input.multiTouchEnabled = false;
+
+		//m_prevMousePosition = Input.mousePosition;
+	}
+
+	// Use this for initialization
+	void Start () 
+	{
+
+
+	}
+
+
+	//startstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstart
+	#region Sources obsolete - test source 
+
+	void ProcessInput(RaycastHit2D hit2d , RaycastHit hit3d)
+	{
+		if(Input.touchCount <= 0 ) return;
+
+		if(Input.GetTouch(0).phase == TouchPhase.Began)
+		{
+			//Todo
+		}
+		else if(Input.GetTouch(0).phase == TouchPhase.Moved)
+		{
+			//Todo
+			if(hit2d.collider.CompareTag("drop"))
+			{
+				//drop move code
+				CDefine.DebugLog("2d TouchPhase Move Drop!!");
+			}
+			if(hit3d.collider.CompareTag("drop"))
+			{
+				//drop move code
+				CDefine.DebugLog("3d TouchPhase Move Drop!!");
+			}
+		}
+		else if(Input.GetTouch(0).phase == TouchPhase.Ended)
+		{
+			//Todo
+		}
+	}
+
+
+
+	RaycastHit2D RayCast2D(Ray ray )
+	{
+
+		return Physics2D.Raycast(ray.origin, ray.direction);
+
+//		RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
+//		if(hit)
+//		{
+//			ProcessInput(hit,null);
+//		}
+	}
+
+	RaycastHit RayCast3D(Ray ray )
+	{
+		RaycastHit hit;
+		Physics.Raycast(ray, out hit, Mathf.Infinity);
+		return hit;
+
+//		if(Physics.Raycast(ray, out hit, Mathf.Infinity))
+//		{
+//			ProcessInput(null,hit);
+//		}
+	}
+
+
+
+	// Update is called once per frame
+	void doNotUse_Update () 
+	{
+		if(false)
+		//if(Input.mousePresent)
+		{
+			CDefine.DebugLog("Update Mouse Input!! -----"); //chamto test
+
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+			
+			ProcessInput(
+				RayCast2D(ray),RayCast3D(ray));
+		}
+		if(Input.touchCount > 0 )
+		{
+			CDefine.DebugLog("Update Touch Input!! -----"); //chamto test
+
+			Vector2 pos = Input.GetTouch(0).position; 
+			Vector3 theTouch = new Vector3(pos.x , pos.y , 0.0f);
+			
+			Ray ray = Camera.main.ScreenPointToRay(theTouch);
+
+
+			ProcessInput(
+				RayCast2D(ray),RayCast3D(ray));
+			
+		}
+	}
+
+	#endregion
+	//endendendendendendendendendendendendendendendendendendendendendendendendendendendend
+
+
+
+	//----------------------------------------------------------------------------------
+
+	private void Init_PrevTouchMovedPos()
+	{
+		m_prevTouchMovedPos = Input_Unity.GetTouchPos(); //init touchedMovePos
+	}
+
+	/// <summary>
+	/// TouchMoved 함수 호출후 갱신이 되어야 한다.
+	/// </summary>
+	private void Update_PrevTouchMovedPos()
+	{
+		m_prevTouchMovedPos = Input_Unity.GetTouchPos(); //update touchedMovePos
+	}
+
+	/// <summary>
+	/// f : function
+	/// 특정 함수 전용 멤버 변수. 다른 함수에서 접근하여 사용해서는 안된다
+	/// 언어적 문법으로 막는 방법이 없다. (c++ 이라면 함수내 정적변수를 사용해 해결가능함)
+	/// </summary>
+	private bool				f_isEditorDraging = false;
+	void Push_TouchEvent()
+	{
+
+		//CDefine.DebugLog(Input.touchCount);
+		
+		if(Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
+		{
+			if(Input.touchCount > 0) {
+				if(Input.GetTouch(0).phase == TouchPhase.Began)
+				{
+					//CDefine.DebugLogError("Update : TouchPhase.Began"); //chamto test
+					Init_PrevTouchMovedPos();
+					m_TouchedObject = SendMessage_TouchObject("TouchBegan",Input.GetTouch(0).position);
+				}
+				else if(Input.GetTouch(0).phase == TouchPhase.Moved || Input.GetTouch(0).phase == TouchPhase.Stationary)
+				{
+					//CDefine.DebugLogError("Update : TouchPhase.Moved"); //chamto test
+
+					if(null != m_TouchedObject)
+						m_TouchedObject.SendMessage("TouchMoved",0,SendMessageOptions.DontRequireReceiver);
+
+					Update_PrevTouchMovedPos();
+					
+				}
+				else if(Input.GetTouch(0).phase == TouchPhase.Ended)
+				{
+					//CDefine.DebugLogError("Update : TouchPhase.Ended"); //chamto test
+					//checkInput("TouchEnded",Input.GetTouch(0).position);
+					if(null != m_TouchedObject)
+						m_TouchedObject.SendMessage("TouchEnded",0,SendMessageOptions.DontRequireReceiver);
+					m_TouchedObject = null;
+				}
+				else
+				{
+					CDefine.DebugLogError("Update : Exception Input Event : " + Input.GetTouch(0).phase);
+				}
+			}
+		}else if(Application.platform == RuntimePlatform.OSXEditor)
+		{
+			if(Input.GetMouseButtonDown(0)) 
+			{
+				
+				//if(0 == (m_prevMousePosition - Input.mousePosition).sqrMagnitude)
+				{	//mouse Down
+					
+					Init_PrevTouchMovedPos();
+					m_TouchedObject = SendMessage_TouchObject("TouchBegan",Input.mousePosition);
+					
+				}
+				
+				f_isEditorDraging = true;
+				
+				
+				//CDefine.DebugLog("--------------"); //chamto test
+				
+			}
+			else if(Input.GetMouseButtonUp(0))
+			{	//mouse Up
+				f_isEditorDraging = false;
+				
+				if(null != m_TouchedObject)
+					m_TouchedObject.SendMessage("TouchEnded",0,SendMessageOptions.DontRequireReceiver);
+				m_TouchedObject = null;
+				//checkInput("TouchEnded",Input.mousePosition);
+			}else
+			{	//mouse Move
+				
+				if(f_isEditorDraging)
+				{	///mouse Down + Move (Drag)
+					
+					if(null != m_TouchedObject)					
+						m_TouchedObject.SendMessage("TouchMoved",0,SendMessageOptions.DontRequireReceiver);
+
+					Update_PrevTouchMovedPos();
+				}
+			}
+			
+			//m_prevMousePosition = Input.mousePosition;
+		}
+	}
+
+
+	void Update()
+	//void FixedUpdate()
+	{
+		Push_TouchEvent();
+	}
+
+
+	//보조 함수 
+	//내부멤버변수에 접근 안함
+	//함수내부에서 값변환 없음
+	GameObject SendMessage_TouchObject(string callbackMethod , Vector3 touchPos) 
+	{
+		//slow?
+		//Vector3 wp = Camera.main.ScreenToWorldPoint(pos);
+		//Vector3 touchPos = new Vector2(wp.x, wp.y);
+		//Collider2D hit = Physics2D.OverlapPoint(touchPos,LayerMask.NameToLayer("default"));
+
+		//test process speed 
+		Ray ray = Camera.main.ScreenPointToRay(touchPos);
+		RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
+		
+		if(hit){
+			//CDefine.DebugLog(hit.transform.gameObject.name); //chamto test
+			hit.transform.gameObject.SendMessage(callbackMethod,0,SendMessageOptions.DontRequireReceiver);
+
+//			if(hit.tag.Equals("collider"))
+//			{
+//				hit.transform.parent.gameObject.SendMessage(methodName,0,SendMessageOptions.DontRequireReceiver);
+//			}else
+//			{
+//				hit.transform.gameObject.SendMessage(methodName,0,SendMessageOptions.DontRequireReceiver);
+//			}
+
+			return hit.transform.gameObject;
+		}
+
+		return null;
+	}
+
+	void TouchBegan() {}
+	void TouchMoved() {}
+	void TouchEnded() {}
+
+
+}

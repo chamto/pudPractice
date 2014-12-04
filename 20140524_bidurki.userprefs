@@ -1,0 +1,33 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Script/2_Manager/Role/BaseRules.cs">
+    <Files>
+      <File FileName="Assets/Script/2_Mono_Attach/GameObject/MonoDrop.cs" Line="73" Column="38" />
+      <File FileName="Assets/Script/2_Manager/CDropManager.cs" Line="687" Column="3" />
+      <File FileName="Assets/Script/2_Mono_Attach/MonoMain.cs" Line="37" Column="40" />
+      <File FileName="Assets/Script/2_Manager/Role/BaseRules.cs" Line="7" Column="38" />
+      <File FileName="Assets/Script/CommonDefine.cs" Line="1" Column="1" />
+      <File FileName="Assets/Script/2_Manager/CResoureManager.cs" Line="1" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="Assembly-CSharp" expanded="True">
+            <Node name="Script" expanded="True">
+              <Node name="2_Manager" expanded="True">
+                <Node name="Role" expanded="True">
+                  <Node name="BaseRules.cs" selected="True" />
+                </Node>
+              </Node>
+              <Node name="2_Mono_Attach" expanded="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
