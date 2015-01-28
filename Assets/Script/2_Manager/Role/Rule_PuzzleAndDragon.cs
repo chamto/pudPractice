@@ -5,6 +5,19 @@ using PuzzAndBidurgi;
 public class Rule_PuzzleAndDragon  :  BaseRules
 {
 
+	//==============: Enum :==============
+	public enum eState
+	{
+		Step00_Waiting = 0,
+		Step01_DropMove = 1,
+		Step02_DropRemoval = 2,
+		Step03_DropRestoration = 3,
+		Step04_TurnFeed = 4,
+		
+		Max,
+	}
+
+	//==============: Member variable :==============
 	private eState m_eState = eState.Step00_Waiting;
 	public eState state
 	{
@@ -31,16 +44,7 @@ public class Rule_PuzzleAndDragon  :  BaseRules
 		}
 	}
 
-	public enum eState
-	{
-		Step00_Waiting = 0,
-		Step01_DropMove = 1,
-		Step02_DropRemoval = 2,
-		Step03_DropRestoration = 3,
-		Step04_TurnFeed = 4,
 
-		Max,
-	}
 
 
 	override public void Init() 
