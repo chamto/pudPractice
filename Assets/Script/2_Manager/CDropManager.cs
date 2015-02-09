@@ -371,6 +371,7 @@ namespace PuzzAndBidurgi
 			const float HEIGHT_DROP = 1.15f;
 			const uint MAX_DROP_COLUMN = 6;
 			const uint MAX_DROP6X5 = 6 * 5;
+			const uint MAX_DROP6X5X2 = 6 * 5 * 2;
 			const byte MAX_DROPKIND = 6;
 			eResKind[] dropKind = new  eResKind[MAX_DROPKIND];
 			dropKind[0] = eResKind.Red;
@@ -383,12 +384,19 @@ namespace PuzzAndBidurgi
 			System.Random rndDrop = new System.Random();
 
 			MonoDrop pDrop = null;
-			for(int i=0;i<MAX_DROP6X5;i++)
+			for(int i=0 ; i<MAX_DROP6X5 ; i++)
 			{
 				//6x5 : width6 height5
 				pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
 				                   (i% MAX_DROP_COLUMN) * WIDTH_DROP ,(i/MAX_DROP_COLUMN) * -HEIGHT_DROP);
 				m_dtnrDrop.Add(i,pDrop);
+
+				//------ setting drop of color that invisialbe 0~29  ------------
+				//if(null != pDrop && i < MAX_DROP6X5)
+				//{
+				//	//pDrop
+				//}
+
 			}
 
 			//chamto test
