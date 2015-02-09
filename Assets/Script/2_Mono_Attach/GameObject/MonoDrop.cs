@@ -19,7 +19,7 @@ public class MonoDrop : MonoBehaviour
 		{
 			return m_eKind;
 		}
-		set
+		set //chamto 20150130 fixme - 단순 대입코드로 오해 할수 있음. 행위코드라고 명시적으로 뽑아내기 
 		{
 			if(null == m_sprRdr) 
 			{
