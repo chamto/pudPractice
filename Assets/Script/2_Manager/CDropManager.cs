@@ -533,7 +533,7 @@ namespace PuzzAndBidurgi
 			newObj.transform.localPosition = new Vector3(relativeCoord_x,relativeCoord_y,0);
 
 
-			drop.kind = eDrop;
+			drop.setKind = eDrop;
 			drop.firstLocalPosition = newObj.transform.localPosition;
 
 			return drop;

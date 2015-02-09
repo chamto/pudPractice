@@ -13,7 +13,7 @@ public class MonoDrop : MonoBehaviour
 	private SpriteRenderer 	m_sprRdr = null;
 	public int 				keyOfPosition;
 	public eResKind 		m_eKind = eResKind.None;
-	public eResKind 		kind
+	public eResKind 		setKind
 	{
 		get
 		{
