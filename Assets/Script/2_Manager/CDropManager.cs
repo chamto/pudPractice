@@ -384,7 +384,7 @@ namespace PuzzAndBidurgi
 			System.Random rndDrop = new System.Random();
 
 			MonoDrop pDrop = null;
-			for(int i=0 ; i<MAX_DROP6X5 ; i++)
+			for(int i=0 ; i<MAX_DROP6X5X2 ; i++)
 			{
 				//6x5 : width6 height5
 				pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
