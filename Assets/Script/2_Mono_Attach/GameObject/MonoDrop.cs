@@ -48,6 +48,17 @@ public class MonoDrop : MonoBehaviour
 
 	private bool m_isSelected = false;
 
+	public void SetColor(Color color)
+	{
+		if(null == m_sprRdr) 
+		{
+			CDefine.DebugLogError(string.Format("SpriteRenderer is null"));
+			return;
+		}
+
+		m_sprRdr.color = color;
+	}
+
 	//==============: member method :==============
 
 	void Awake()

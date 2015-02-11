@@ -392,10 +392,10 @@ namespace PuzzAndBidurgi
 				m_dtnrDrop.Add(i,pDrop);
 
 				//------ setting drop of color that invisialbe 0~29  ------------
-				//if(null != pDrop && i < MAX_DROP6X5)
-				//{
-				//	//pDrop
-				//}
+				if(null != pDrop && i < MAX_DROP6X5)
+				{
+					pDrop.SetColor(Color.blue);
+				}
 
 			}
 
