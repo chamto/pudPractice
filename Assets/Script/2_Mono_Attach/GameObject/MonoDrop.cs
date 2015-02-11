@@ -11,6 +11,7 @@ public class MonoDrop : MonoBehaviour
 	
 	//spr : sprite , rdr : renderer
 	private SpriteRenderer 	m_sprRdr = null;
+	private BoxCollider2D		m_boxCollider2D = null;
 	public int 				keyOfPosition;
 	public eResKind 		m_eKind = eResKind.None;
 	public eResKind 		setKind
@@ -59,11 +60,22 @@ public class MonoDrop : MonoBehaviour
 		m_sprRdr.color = color;
 	}
 
+	public BoxCollider2D GetBoxCollider2D()
+	{
+		if (null == m_boxCollider2D) 
+		{
+			CDefine.DebugLogError(string.Format("m_boxCollider is null"));
+			return null;
+		}
+		return m_boxCollider2D;
+	}
+
 	//==============: member method :==============
 
 	void Awake()
 	{
 		m_sprRdr = gameObject.GetComponentInChildren<SpriteRenderer>();
+		m_boxCollider2D = gameObject.GetComponentInChildren<BoxCollider2D>();
 
 	}
 

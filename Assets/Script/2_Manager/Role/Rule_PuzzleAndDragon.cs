@@ -85,7 +85,7 @@ public class Rule_PuzzleAndDragon  :  BaseRules
 				//------------------------------------------------------------------------
 				if(ConstRolePuzzleAndDragon.DropMoveTime <= m_stateElapsedTime)
 				{
-					this.NextState();
+					//this.NextState(); //chamto test - 20150211
 				}
 				//------------------------------------------------------------------------
 

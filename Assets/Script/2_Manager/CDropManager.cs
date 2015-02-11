@@ -135,22 +135,28 @@ namespace PuzzAndBidurgi
 		// currection method
 		//------------------------------------------------------------------------
 
-		public Bounds GetBoundaryOfBoard()
+		public Bounds GetBoundaryOfBoard(PairInt boardSize , PairInt boardPos ,Vector3 startPointLeftUp)
 		{
 			Vector3 center, size;
-			size.x = ConstDrop.UI_Width * ConstBoard.Max_Row;
-			size.y = ConstDrop.UI_Height * ConstBoard.Max_Column;
+			size.x = ConstDrop.UI_Width * boardSize.row;
+			size.y = ConstDrop.UI_Height * boardSize.column;
+			//size.x = ConstDrop.UI_Width * ConstBoard.Max_Row;
+			//size.y = ConstDrop.UI_Height * ConstBoard.Max_Column;
 			size.z = 0;
 
-			center.x = Single.UIRoot.transform.position.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f);
-			center.y = Single.UIRoot.transform.position.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f);
+			center.x = startPointLeftUp.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f) + (ConstDrop.UI_Width * boardPos.row);
+			center.y = startPointLeftUp.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f) - (ConstDrop.UI_Height * boardPos.column);;
+			//center.x = Single.UIRoot.transform.position.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f);
+			//center.y = Single.UIRoot.transform.position.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f);// - size.y;
 			center.z = 0;
 
 			//-------------------------------------------------------------------------
-			//20140906 chamto test
+			//20140906 chamto test - debugCode
 			//-------------------------------------------------------------------------
-//			Single.MonoDebug.boundary.transform.position = center;
-//			Single.MonoDebug.boundary.transform.localScale = size;
+#if UNITY_EDITOR
+			Single.MonoDebug.boundary.transform.position = center;
+			Single.MonoDebug.boundary.transform.localScale = size;
+#endif
 			//-------------------------------------------------------------------------
 
 			return new Bounds (center, size);
@@ -163,11 +169,17 @@ namespace PuzzAndBidurgi
 								return lineSeg3;
 
 			//Correction value
-			//PairInt parameter is array index(0 start , 1 is not ). 
-			Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
-			Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
-			Vector3 putPos_left_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, 0));
-			Vector3 putPos_right_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, (int)ConstBoard.Max_Row-1));
+			//PairInt parameter is array index(0 start , 1 is not ).
+			PairInt startPos = PairInt.Start_C5_R0;
+			Vector3 putPos_left_up = GetPositionOfPutDrop (BoardPosition.GetLeftUp(PairInt.Size_5x6 , startPos));
+			Vector3 putPos_right_up = GetPositionOfPutDrop (BoardPosition.GetRightUp(PairInt.Size_5x6 , startPos));
+			Vector3 putPos_left_bottom = GetPositionOfPutDrop (BoardPosition.GetLeftBottom(PairInt.Size_5x6 , startPos));
+			Vector3 putPos_right_bottom = GetPositionOfPutDrop (BoardPosition.GetRightBottom(PairInt.Size_5x6 , startPos));
+
+			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
+			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
+			//Vector3 putPos_left_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, 0));
+			//Vector3 putPos_right_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, (int)ConstBoard.Max_Row-1));
 
 
 			//-------------------------------------------------------------------------
@@ -179,7 +191,7 @@ namespace PuzzAndBidurgi
 //			Single.MonoDebug.cube04.transform.position = putPos_right_bottom;
 			//-------------------------------------------------------------------------
 
-			Bounds bob = GetBoundaryOfBoard ();
+			Bounds bob = GetBoundaryOfBoard (PairInt.Size_5x6, startPos, Single.UIRoot.transform.position);
 			ML.LineSegment3 result = new ML.LineSegment3();
 			result.origin = srcDrop.firstWorldPosition;
 			result.last = lineSeg3.last;
@@ -188,7 +200,7 @@ namespace PuzzAndBidurgi
 
 			//CDefine.DebugLog ("Bounds " + bob + bob.min + bob.max);
 			if (lineSeg3.last.y >= bob.max.y) 
-			{	//correction up
+			{	//------------- correction up -------------
 				//CDefine.DebugLog("----correction up");
 				result.last_y = putPos_left_up.y;
 				if(lineSeg3.last.x <= bob.min.x)
@@ -204,7 +216,7 @@ namespace PuzzAndBidurgi
 
 			}else
 				if (lineSeg3.last.y <= bob.min.y) 
-			{	//correction bottom
+			{	////------------- correction bottom -------------
 				//CDefine.DebugLog("----correction bottom");
 				result.last_y = putPos_left_bottom.y;
 				if(lineSeg3.last.x <= bob.min.x)
@@ -220,17 +232,17 @@ namespace PuzzAndBidurgi
 
 			}else
 				if(lineSeg3.last.x <= bob.min.x)
-			{	//correction left
+			{	////------------- correction left -------------
 				result.last_x = putPos_left_up.x;
 				//CDefine.DebugLog("----correction left");
 			}else
 				if(lineSeg3.last.x >= bob.max.x)
-			{	//correction right
+			{	////------------- correction right -------------
 				result.last_x = putPos_right_up.x;
 				//CDefine.DebugLog("----correction right");
 			}else 
 			{
-				//correction is not required
+				////------------- correction is not required
 				//CDefine.DebugLog("----correction is not required");
 				return lineSeg3;
 			}
@@ -395,6 +407,7 @@ namespace PuzzAndBidurgi
 				if(null != pDrop && i < MAX_DROP6X5)
 				{
 					pDrop.SetColor(Color.blue);
+					pDrop.GetBoxCollider2D().enabled = false; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
 				}
 
 			}
@@ -506,6 +519,8 @@ namespace PuzzAndBidurgi
 				CDefine.DebugLogError(string.Format("MonoDrop is null"));
 				return null;
 			}
+
+			//20150212 chamto - MonoDrop::Awake  에서 랜더러와 콜리더를 얻는다
 //			SpriteRenderer sprRd = newObj.GetComponentInChildren<SpriteRenderer>();
 //			if(null == sprRd) 
 //			{
