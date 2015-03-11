@@ -4,6 +4,8 @@ using System.Collections;
 public class ExampleMesh : MonoBehaviour {
 
 
+	//ref : http://docs.unity3d.com/ScriptReference/Mesh.html
+
 	public Vector3[] newVertices;
 	public Vector2[] newUV;
 	public int[] newTriangles;
