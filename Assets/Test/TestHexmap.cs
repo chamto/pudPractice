@@ -51,6 +51,22 @@ public class TestHexmap : MonoBehaviour
 			hexHypotenuse = Mathf.Sqrt (hexBase * hexBase + hexInScr * hexInScr);
 
 			//AddHexagon (Vector3.zero);
+
+			//-----------------------------------------
+			//setting hexagon map 
+			//-----------------------------------------
+			setPosHexagon = Vector3.zero;
+
+			for (int y=0; y<10; y++) 
+			{
+				//setPosHexagon.y = hexInScr * y; 
+				for(int x=0;x<10;x++)
+				{
+					setPosHexagon.y = hexInScr * (y*2 +(x%2)); 
+					setPosHexagon.x = (hexCircumScr + hexBase) * x;
+					AddHexagon(setPosHexagon);
+				}
+			}
 		}
 	
 		// Update is called once per frame
