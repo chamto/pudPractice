@@ -263,7 +263,8 @@ MonoBehaviour:
   hexCircumScr: 0
   hexInScr: 0
   hexBase: 0
-  m_linePos: {x: 0, y: 0, z: 0}
+  hexHypotenuse: 0
+  setPosHexagon: {x: 0, y: 0, z: 0}
 --- !u!4 &1453051892
 Transform:
   m_ObjectHideFlags: 0
