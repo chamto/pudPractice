@@ -103,8 +103,9 @@ public class TestHexmap : MonoBehaviour
 			}
 		}
 
-
-		// Find out which major row and column we are on:
+		//----------------------------
+		// GetHex
+		//----------------------------
 		pos = Vector3.zero;
 		for (int y=0; y<10; y++) 
 		{
@@ -116,7 +117,7 @@ public class TestHexmap : MonoBehaviour
 
 				if (((x ^ y) & 1) == 0)
 				{
-					obj = AddQuad_LiftBottom(pos,Color.red,hexCircumScr+hexBase-0.3f, hexInScr-0.3f);
+					obj = AddQuad_LiftBottom(pos,Color.red,hexCircumScr+hexBase-0.5f, hexInScr-0.5f);
 					//Debug.Log ("true-----column : " + x + " row : " + y);
 				}
 				else
@@ -125,7 +126,7 @@ public class TestHexmap : MonoBehaviour
 					//Debug.Log ("-----column : " + x + " row : " + y);
 				}
 
-				Add3DText(obj.transform,x + "," + y, Color.red , new Vector3((hexCircumScr + hexBase)/2f , hexInScr/2f, 0f));
+				Add3DText(obj.transform,x + "," + y, Color.red , new Vector3(0f , hexInScr/2f, 0f));
 			}
 				
 		}
