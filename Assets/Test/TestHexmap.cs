@@ -17,7 +17,7 @@ public class TestHexmap : MonoBehaviour
 //			 \     |     /
 //		 [4]  \____|____/  [3]
 //			       |
-
+//
 //	      /|
 //    a' / |
 //	    /  | b
@@ -25,181 +25,335 @@ public class TestHexmap : MonoBehaviour
 //    (----ㅁ
 //	     c
 
-		//"a" is the radius of circumscribed that hexagon
-		//"b" is the radius of inscribed that hexagon
-		//"c" is the base or the top edge
-		// if a == a' that  The regular hexagon  and  [a' : b : c = 2 : root3 : 1]
-		public float hexCircumScr;	// "a"
-		public float hexInScr;		// "b"
-		public float hexBase ;		// "c"
-		public float hexHypotenuse; //  a' 
+	//"a" is the radius of circumscribed that hexagon
+	//"b" is the radius of inscribed that hexagon
+	//"c" is the base or the top edge
+	// if a == a' that  The regular hexagon  and  [a' : b : c = 2 : root3 : 1]
+	public float hexCircumScr;	// "a"
+	public float hexInScr;		// "b"
+	public float hexBase ;		// "c"
+	public float hexHypotenuse; //  a' 
 
-		public Vector3 setPosHexagon;
-		
-		private GameObject m_hexagonMap = null;
-
-		// Use this for initialization
-		void Start ()
-		{
-			m_hexagonMap = GameObject.Find ("HexagonMap");
-			if(null == m_hexagonMap)
-				m_hexagonMap = new GameObject("HexagonMap");
-
-			hexCircumScr = 2f;
-			hexInScr = 1.72f;
-			hexBase = 1.0f;
-			hexHypotenuse = Mathf.Sqrt (hexBase * hexBase + hexInScr * hexInScr);
-
-			//AddHexagon (Vector3.zero);
-
-			//-----------------------------------------
-			//setting hexagon map 
-			//-----------------------------------------
-			setPosHexagon = Vector3.zero;
-
-			for (int y=0; y<10; y++) 
-			{
-				//setPosHexagon.y = hexInScr * y; 
-				for(int x=0;x<10;x++)
-				{
-					setPosHexagon.y = hexInScr * (y*2 +(x%2)); 
-					setPosHexagon.x = (hexCircumScr + hexBase) * x;
-					AddHexagon(setPosHexagon);
-				}
-			}
-		}
+	public Vector3 setPosHexagon;
 	
-		// Update is called once per frame
-		void Update ()
-		{
+	private GameObject m_hexagonMap = null;
 
-			if(Input.GetMouseButtonUp(0))
-			//if (Input.touchCount > 0) 
+	// Use this for initialization
+	void Start ()
+	{
+		m_hexagonMap = GameObject.Find ("HexagonMap");
+		if(null == m_hexagonMap)
+			m_hexagonMap = new GameObject("HexagonMap");
+
+		hexCircumScr = 2f;
+		hexInScr = 1.72f;
+		hexBase = 1.0f;
+		hexHypotenuse = Mathf.Sqrt (hexBase * hexBase + hexInScr * hexInScr);
+
+		//AddHexagon (Vector3.zero);
+
+		//-----------------------------------------
+		//setting hexagon map 
+		//-----------------------------------------
+		InitHexMap ();
+	}
+
+	// Update is called once per frame
+	void Update ()
+	{
+
+		if(Input.GetMouseButtonUp(0))
+		//if (Input.touchCount > 0) 
+		{
+			//if (Input.GetTouch (0).phase == TouchPhase.Ended) 
 			{
-				//if (Input.GetTouch (0).phase == TouchPhase.Ended) 
-				{
-					CallBackTouchEnded();
-				}
+				CallBackTouchEnded();
+			}
+		}
+	}
+
+	void CallBackTouchEnded()
+	{
+		//Vector3 pos =  Camera.main.ScreenToWorldPoint (Input.GetTouch(0).position);
+		Vector3 pos =  Camera.main.ScreenToWorldPoint (Input.mousePosition);
+		
+		int HexPosX = 0, HexPosY = 0;
+		
+		
+		GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
+		//PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
+
+		Debug.Log ("WorldPos : " + pos + "  HexPos : " + HexPosX + " " + HexPosY);
+	}
+
+	void InitHexMap()
+	{
+		GameObject obj;
+		Vector3 pos = Vector3.zero;
+		for (int y=0; y<10; y++) 
+		{
+			//pos.y = hexInScr * y; 
+			for(int x=0;x<10;x++)
+			{
+				pos.y = hexInScr * (y*2 +(x%2)); 
+				pos.x = (hexCircumScr + hexBase) * x;
+				obj = AddHexagon(pos);
+				//obj = AddQuadrangle(pos);
+				Add3DText(obj.transform,x + "," + (y*2+(x%2)), Color.white , Vector3.zero);
 			}
 		}
 
-		void CallBackTouchEnded()
+
+		// Find out which major row and column we are on:
+		pos = Vector3.zero;
+		for (int y=0; y<10; y++) 
 		{
-			//Vector3 pos =  Camera.main.ScreenToWorldPoint (Input.GetTouch(0).position);
-			Vector3 pos =  Camera.main.ScreenToWorldPoint (Input.mousePosition);
-			
-			int HexPosX = 0, HexPosY = 0;
-			
-			
-			//GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
-			PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
-
-			Debug.Log ("WorldPos : " + pos + "  HexPos : " + HexPosX + " " + HexPosY);
-		}
-
-		//ref : http://gamedev.stackexchange.com/questions/20742/how-can-i-implement-hexagonal-tilemap-picking-in-xna
-		void GetHex(float x, float y, out int row, out int column)
-		{
-			float a = hexCircumScr;
-			float b = hexInScr;
-			float c = hexBase;
-
-			// Find out which major row and column we are on:
-			row = (int)(y / b);
-			column = (int)(x / (a + c));
-			
-			// Compute the offset into these row and column:
-			float dy = y - (float)row * b;
-			float dx = x - (float)column * (a + c);
-			
-			// Are we on the left of the hexagon edge, or on the right?
-			if (((row ^ column) & 1) == 0)
-				dy = b - dy;
-			int right = dy * (a - c) < b * (dx - c) ? 1 : 0;
-			
-			// Now we have all the information we need, just fine-tune row and column.
-			row += (column ^ row ^ right) & 1;
-			column += right;
-		}
-
-		//ref : http://www-cs-students.stanford.edu/~amitp/Articles/GridToHex.html
-		void PointToHex( float xp, float yp ,out int hexX , out int hexY)
-		{
-
-			// NOTE:  HexCoord(0,0)'s x() and y() just define the origin
-			//        for the coordinate system; replace with your own
-			//        constants.  (HexCoord(0,0) is the origin in the hex
-			//        coordinate system, but it may be offset in the x/y
-			//        system; that's why I subtract.)
-			float x = xp / (hexCircumScr + hexBase);
-			float y =  yp / (hexInScr *2);
-			float z = -0.5f * x - y;
-			y = -0.5f * x + y;
-			int ix = Mathf.FloorToInt(x+0.5f);
-			int iy = Mathf.FloorToInt(y+0.5f);
-			int iz = Mathf.FloorToInt(z+0.5f);
-			int s = ix+iy+iz;
-			if( 0 != s )
+			for (int x=0; x<10; x++) 
 			{
-				float abs_dx = Mathf.Abs(ix-x);
-				float abs_dy = Mathf.Abs(iy-y);
-				float abs_dz = Mathf.Abs(iz-z);
-				if( abs_dx >= abs_dy && abs_dx >= abs_dz )
-					ix -= s;
-				else if( abs_dy >= abs_dx && abs_dy >= abs_dz )
-					iy -= s;
+				pos.y = hexInScr * y;
+				pos.x = (hexCircumScr + hexBase) * x;
+
+
+				if (((x ^ y) & 1) == 0)
+				{
+					obj = AddQuad_LiftBottom(pos,Color.red,hexCircumScr+hexBase-0.3f, hexInScr-0.3f);
+					//Debug.Log ("true-----column : " + x + " row : " + y);
+				}
 				else
-					iz -= s;
+				{
+					obj = AddQuad_LiftBottom(pos,Color.white,hexCircumScr+hexBase, hexInScr);
+					//Debug.Log ("-----column : " + x + " row : " + y);
+				}
+
+				Add3DText(obj.transform,x + "," + y, Color.red , new Vector3((hexCircumScr + hexBase)/2f , hexInScr/2f, 0f));
 			}
-			hexX = ix;
-			hexY = (iy - iz + (1-ix%2) ) / 2;
-			//return HexCoord( ix, ( iy - iz + (1-ix%2) ) / 2 );
+				
 		}
-	
 
+	}
 
-		int AddHexagon (Vector3 setPos)
-		{
-			Vector3 pos = Vector3.zero;
-			
-			GameObject hex = new GameObject ("hex");
-			LineRenderer lineRenderer = hex.AddComponent<LineRenderer> (); //not multiple add !!
-			hex.transform.parent = m_hexagonMap.transform;
-			//MonoBehaviour.Instantiate (lineRenderer.gameObject);
-			if (null == lineRenderer)
-						Debug.LogError ("lineRenderer is null");
+	//ref : http://gamedev.stackexchange.com/questions/20742/how-can-i-implement-hexagonal-tilemap-picking-in-xna
+	void GetHex(float x, float y, out int row, out int column)
+	{
+		float a = hexCircumScr;
+		float b = hexInScr;
+		float c = hexBase;
 
-			lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
-			lineRenderer.SetColors (Color.blue, Color.blue);
-			lineRenderer.SetWidth (0.1F, 0.1F);
-			lineRenderer.SetVertexCount (7);
-
-			pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
-			lineRenderer.SetPosition (0,pos + setPos);
-
-			pos.x = hexBase; pos.y = hexInScr; pos.z = 0;
-			lineRenderer.SetPosition (1,pos + setPos);
-
-			pos.x = hexCircumScr; pos.y = 0; pos.z = 0;
-			lineRenderer.SetPosition (2,pos + setPos);
-
-			pos.x = hexBase; pos.y = -hexInScr; pos.z = 0;
-			lineRenderer.SetPosition (3,pos + setPos);
+		// Find out which major row and column we are on:
+		row = (int)(y / b);
+		column = (int)(x / (a + c));
+		Debug.Log ("GetHex << column : " +column+ " row : "+row); //chamto test
 		
-			pos.x = -hexBase; pos.y = -hexInScr; pos.z = 0;
-			lineRenderer.SetPosition (4,pos + setPos);
+		// Compute the offset into these row and column:
+		//  dy = y - "The point by liftBottom on quad : [value scope] row*b < row*(b+1)"
+		float dy = y - (float)row * b;
+		float dx = x - (float)column * (a + c);
+		Debug.Log ("GetHex << dx : " +dx+ " dy : "+dy); //chamto test
 
-			pos.x = -hexCircumScr; pos.y = 0; pos.z = 0;
-			lineRenderer.SetPosition (5,pos + setPos);
+		// Are we on the left of the hexagon edge, or on the right?
+		//The value of end bit 0 is number lists : 0   2   4   6   8 .... [even number]
+		//The value of end bit 1 is number lists :   1   3   5   7   .... [odd number]
+		if (((row ^ column) & 1) == 0) // condition : two value whole odd or even
+			dy = b - dy;  //reversal value
 
-			pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
-			lineRenderer.SetPosition (6,pos + setPos);
+		//int right = dy * (a - c) < b * (dx - c) ? 1 : 0;
+		int right;
+		if(dy * (a - c) < b * (dx - c))
+			right =  1;
+		else
+			right =  0;
+		
+		// Now we have all the information we need, just fine-tune row and column.
+		row += (column ^ row ^ right) & 1;
+		column += right;
+	}
 
-			return lineRenderer.GetInstanceID ();
-			
+	//ref : http://www-cs-students.stanford.edu/~amitp/Articles/GridToHex.html
+	void PointToHex( float xp, float yp ,out int hexX , out int hexY)
+	{
+
+		// NOTE:  HexCoord(0,0)'s x() and y() just define the origin
+		//        for the coordinate system; replace with your own
+		//        constants.  (HexCoord(0,0) is the origin in the hex
+		//        coordinate system, but it may be offset in the x/y
+		//        system; that's why I subtract.)
+		float x = xp / (hexCircumScr + hexBase);
+		float y =  yp / (hexInScr *2);
+		float z = -0.5f * x - y;
+		y = -0.5f * x + y;
+		int ix = Mathf.FloorToInt(x+0.5f);
+		int iy = Mathf.FloorToInt(y+0.5f);
+		int iz = Mathf.FloorToInt(z+0.5f);
+		int s = ix+iy+iz;
+		if( 0 != s )
+		{
+			float abs_dx = Mathf.Abs(ix-x);
+			float abs_dy = Mathf.Abs(iy-y);
+			float abs_dz = Mathf.Abs(iz-z);
+			if( abs_dx >= abs_dy && abs_dx >= abs_dz )
+				ix -= s;
+			else if( abs_dy >= abs_dx && abs_dy >= abs_dz )
+				iy -= s;
+			else
+				iz -= s;
 		}
+		hexX = ix;
+		hexY = (iy - iz + (1-ix%2) ) / 2;
+		//return HexCoord( ix, ( iy - iz + (1-ix%2) ) / 2 );
+	}
 
 
+
+
+	
+	GameObject AddHexagon (Vector3 setPos)
+	{
+		Vector3 pos = Vector3.zero;
+		
+		GameObject hex = new GameObject ("hex");
+		LineRenderer lineRenderer = hex.AddComponent<LineRenderer> (); //not multiple add !!
+		hex.transform.parent = m_hexagonMap.transform;
+		//MonoBehaviour.Instantiate (lineRenderer.gameObject);
+		if (null == lineRenderer)
+					Debug.LogError ("lineRenderer is null");
+
+		lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
+		lineRenderer.SetColors (Color.blue, Color.blue);
+		lineRenderer.SetWidth (0.1F, 0.1F);
+		lineRenderer.SetVertexCount (7);
+		lineRenderer.useWorldSpace = false;
+		lineRenderer.transform.position = setPos;
+
+		pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (0,pos);
+
+		pos.x = hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (1,pos);
+
+		pos.x = hexCircumScr; pos.y = 0; pos.z = 0;
+		lineRenderer.SetPosition (2,pos);
+
+		pos.x = hexBase; pos.y = -hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (3,pos);
+	
+		pos.x = -hexBase; pos.y = -hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (4,pos);
+
+		pos.x = -hexCircumScr; pos.y = 0; pos.z = 0;
+		lineRenderer.SetPosition (5,pos);
+
+		pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (6,pos);
+
+		return hex;
+		
+	}
+
+
+	GameObject AddQuad_LiftBottom(Vector3 liftBottomPos, Color color, float width, float height)
+	{
+		Vector3 pos = Vector3.zero;
+		
+		GameObject hex = new GameObject ("Quad2");
+		LineRenderer lineRenderer = hex.AddComponent<LineRenderer> (); //not multiple add !!
+		hex.transform.parent = m_hexagonMap.transform;
+		//MonoBehaviour.Instantiate (lineRenderer.gameObject);
+		if (null == lineRenderer)
+			Debug.LogError ("lineRenderer is null");
+		
+		lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
+		lineRenderer.SetColors (color, color);
+		lineRenderer.SetWidth (0.2F, 0.2F);
+		lineRenderer.SetVertexCount (5);
+		lineRenderer.useWorldSpace = false;
+		lineRenderer.transform.position = liftBottomPos;
+		
+		pos.x = 0; pos.y = 0; pos.z = 0;
+		lineRenderer.SetPosition (0,pos);
+		
+		pos.x = 0; pos.y = height; pos.z = 0;
+		lineRenderer.SetPosition (1,pos);
+		
+		pos.x = width; pos.y = height; pos.z = 0;
+		lineRenderer.SetPosition (2,pos);
+		
+		pos.x = width; pos.y = 0; pos.z = 0;
+		lineRenderer.SetPosition (3,pos);
+		
+		pos.x = 0; pos.y = 0; pos.z = 0;
+		lineRenderer.SetPosition (4,pos);
+		
+		return hex;
+	}
+
+
+	GameObject AddQuadrangle (Vector3 setPos)
+	{
+		Vector3 pos = Vector3.zero;
+		
+		GameObject hex = new GameObject ("Quad");
+		LineRenderer lineRenderer = hex.AddComponent<LineRenderer> (); //not multiple add !!
+		hex.transform.parent = m_hexagonMap.transform;
+		//MonoBehaviour.Instantiate (lineRenderer.gameObject);
+		if (null == lineRenderer)
+			Debug.LogError ("lineRenderer is null");
+		
+		lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
+		lineRenderer.SetColors (Color.green, Color.green);
+		lineRenderer.SetWidth (0.2F, 0.2F);
+		lineRenderer.SetVertexCount (5);
+		lineRenderer.useWorldSpace = false;
+		lineRenderer.transform.position = setPos;
+
+		pos.x = -hexCircumScr; pos.y = hexInScr; pos.z = 0;
+		//pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (0,pos);
+
+		pos.x = hexBase; pos.y = hexInScr; pos.z = 0;
+		//pos.x = hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (1,pos);
+
+		pos.x = hexBase; pos.y = -hexInScr; pos.z = 0;
+		//pos.x = hexBase; pos.y = -hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (2,pos);
+
+		pos.x = -hexCircumScr; pos.y = -hexInScr; pos.z = 0;
+		//pos.x = -hexBase; pos.y = -hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (3,pos);
+
+		pos.x = -hexCircumScr; pos.y = hexInScr; pos.z = 0;
+		//pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (4,pos);
+		
+		return hex;
+		
+	}
+
+	//do not run ,, why not view ? 
+	void AddGuiText(Transform parent , string text)
+	{
+		GameObject objGui = new GameObject ("GuiText");
+		GUIText gui = objGui.AddComponent<GUIText> ();
+		gui.text = text;
+		gui.transform.parent = parent;
+		gui.anchor = TextAnchor.MiddleCenter;
+		gui.font = new Font ("Arial");
+		gui.transform.position = new Vector3 (0.5f, 0.5f, 0);
+
+	}
+
+	void Add3DText(Transform parent, string text, Color color , Vector3 pos)
+	{
+
+		GameObject objGui = MonoBehaviour.Instantiate (Resources.Load("Prefab/3DText"),Vector3.zero,Quaternion.identity) as GameObject;
+		TextMesh gui = objGui.GetComponent<TextMesh> ();
+		objGui.transform.parent = parent;
+		objGui.transform.localPosition = pos;
+		gui.text = text;
+		gui.color = color;
+		gui.anchor = TextAnchor.UpperLeft;
+
+	}
 
 	#if UNITY_EDITOR
 	void OnGUI()
