@@ -55,7 +55,7 @@ public class TestHexmap : MonoBehaviour
 		//-----------------------------------------
 		//setting hexagon map 
 		//-----------------------------------------
-		InitHexMap ();
+		InitHexMap_Analysis_GetHex ();
 	}
 
 	// Update is called once per frame
@@ -83,17 +83,17 @@ public class TestHexmap : MonoBehaviour
 		GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
 		//PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 
-		Debug.Log ("WorldPos : " + pos + "  HexPos : " + HexPosX + " " + HexPosY);
+		Debug.Log ("----->WorldPos : " + pos + "  HexPos : " + HexPosX + " " + HexPosY);
 	}
 
-	void InitHexMap()
+	void InitHexMap_Analysis_GetHex()
 	{
 		GameObject obj;
 		Vector3 pos = Vector3.zero;
-		for (int y=0; y<10; y++) 
+		for (int y=-2; y<10; y++) 
 		{
 			//pos.y = hexInScr * y; 
-			for(int x=0;x<10;x++)
+			for(int x=-2;x<10;x++)
 			{
 				pos.y = hexInScr * (y*2 +(x%2)); 
 				pos.x = (hexCircumScr + hexBase) * x;
@@ -107,9 +107,9 @@ public class TestHexmap : MonoBehaviour
 		// GetHex
 		//----------------------------
 		pos = Vector3.zero;
-		for (int y=0; y<10; y++) 
+		for (int y=-2; y<10; y++) 
 		{
-			for (int x=0; x<10; x++) 
+			for (int x=-2; x<10; x++) 
 			{
 				pos.y = hexInScr * y;
 				pos.x = (hexCircumScr + hexBase) * x;
@@ -141,15 +141,21 @@ public class TestHexmap : MonoBehaviour
 		float c = hexBase;
 
 		// Find out which major row and column we are on:
-		row = (int)(y / b);
-		column = (int)(x / (a + c));
-		Debug.Log ("GetHex << column : " +column+ " row : "+row); //chamto test
+		float adj_row = (y / b);
+		float adj_col = (x / (a + c));
+		row = adj_row < 0 ? (int)(adj_row + -1.0f) : (int)(adj_row); 
+		column = adj_col < 0 ? (int)(adj_col + -1.0f) : (int)(adj_col); 
+		//row = (int)(y / b);
+		//column = (int)(x / (a + c));
+		//Debug.Log ("GetHex << column : " +column+ " :  " +(x/(a+c))+" row : "+row +" :  "+ (y/b)); //chamto test
 		
 		// Compute the offset into these row and column:
 		//  dy = y - "The point by liftBottom on quad : [value scope] row*b < row*(b+1)"
 		float dy = y - (float)row * b;
 		float dx = x - (float)column * (a + c);
-		Debug.Log ("GetHex << dx : " +dx+ " dy : "+dy); //chamto test
+		//dy = Mathf.Abs (dy);
+		//dx = Mathf.Abs (dx);
+		//Debug.Log ("GetHex << dx : " +dx+ " dy : "+dy); //chamto test
 
 		// Are we on the left of the hexagon edge, or on the right?
 		//The value of end bit 0 is number lists : 0   2   4   6   8 .... [even number]
