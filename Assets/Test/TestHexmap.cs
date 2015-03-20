@@ -55,7 +55,9 @@ public class TestHexmap : MonoBehaviour
 		//-----------------------------------------
 		//setting hexagon map 
 		//-----------------------------------------
-		InitHexMap_Analysis_GetHex ();
+		//InitHexMap_Analysis_GetHex ();
+		//InitHexMap_Analysis_PointToHex ();
+		InitHexMap_Analysis_PositionXYToHex ();
 	}
 
 	// Update is called once per frame
@@ -80,23 +82,62 @@ public class TestHexmap : MonoBehaviour
 		int HexPosX = 0, HexPosY = 0;
 		
 		
-		GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
+		//GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
 		//PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 
+		PositionXYToHex (pos.x, pos.y, out HexPosX, out HexPosY);
+
+
 		Debug.Log ("----->WorldPos : " + pos + "  HexPos : " + HexPosX + " " + HexPosY);
+	}
+
+
+
+	/// <summary>
+	/// 3d x, y축을 기준으로 hexmap의 인덱스를 얻어온다
+	/// 육각형 크기에 맞는 사각형으로 계산하는게 특징이다
+	/// </summary>
+	void PositionXYToHex(float x, float y, out int row, out int column)
+	{
+		//--------------------------------------
+		// Reverse express : position to index
+		//--------------------------------------
+		//pos.x = (hexCircumScr + hexBase) * x;
+		//pos.y = hexInScr * (y*2 +(x%2));
+		//--------------------------------------
+		row = Mathf.RoundToInt(x / (hexCircumScr + hexBase));
+		column = Mathf.RoundToInt((y - hexInScr * (float)(row % 2)) / ( 2f * hexInScr));
+	}
+
+	void InitHexMap_Analysis_PositionXYToHex()
+	{
+		GameObject obj;
+		Vector3 pos = Vector3.zero;
+		for (int y=-1; y<10; y++) 
+		{
+			//pos.y = hexInScr * y; 
+			for(int x=-1;x<10;x++)
+			{
+				pos.x = (hexCircumScr + hexBase) * x;
+				pos.y = hexInScr * (y*2 +(x%2)); 
+				obj = AddHexagon(pos);
+				obj = AddQuad_Center(pos,Color.cyan,(hexCircumScr+hexBase),hexInScr*2);
+				Add3DText(obj.transform,x + "," + y, Color.white , Vector3.zero);
+			}
+		}
 	}
 
 	void InitHexMap_Analysis_GetHex()
 	{
 		GameObject obj;
 		Vector3 pos = Vector3.zero;
-		for (int y=-2; y<10; y++) 
+		for (int y=-1; y<10; y++) 
 		{
 			//pos.y = hexInScr * y; 
-			for(int x=-2;x<10;x++)
+			for(int x=-1;x<10;x++)
 			{
-				pos.y = hexInScr * (y*2 +(x%2)); 
 				pos.x = (hexCircumScr + hexBase) * x;
+				pos.y = hexInScr * (y*2 +(x%2)); 
 				obj = AddHexagon(pos);
 				//obj = AddQuadrangle(pos);
 				Add3DText(obj.transform,x + "," + (y*2+(x%2)), Color.white , Vector3.zero);
@@ -104,7 +145,7 @@ public class TestHexmap : MonoBehaviour
 		}
 
 		//----------------------------
-		// GetHex
+		// GetHex GuidLine
 		//----------------------------
 		pos = Vector3.zero;
 		for (int y=-2; y<10; y++) 
@@ -131,6 +172,57 @@ public class TestHexmap : MonoBehaviour
 				
 		}
 
+	}
+
+
+
+	void InitHexMap_Analysis_PointToHex()
+	{
+		GameObject obj;
+		Vector3 pos = Vector3.zero;
+		for (int y=-1; y<10; y++) 
+		{
+			//pos.y = hexInScr * y; 
+			for(int x=-1;x<10;x++)
+			{
+				pos.x = (hexCircumScr + hexBase) * x;
+				pos.y = hexInScr * (y*2 +(x%2)); 
+				obj = AddHexagon(pos);
+				obj = AddQuad_Center(pos,Color.cyan,(hexCircumScr+hexBase),hexInScr*2);
+				Add3DText(obj.transform,x + "," + y, Color.white , Vector3.zero);
+
+				float cx = pos.x / (hexCircumScr + hexBase);
+				float cy =  pos.y / (hexInScr *2);
+				float cz = -0.5f * cx - cy;
+				cy = -0.5f * cx + cy;
+				int ix = Mathf.FloorToInt(cx+0.5f);
+				int iy = Mathf.FloorToInt(cy+0.5f);
+				int iz = Mathf.FloorToInt(cz+0.5f);
+				Add3DText(obj.transform,ix + "," + iy + "," + iz, Color.gray , new Vector3(0,-0.5f,0));
+			}
+		}
+		
+		//----------------------------
+		// GuidLine
+		//----------------------------
+		pos = Vector3.zero;
+		for (int y=-2; y<10; y++) 
+		{
+			for (int x=-2; x<10; x++) 
+			{
+				pos.x = (hexCircumScr + hexBase) * x;
+				pos.y = hexInScr * 2 * y;
+				pos.z = -0.5f * x - y;
+				pos.y = -0.5f * pos.x + pos.y;
+				//obj = AddQuad_LiftBottom(pos,Color.white,hexCircumScr+hexBase, hexInScr*2);
+				//Debug.Log ("-----column : " + x + " row : " + y);
+
+				
+				//Add3DText(obj.transform,pos.ToString(), Color.red , new Vector3(0f , 0f, 0f));
+			}
+			
+		}
+		
 	}
 
 	//ref : http://gamedev.stackexchange.com/questions/20742/how-can-i-implement-hexagonal-tilemap-picking-in-xna
@@ -192,11 +284,13 @@ public class TestHexmap : MonoBehaviour
 		int iy = Mathf.FloorToInt(y+0.5f);
 		int iz = Mathf.FloorToInt(z+0.5f);
 		int s = ix+iy+iz;
+		Debug.Log ("PointToHex <<  s : " + s + " ix :" +ix+ " iy :"+iy+" iz :"+iz);
 		if( 0 != s )
 		{
 			float abs_dx = Mathf.Abs(ix-x);
 			float abs_dy = Mathf.Abs(iy-y);
 			float abs_dz = Mathf.Abs(iz-z);
+			Debug.Log ("PointToHex <<  abs_dx : " + abs_dx + " abs_dy : " +abs_dy+ " abs_dz : " +abs_dz);
 			if( abs_dx >= abs_dy && abs_dx >= abs_dz )
 				ix -= s;
 			else if( abs_dy >= abs_dx && abs_dy >= abs_dz )
@@ -293,6 +387,47 @@ public class TestHexmap : MonoBehaviour
 		return hex;
 	}
 
+	GameObject AddQuad_Center (Vector3 setPos, Color color, float width, float height)
+	{
+		Vector3 pos = Vector3.zero;
+		
+		GameObject hex = new GameObject ("Quad");
+		LineRenderer lineRenderer = hex.AddComponent<LineRenderer> (); //not multiple add !!
+		hex.transform.parent = m_hexagonMap.transform;
+		//MonoBehaviour.Instantiate (lineRenderer.gameObject);
+		if (null == lineRenderer)
+			Debug.LogError ("lineRenderer is null");
+		
+		lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
+		lineRenderer.SetColors (color, color);
+		lineRenderer.SetWidth (0.2F, 0.2F);
+		lineRenderer.SetVertexCount (5);
+		lineRenderer.useWorldSpace = false;
+		lineRenderer.transform.position = setPos;
+		
+		pos.x = -width/2f; pos.y = height/2f; pos.z = 0;
+		//pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (0,pos);
+		
+		pos.x = width/2f; pos.y = height/2f; pos.z = 0;
+		//pos.x = hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (1,pos);
+		
+		pos.x = width/2f; pos.y = -height/2f; pos.z = 0;
+		//pos.x = hexBase; pos.y = -hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (2,pos);
+		
+		pos.x = -width/2f; pos.y = -height/2; pos.z = 0;
+		//pos.x = -hexBase; pos.y = -hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (3,pos);
+		
+		pos.x = -width/2f; pos.y = height/2; pos.z = 0;
+		//pos.x = -hexBase; pos.y = hexInScr; pos.z = 0;
+		lineRenderer.SetPosition (4,pos);
+		
+		return hex;
+		
+	}
 
 	GameObject AddQuadrangle (Vector3 setPos)
 	{
