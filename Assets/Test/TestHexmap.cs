@@ -56,8 +56,8 @@ public class TestHexmap : MonoBehaviour
 		//setting hexagon map 
 		//-----------------------------------------
 		//InitHexMap_Analysis_GetHex ();
-		//InitHexMap_Analysis_PointToHex ();
-		InitHexMap_Analysis_PositionXYToHex ();
+		InitHexMap_Analysis_PointToHex ();
+		//InitHexMap_Analysis_PositionXYToHex ();
 	}
 
 	// Update is called once per frame
@@ -83,31 +83,14 @@ public class TestHexmap : MonoBehaviour
 		
 		
 		//GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
-		//PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
+		PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
+		//PositionXYToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 
-		PositionXYToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 
 
 		Debug.Log ("----->WorldPos : " + pos + "  HexPos : " + HexPosX + " " + HexPosY);
 	}
 
-
-
-	/// <summary>
-	/// 3d x, y축을 기준으로 hexmap의 인덱스를 얻어온다
-	/// 육각형 크기에 맞는 사각형으로 계산하는게 특징이다
-	/// </summary>
-	void PositionXYToHex(float x, float y, out int row, out int column)
-	{
-		//--------------------------------------
-		// Reverse express : position to index
-		//--------------------------------------
-		//pos.x = (hexCircumScr + hexBase) * x;
-		//pos.y = hexInScr * (y*2 +(x%2));
-		//--------------------------------------
-		row = Mathf.RoundToInt(x / (hexCircumScr + hexBase));
-		column = Mathf.RoundToInt((y - hexInScr * (float)(row % 2)) / ( 2f * hexInScr));
-	}
 
 	void InitHexMap_Analysis_PositionXYToHex()
 	{
@@ -180,15 +163,18 @@ public class TestHexmap : MonoBehaviour
 	{
 		GameObject obj;
 		Vector3 pos = Vector3.zero;
-		for (int y=-1; y<10; y++) 
+		Vector3 prevPos = Vector3.zero;
+		for (int y=-2; y<10; y++) 
 		{
 			//pos.y = hexInScr * y; 
-			for(int x=-1;x<10;x++)
+			for(int x=-2;x<10;x++)
 			{
+				prevPos = pos;
 				pos.x = (hexCircumScr + hexBase) * x;
 				pos.y = hexInScr * (y*2 +(x%2)); 
 				obj = AddHexagon(pos);
-				obj = AddQuad_Center(pos,Color.cyan,(hexCircumScr+hexBase),hexInScr*2);
+				//obj = AddQuad_Center(pos,Color.cyan,(hexCircumScr+hexBase),hexInScr*2);
+				//obj = AddQuadrangle(pos);
 				Add3DText(obj.transform,x + "," + y, Color.white , Vector3.zero);
 
 				float cx = pos.x / (hexCircumScr + hexBase);
@@ -199,6 +185,8 @@ public class TestHexmap : MonoBehaviour
 				int iy = Mathf.FloorToInt(cy+0.5f);
 				int iz = Mathf.FloorToInt(cz+0.5f);
 				Add3DText(obj.transform,ix + "," + iy + "," + iz, Color.gray , new Vector3(0,-0.5f,0));
+
+				//obj = AddLine(Color.red, prevPos , pos);
 			}
 		}
 		
@@ -210,6 +198,7 @@ public class TestHexmap : MonoBehaviour
 		{
 			for (int x=-2; x<10; x++) 
 			{
+				prevPos = pos;
 				pos.x = (hexCircumScr + hexBase) * x;
 				pos.y = hexInScr * 2 * y;
 				pos.z = -0.5f * x - y;
@@ -219,10 +208,53 @@ public class TestHexmap : MonoBehaviour
 
 				
 				//Add3DText(obj.transform,pos.ToString(), Color.red , new Vector3(0f , 0f, 0f));
+
+
+				//obj = AddLine(Color.red, prevPos , pos);
+
 			}
+
 			
 		}
-		
+
+		//----------------------------
+		// GuidLine 2
+		//----------------------------
+		int idxFirst = 0;
+		Vector3 textUp = new Vector3 (0, 0.5f, 0);
+		pos = Vector3.zero;
+		for (int iy=idxFirst; iy<10; iy++) 
+		{
+
+			for (int ix=idxFirst; ix<10; ix++) 
+			{
+				prevPos = pos;
+				pos.x = ix * (hexCircumScr + hexBase);
+				pos.y = hexInScr * ( 2 * iy + ix );
+
+				if(idxFirst == ix) continue;
+				obj = AddLine(Color.red, prevPos , pos);
+				Add3DText(obj.transform,"ix:"+ix +" iy:"+iy+" iz", Color.red , pos-prevPos + textUp);
+			}
+
+		}
+
+		pos = Vector3.zero;
+		for (int iz=idxFirst; iz<10; iz++) 
+		{
+			
+			for (int ix=idxFirst; ix<10; ix++) 
+			{
+				prevPos = pos;
+				pos.x = ix * (hexCircumScr + hexBase);
+				pos.y = hexInScr * ( 2 * iz + ix );
+				pos.y *= -1f;
+
+				if(idxFirst == ix) continue;
+				obj = AddLine(Color.magenta, prevPos , pos);
+				Add3DText(obj.transform,"ix:"+ix + " iy iz:"+iz, Color.red , pos-prevPos + textUp);
+			}
+		}
 	}
 
 	//ref : http://gamedev.stackexchange.com/questions/20742/how-can-i-implement-hexagonal-tilemap-picking-in-xna
@@ -280,9 +312,12 @@ public class TestHexmap : MonoBehaviour
 		float y =  yp / (hexInScr *2);
 		float z = -0.5f * x - y;
 		y = -0.5f * x + y;
-		int ix = Mathf.FloorToInt(x+0.5f);
-		int iy = Mathf.FloorToInt(y+0.5f);
-		int iz = Mathf.FloorToInt(z+0.5f);
+		int ix = Mathf.RoundToInt(x);
+		int iy = Mathf.RoundToInt(y);
+		int iz = Mathf.RoundToInt(z);
+//		int ix = Mathf.FloorToInt(x+0.5f);
+//		int iy = Mathf.FloorToInt(y+0.5f);
+//		int iz = Mathf.FloorToInt(z+0.5f);
 		int s = ix+iy+iz;
 		Debug.Log ("PointToHex <<  s : " + s + " ix :" +ix+ " iy :"+iy+" iz :"+iz);
 		if( 0 != s )
@@ -304,9 +339,47 @@ public class TestHexmap : MonoBehaviour
 	}
 
 
-
+	/// <summary>
+	/// 3d x, y축을 기준으로 hexmap의 인덱스를 얻어온다
+	/// 육각형 크기에 맞는 사각형으로 계산하는게 특징이다
+	/// </summary>
+	void PositionXYToHex(float x, float y, out int row, out int column)
+	{
+		//--------------------------------------
+		// Reverse express : position to index
+		//--------------------------------------
+		//pos.x = (hexCircumScr + hexBase) * x;
+		//pos.y = hexInScr * (y*2 +(x%2));
+		//--------------------------------------
+		row = Mathf.RoundToInt(x / (hexCircumScr + hexBase));
+		column = Mathf.RoundToInt((y - hexInScr * (float)(row % 2)) / ( 2f * hexInScr));
+	}
 
 	
+	GameObject AddLine (Color color, Vector3 setPos , Vector3 nextPos)
+	{
+			GameObject hex = new GameObject ("line");
+			LineRenderer lineRenderer = hex.AddComponent<LineRenderer> (); //not multiple add !!
+			hex.transform.parent = m_hexagonMap.transform;
+			//MonoBehaviour.Instantiate (lineRenderer.gameObject);
+			if (null == lineRenderer)
+				Debug.LogError ("lineRenderer is null");
+			
+			lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
+			lineRenderer.SetColors (Color.white, color);
+			lineRenderer.SetWidth (0.1F, 0.3F);
+			lineRenderer.SetVertexCount (2);
+			lineRenderer.useWorldSpace = false;
+			lineRenderer.transform.position = setPos;
+
+
+			lineRenderer.SetPosition (0,Vector3.zero);
+
+			lineRenderer.SetPosition (1,nextPos-setPos);
+
+			return hex;
+	}
+
 	GameObject AddHexagon (Vector3 setPos)
 	{
 		Vector3 pos = Vector3.zero;
