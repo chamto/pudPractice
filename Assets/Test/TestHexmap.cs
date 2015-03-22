@@ -240,8 +240,8 @@ public class TestHexmap : MonoBehaviour
 				pos.y = hexInScr * ( 2 * iy + ix );
 
 				if(idxFirst == ix) continue;
-				//obj = AddLine(Color.red, prevPos , pos);
-				//Add3DText(obj.transform,"ix:"+ix +" iy:"+iy+" iz", Color.red , pos-prevPos + textUp);
+				obj = AddLine(Color.red, prevPos , pos);
+				Add3DText(obj.transform,"ix:"+ix +" iy:"+iy+" iz", Color.red , pos-prevPos + textUp);
 			}
 
 		}
@@ -258,8 +258,8 @@ public class TestHexmap : MonoBehaviour
 				pos.y *= -1f;
 
 				if(idxFirst == ix) continue;
-				//obj = AddLine(Color.magenta, prevPos , pos);
-				//Add3DText(obj.transform,"ix:"+ix + " iy iz:"+iz, Color.magenta , pos-prevPos + textUp);
+				obj = AddLine(Color.magenta, prevPos , pos);
+				Add3DText(obj.transform,"ix:"+ix + " iy iz:"+iz, Color.magenta , pos-prevPos + textUp);
 			}
 		}
 	}
@@ -343,6 +343,11 @@ public class TestHexmap : MonoBehaviour
 		hexX = ix;
 		hexY = (iy - iz + (1 - Mathf.Abs(ix % 2))) / 2;
 		//return HexCoord( ix, ( iy - iz + (1-ix%2) ) / 2 );
+
+		//The "-y axis area" fine tune
+		if (iy < iz)
+				hexY -= 1;
+
 	}
 
 
