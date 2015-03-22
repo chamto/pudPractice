@@ -55,8 +55,8 @@ public class TestHexmap : MonoBehaviour
 		//-----------------------------------------
 		//setting hexagon map 
 		//-----------------------------------------
-		InitHexMap_Analysis_GetHex ();
-		//InitHexMap_Analysis_PointToHex ();
+		//InitHexMap_Analysis_GetHex ();
+		InitHexMap_Analysis_PointToHex ();
 		//InitHexMap_Analysis_PositionXYToHex ();
 	}
 
@@ -82,8 +82,8 @@ public class TestHexmap : MonoBehaviour
 		int HexPosX = 0, HexPosY = 0;
 		
 		
-		GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
-		//PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
+		//GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
+		PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 		//PositionXYToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 
 
@@ -341,7 +341,7 @@ public class TestHexmap : MonoBehaviour
 				iz -= s;
 		}
 		hexX = ix;
-		hexY = (iy - iz + (1 - ix % 2) ) / 2;
+		hexY = (iy - iz + (1 - Mathf.Abs(ix % 2))) / 2;
 		//return HexCoord( ix, ( iy - iz + (1-ix%2) ) / 2 );
 	}
 
