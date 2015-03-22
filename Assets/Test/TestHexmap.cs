@@ -55,8 +55,8 @@ public class TestHexmap : MonoBehaviour
 		//-----------------------------------------
 		//setting hexagon map 
 		//-----------------------------------------
-		//InitHexMap_Analysis_GetHex ();
-		InitHexMap_Analysis_PointToHex ();
+		InitHexMap_Analysis_GetHex ();
+		//InitHexMap_Analysis_PointToHex ();
 		//InitHexMap_Analysis_PositionXYToHex ();
 	}
 
@@ -82,8 +82,8 @@ public class TestHexmap : MonoBehaviour
 		int HexPosX = 0, HexPosY = 0;
 		
 		
-		//GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
-		PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
+		GetHex (pos.x, pos.y, out HexPosY, out HexPosX);
+		//PointToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 		//PositionXYToHex (pos.x, pos.y, out HexPosX, out HexPosY);
 
 
@@ -96,13 +96,13 @@ public class TestHexmap : MonoBehaviour
 	{
 		GameObject obj;
 		Vector3 pos = Vector3.zero;
-		for (int y=-1; y<10; y++) 
+		for (int y=-3; y<10; y++) 
 		{
 			//pos.y = hexInScr * y; 
-			for(int x=-1;x<10;x++)
+			for(int x=-3;x<10;x++)
 			{
 				pos.x = (hexCircumScr + hexBase) * x;
-				pos.y = hexInScr * (y*2 +(x%2)); 
+				pos.y = hexInScr * (y*2 +Mathf.Abs(x%2)); 
 				obj = AddHexagon(pos);
 				obj = AddQuad_Center(pos,Color.cyan,(hexCircumScr+hexBase),hexInScr*2);
 				Add3DText(obj.transform,x + "," + y, Color.white , Vector3.zero);
@@ -114,16 +114,16 @@ public class TestHexmap : MonoBehaviour
 	{
 		GameObject obj;
 		Vector3 pos = Vector3.zero;
-		for (int y=-1; y<10; y++) 
+		for (int y=-2; y<10; y++) 
 		{
 			//pos.y = hexInScr * y; 
-			for(int x=-1;x<10;x++)
+			for(int x=-2;x<10;x++)
 			{
 				pos.x = (hexCircumScr + hexBase) * x;
-				pos.y = hexInScr * (y*2 +(x%2)); 
+				pos.y = hexInScr * (y*2 +Mathf.Abs(x%2)); 
 				obj = AddHexagon(pos);
 				//obj = AddQuadrangle(pos);
-				Add3DText(obj.transform,x + "," + (y*2+(x%2)), Color.white , Vector3.zero);
+				Add3DText(obj.transform,x + "," + (y*2+Mathf.Abs(x%2)), Color.white , Vector3.zero);
 			}
 		}
 
@@ -164,6 +164,7 @@ public class TestHexmap : MonoBehaviour
 		GameObject obj;
 		Vector3 pos = Vector3.zero;
 		Vector3 prevPos = Vector3.zero;
+		Color color;
 		for (int y=-2; y<10; y++) 
 		{
 			//pos.y = hexInScr * y; 
@@ -171,7 +172,7 @@ public class TestHexmap : MonoBehaviour
 			{
 				prevPos = pos;
 				pos.x = (hexCircumScr + hexBase) * x;
-				pos.y = hexInScr * (y*2 +(x%2)); 
+				pos.y = hexInScr * (y*2 +Mathf.Abs(x%2)); 
 				obj = AddHexagon(pos);
 				//obj = AddQuad_Center(pos,Color.cyan,(hexCircumScr+hexBase),hexInScr*2);
 				//obj = AddQuadrangle(pos);
@@ -184,7 +185,12 @@ public class TestHexmap : MonoBehaviour
 				int ix = Mathf.FloorToInt(cx+0.5f);
 				int iy = Mathf.FloorToInt(cy+0.5f);
 				int iz = Mathf.FloorToInt(cz+0.5f);
-				Add3DText(obj.transform,ix + "," + iy + "," + iz, Color.gray , new Vector3(0,-0.5f,0));
+
+				if(0 != ix+iy+iz) 
+					color = Color.red;
+				else 
+					color = Color.gray;
+				Add3DText(obj.transform,ix + "," + iy + "," + iz, color , new Vector3(0,-0.5f,0));
 
 				//obj = AddLine(Color.red, prevPos , pos);
 			}
@@ -222,6 +228,7 @@ public class TestHexmap : MonoBehaviour
 		//----------------------------
 		int idxFirst = 0;
 		Vector3 textUp = new Vector3 (0, 0.5f, 0);
+
 		pos = Vector3.zero;
 		for (int iy=idxFirst; iy<10; iy++) 
 		{
@@ -233,14 +240,14 @@ public class TestHexmap : MonoBehaviour
 				pos.y = hexInScr * ( 2 * iy + ix );
 
 				if(idxFirst == ix) continue;
-				obj = AddLine(Color.red, prevPos , pos);
-				Add3DText(obj.transform,"ix:"+ix +" iy:"+iy+" iz", Color.red , pos-prevPos + textUp);
+				//obj = AddLine(Color.red, prevPos , pos);
+				//Add3DText(obj.transform,"ix:"+ix +" iy:"+iy+" iz", Color.red , pos-prevPos + textUp);
 			}
 
 		}
-
+		textUp.y = -1.0f;
 		pos = Vector3.zero;
-		for (int iz=idxFirst; iz<10; iz++) 
+		for (int iz=idxFirst; iz>-10; iz--) 
 		{
 			
 			for (int ix=idxFirst; ix<10; ix++) 
@@ -251,8 +258,8 @@ public class TestHexmap : MonoBehaviour
 				pos.y *= -1f;
 
 				if(idxFirst == ix) continue;
-				obj = AddLine(Color.magenta, prevPos , pos);
-				Add3DText(obj.transform,"ix:"+ix + " iy iz:"+iz, Color.red , pos-prevPos + textUp);
+				//obj = AddLine(Color.magenta, prevPos , pos);
+				//Add3DText(obj.transform,"ix:"+ix + " iy iz:"+iz, Color.magenta , pos-prevPos + textUp);
 			}
 		}
 	}
@@ -334,7 +341,7 @@ public class TestHexmap : MonoBehaviour
 				iz -= s;
 		}
 		hexX = ix;
-		hexY = (iy - iz + (1-ix%2) ) / 2;
+		hexY = (iy - iz + (1 - ix % 2) ) / 2;
 		//return HexCoord( ix, ( iy - iz + (1-ix%2) ) / 2 );
 	}
 
@@ -352,7 +359,7 @@ public class TestHexmap : MonoBehaviour
 		//pos.y = hexInScr * (y*2 +(x%2));
 		//--------------------------------------
 		row = Mathf.RoundToInt(x / (hexCircumScr + hexBase));
-		column = Mathf.RoundToInt((y - hexInScr * (float)(row % 2)) / ( 2f * hexInScr));
+		column = Mathf.RoundToInt((y - hexInScr * (float)Mathf.Abs(row % 2)) / ( 2f * hexInScr));
 	}
 
 	
