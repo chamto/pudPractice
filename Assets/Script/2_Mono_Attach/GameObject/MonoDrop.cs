@@ -7,13 +7,38 @@ using PuzzAndBidurgi;
 
 public class MonoDrop : MonoBehaviour 
 {
-	//==============: member variables :==============
-	
+	//==============: member variables :========================================================================================
+
+	private DropInfo 		m_dropInfo;
+
 	//spr : sprite , rdr : renderer
 	private SpriteRenderer 	m_sprRdr = null;
 	private BoxCollider2D		m_boxCollider2D = null;
-	public int 				keyOfPosition;
+
+
+	public int 				keyOfPosition; //chamto deprecate
+
 	public eResKind 		m_eKind = eResKind.None;
+
+	/// <summary>
+	/// first position the rolling drop
+	/// </summary>
+	private Vector3			m_firstLocalPosition;
+
+	//==============: property definition :========================================================================================
+
+	public DropInfo dropInfo
+	{
+		get
+		{
+			return m_dropInfo;
+		}
+		set
+		{
+			m_dropInfo = value;
+		}
+	}
+
 	public eResKind 		setKind
 	{
 		get
@@ -32,10 +57,7 @@ public class MonoDrop : MonoBehaviour
 		}
 	}
 
-	/// <summary>
-	/// first position the rolling drop
-	/// </summary>
-	private Vector3			m_firstLocalPosition;
+
 	public Vector3			firstLocalPosition
 	{
 		get { return m_firstLocalPosition; }
@@ -47,7 +69,7 @@ public class MonoDrop : MonoBehaviour
 	}
 
 
-	private bool m_isSelected = false;
+	//==============: get,set method :========================================================================================
 
 	public void SetColor(Color color)
 	{
@@ -70,7 +92,38 @@ public class MonoDrop : MonoBehaviour
 		return m_boxCollider2D;
 	}
 
-	//==============: member method :==============
+	
+	/// <summary>
+	/// 유니티Collider를 AABB로 전환하여 반환한다.
+	/// </summary>
+	/// <returns>The AAB box.</returns>
+	public ML.AABBox  GetAABBox()
+	{
+		
+		ML.AABBox aabb = new ML.AABBox ();
+		aabb.mMinima.x = this.collider.bounds.min.x;
+		aabb.mMinima.y = this.collider.bounds.min.y;
+		aabb.mMinima.z = this.collider.bounds.min.z;
+		aabb.mMaxima.x = this.collider.bounds.max.x;
+		aabb.mMaxima.y = this.collider.bounds.max.y;
+		aabb.mMaxima.z = this.collider.bounds.max.z;
+		
+		return aabb;
+	}
+
+
+
+	//==============: Initialization method :========================================================================================
+
+
+
+
+	//==============: class callback method :========================================================================================
+
+	void Start()
+	{
+		m_dropInfo = DropInfo.Create ();
+	}
 
 	void Awake()
 	{
@@ -80,6 +133,8 @@ public class MonoDrop : MonoBehaviour
 	}
 
 
+
+	//==============: Touch method :========================================================================================
 
 	void TouchDrag()
 	{
@@ -134,7 +189,7 @@ public class MonoDrop : MonoBehaviour
 		//CDefine.DebugLog("TouchBegan "+ gameObject.name);
 		//CDefine.DebugLog("TouchBegan : " + CInputManager.IsTouch());
 
-		m_isSelected = true;
+
 		transform.Translate(0,0,-1); //drop sprite up
 		//StopCoroutine("cortnMouseDrag");
 		StartCoroutine("cortnMouseDrag");
@@ -170,7 +225,6 @@ public class MonoDrop : MonoBehaviour
 			return;
 
 		//CDefine.DebugLog("___________________TouchEnded "+ gameObject.name+"___________________");
-		m_isSelected = false;
 		transform.Translate(0,0,1); //drop sprite down
 		m_prevCollisionDrop = null;
 		Single.DropMgr.ClearMovedPath();
@@ -180,45 +234,11 @@ public class MonoDrop : MonoBehaviour
 
 	}
 
-	//no use
-	//void OnCollisionEnter2D (Collision2D col)
-	void _noUse_OnTriggerEnter2D(Collider2D col)
-	//void OnTriggerStay2D(Collider2D col)
-	{
-		//if(gameObject.Equals(col.gameObject.transform.parent.gameObject)) return;
 
-		//CDefine.DebugLog("OnTriggerEnter2D: detected!! " + col.gameObject.name); //chamto test
-
-		//선택된 객체와 자리를 바꾼다
-		if(false == m_isSelected)
-		{
-			MonoDrop movingDrop = col.gameObject.transform.parent.GetComponent<MonoDrop>();
-			//CDrop movingDrop = col.gameObject.transform.GetComponent<CDrop>();
-			if(null == movingDrop)
-			{
-				CDefine.DebugLogWarning("OnCollisionEnter2D : CDrop is Null!!! : " + this); return;
-			}
-
-			//switch firstLocalPosition : movingDrop <-> regionDrop
-			Vector3 temp = movingDrop.firstLocalPosition;
-			movingDrop.firstLocalPosition = firstLocalPosition;
-			firstLocalPosition = temp;
-
-			//rolling drop
-			gameObject.transform.localPosition = firstLocalPosition;
-		}
-	}
-
-//	private void _SwapFirstLocalPosition(MonoDrop drop1 , MonoDrop drop2) 
-//	{
-//		Vector3 temp = drop1.firstLocalPosition;
-//		drop1.firstLocalPosition = drop2.firstLocalPosition;
-//		drop2.firstLocalPosition = temp;
-//	}
-
+	//==============: collision method :========================================================================================
 
 	//20140830 chamto - ccdTest function
-	MonoDrop _prevLastCollisionDrop = null;
+	private MonoDrop _prevLastCollisionDrop = null;
 	void OnCollision()
 	{
 
@@ -309,6 +329,10 @@ public class MonoDrop : MonoBehaviour
 		m_prevCollisionDrop = collisionDrop;
 	}
 
+
+	//==============: member method :========================================================================================
+
+
 	public void MovingAni(Vector3 dstLocalPos)
 	{
 
@@ -333,35 +357,109 @@ public class MonoDrop : MonoBehaviour
 		transform.localPosition = dstLocalPos;
 	}
 
-
-	/// <summary>
-	/// 유니티Collider를 AABB로 전환하여 반환한다.
-	/// </summary>
-	/// <returns>The AAB box.</returns>
-	public ML.AABBox  GetAABBox()
-	{
-
-		ML.AABBox aabb = new ML.AABBox ();
-		aabb.mMinima.x = this.collider.bounds.min.x;
-		aabb.mMinima.y = this.collider.bounds.min.y;
-		aabb.mMinima.z = this.collider.bounds.min.z;
-		aabb.mMaxima.x = this.collider.bounds.max.x;
-		aabb.mMaxima.y = this.collider.bounds.max.y;
-		aabb.mMaxima.z = this.collider.bounds.max.z;
-
-		return aabb;
-	}
+	//==============: factory method :========================================================================================
 	
+	static public MonoDrop Create(Transform parent , eResKind eDrop , Vector3 localPos)
+	{
+		GameObject newObj = CResoureManager.CreatePrefab(SResDefine.pfDROPINFO);
+		if(null == newObj) 
+		{
+			CDefine.DebugLogError(string.Format("Failed to create Prefab : " + SResDefine.pfDROPINFO));
+			return null;
+		}
+		MonoDrop drop = newObj.GetComponent<MonoDrop>();
+		if(null == drop) 
+		{
+			CDefine.DebugLogError(string.Format("MonoDrop is null"));
+			return null;
+		}
+		
+
+		//-------------------------------------------------
+		
+		drop.dropInfo.id = Single.ResMgr.GetSequenceId ();
+		drop.setKind = eDrop;
+
+		//Specify the parent object
+		newObj.transform.parent = parent;
+		newObj.name = "drop" + drop.dropInfo.id;
+		
+		//newObj.transform.position = new Vector3(relativeCoord_x,relativeCoord_y,0); //[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
+		newObj.transform.localPosition = localPos;
+		
+		
+		//todo modify that localposition
+		drop.firstLocalPosition = newObj.transform.localPosition;
+		
+		return drop;
+	}
 
 }
 
-//namespace PuzzAndBidurgi
-//{
-//	public class CDrop
-//	{
-//		public CDrop ()
-//		{
-//		}
-//
-//	}
-//}
+
+//=====================================================================
+
+public struct Index2
+{
+	public int ix;
+	public int iy;
+}
+public struct Index3
+{
+	int ix;
+	int iy;
+	int iz;
+}
+
+
+public class DropInfo
+{
+
+	//==============: member variables :========================================================================================
+	private int 	m_id;
+	private	Index2	m_index2D; 
+
+	//==============: property definition :========================================================================================
+	public int id
+	{
+		get
+		{
+			return m_id;
+		}
+		set 
+		{
+			m_id = value;
+		}
+	}
+	public Index2 index2D
+	{
+		get
+		{
+			return m_index2D;
+		}
+		set
+		{
+			m_index2D = value;
+		}
+	}
+	//==============: factory method :========================================================================================
+
+	static public DropInfo Create()
+	{
+		DropInfo newObj = new DropInfo ();
+		newObj.Init ();
+
+		return newObj;
+	}
+
+	//==============: member method :========================================================================================
+	public void Init()
+	{
+		m_id = 0;
+		m_index2D.ix = 0;
+		m_index2D.iy = 0;
+	}
+
+}
+
+
