@@ -81,7 +81,7 @@ namespace PuzzAndBidurgi
 		//==============: member variables :==============
 		Dictionary<ushort, SResInfo> 	m_dictTextureInfo = new Dictionary<ushort, SResInfo>();
 
-
+		private int m_sequenceId = 0;
 
 		/// <summary>
 		/// Init Resources
@@ -129,6 +129,22 @@ namespace PuzzAndBidurgi
 
 			CDefine.DebugLogWarning("Failed LoadSprite");
 			return null;
+		}
+
+
+
+		//==============: static function :==============
+
+		static public GameObject CreatePrefab(string path)
+		{
+			const string root = "Prefab/";
+			return MonoBehaviour.Instantiate(Resources.Load(root + path)) as GameObject;
+		}
+
+		//==============: get,set function :==============
+		public int GetSequenceId()
+		{
+			return ++m_sequenceId;
 		}
 
 	}
