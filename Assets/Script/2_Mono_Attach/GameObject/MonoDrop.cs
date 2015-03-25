@@ -25,6 +25,7 @@ public class MonoDrop : MonoBehaviour
 	/// </summary>
 	private Vector3			m_firstLocalPosition;
 
+
 	//==============: property definition :========================================================================================
 
 	public DropInfo dropInfo
@@ -112,6 +113,12 @@ public class MonoDrop : MonoBehaviour
 	}
 
 
+	//==============: Constructor definition :========================================================================================
+	
+	public MonoDrop()
+	{
+		m_dropInfo = DropInfo.Create ();
+	}
 
 	//==============: Initialization method :========================================================================================
 
@@ -122,7 +129,7 @@ public class MonoDrop : MonoBehaviour
 
 	void Start()
 	{
-		m_dropInfo = DropInfo.Create ();
+		//m_dropInfo = DropInfo.Create ();
 	}
 
 	void Awake()
@@ -140,7 +147,7 @@ public class MonoDrop : MonoBehaviour
 	{
 		Vector2 touchPos = Input_Unity.GetTouchPos();
 		Vector3 scrSpace = Camera.main.WorldToScreenPoint (transform.position);
-		Vector3 offset = transform.position - Camera.main.ScreenToWorldPoint (new Vector3 (touchPos.x, touchPos.y, scrSpace.z));
+//		Vector3 offset = transform.position - Camera.main.ScreenToWorldPoint (new Vector3 (touchPos.x, touchPos.y, scrSpace.z));
 
 			
 		Vector3 curScreenSpace = new Vector3 (touchPos.x, touchPos.y, scrSpace.z);
@@ -376,16 +383,18 @@ public class MonoDrop : MonoBehaviour
 		
 
 		//-------------------------------------------------
-		
+
+		//drop.dropInfo = DropInfo.Create ();
 		drop.dropInfo.id = Single.ResMgr.GetSequenceId ();
+		drop.dropInfo.SetPositionToIndex2D (localPos);
 		drop.setKind = eDrop;
 
 		//Specify the parent object
-		newObj.transform.parent = parent;
-		newObj.name = "drop" + drop.dropInfo.id;
+		drop.transform.parent = parent;
+		drop.name = "drop" + drop.dropInfo.id;
 		
 		//newObj.transform.position = new Vector3(relativeCoord_x,relativeCoord_y,0); //[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
-		newObj.transform.localPosition = localPos;
+		drop.transform.localPosition = localPos;
 		
 		
 		//todo modify that localposition
@@ -403,21 +412,39 @@ public struct Index2
 {
 	public int ix;
 	public int iy;
+
+	public Index2(int ix, int iy)
+	{
+		this.ix = ix;
+		this.iy = iy;
+	}
 }
 public struct Index3
 {
-	int ix;
-	int iy;
-	int iz;
+	public int ix;
+	public int iy;
+	public int iz;
+
+	public Index3(int ix, int iy, int iz)
+	{
+		this.ix = ix;
+		this.iy = iy;
+		this.iz = iz;
+	}
 }
 
 
 public class DropInfo
 {
 
+	//==============: member Constant :========================================================================================
+	public const float WIDTH_DROP = 1.15f;
+	public const float HEIGHT_DROP = 1.15f;
+
+
 	//==============: member variables :========================================================================================
 	private int 	m_id;
-	private	Index2	m_index2D; 
+	private	Index2	m_index2D;
 
 	//==============: property definition :========================================================================================
 	public int id
@@ -442,6 +469,24 @@ public class DropInfo
 			m_index2D = value;
 		}
 	}
+
+	//==============: get,set method :========================================================================================
+	public void SetPositionToIndex2D(Vector3 pos)
+	{
+		m_index2D.ix = (int)((pos.x + (WIDTH_DROP * 0.5f)) / WIDTH_DROP);
+		m_index2D.iy = (int)((pos.y + (HEIGHT_DROP * 0.5f)) / HEIGHT_DROP);
+	}
+
+	public Vector3 GetIndex2DToPosition()
+	{
+		Vector3 pos = Vector3.zero;
+		pos.x = WIDTH_DROP * m_index2D.ix;
+		pos.y = HEIGHT_DROP * m_index2D.iy;
+
+		return pos;
+	}
+
+
 	//==============: factory method :========================================================================================
 
 	static public DropInfo Create()

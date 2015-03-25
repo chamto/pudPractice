@@ -379,8 +379,8 @@ namespace PuzzAndBidurgi
 
 
 			//print dropKind list
-			const float WIDTH_DROP = 1.15f;
-			const float HEIGHT_DROP = 1.15f;
+			//const float WIDTH_DROP = 1.15f;
+			//const float HEIGHT_DROP = 1.15f;
 			const uint MAX_DROP_COLUMN = 6;
 			const uint MAX_DROP6X5 = 6 * 5;
 			const uint MAX_DROP6X5X2 = 6 * 5 * 2;
@@ -395,16 +395,26 @@ namespace PuzzAndBidurgi
 
 			System.Random rndDrop = new System.Random();
 
+			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
 			for(int i=0 ; i<MAX_DROP6X5X2 ; i++)
 			{
-				//6x5 : width6 height5
-				pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
-				                   (i% MAX_DROP_COLUMN) * WIDTH_DROP ,(i/MAX_DROP_COLUMN) * -HEIGHT_DROP);
-				m_dtnrDrop.Add(i,pDrop);
+				pos.x = (i% MAX_DROP_COLUMN) * DropInfo.WIDTH_DROP;
+				pos.y = (i/MAX_DROP_COLUMN) * DropInfo.HEIGHT_DROP;
+				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
+				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
+				                        pos);
 
-				//------ setting drop of color that invisialbe 0~29  ------------
-				if(null != pDrop && i < MAX_DROP6X5)
+				m_dtnrDrop.Add(pDrop.dropInfo.id, pDrop);
+
+				//6x5 : width6 height5
+				//pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
+				//                   (i% MAX_DROP_COLUMN) * WIDTH_DROP ,(i/MAX_DROP_COLUMN) * -HEIGHT_DROP);
+
+				//m_dtnrDrop.Add(i,pDrop);
+
+				//------ setting drop of color that invisialbe 30~  ------------
+				if(null != pDrop && i >= MAX_DROP6X5)
 				{
 					pDrop.SetColor(Color.blue);
 					pDrop.GetBoxCollider2D().enabled = false; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
@@ -475,11 +485,11 @@ namespace PuzzAndBidurgi
 			return posOfPut;
 		}
 
-		private GameObject CreatePrefab(string path)
-		{
-			const string root = "Prefab/";
-			return MonoBehaviour.Instantiate(Resources.Load(root + path)) as GameObject;
-		}
+//		private GameObject CreatePrefab(string path)
+//		{
+//			const string root = "Prefab/";
+//			return MonoBehaviour.Instantiate(Resources.Load(root + path)) as GameObject;
+//		}
 
 		public void SetTheDropSprite(SpriteRenderer sprRd , eResKind eDrop)
 		{
@@ -504,56 +514,56 @@ namespace PuzzAndBidurgi
 		/// <param name="in_eKind">Dropkind.</param>
 		/// <param name="relativeCoord_x">Relative coordinate X.</param>
 		/// <param name="relativeCoord_y">Relative coordinate Y.</param>
-		public MonoDrop CreateDrop(int keyOfPosition, Transform parent , eResKind eDrop , float relativeCoord_x , float relativeCoord_y)
-		{
-
-			GameObject newObj = CreatePrefab(SResDefine.pfDROPINFO);
-			if(null == newObj) 
-			{
-				CDefine.DebugLogError(string.Format("Failed to create Prefab : " + SResDefine.pfDROPINFO));
-				return null;
-			}
-			MonoDrop drop = newObj.GetComponent<MonoDrop>();
-			if(null == drop) 
-			{
-				CDefine.DebugLogError(string.Format("MonoDrop is null"));
-				return null;
-			}
-
-			//20150212 chamto - MonoDrop::Awake  에서 랜더러와 콜리더를 얻는다
-//			SpriteRenderer sprRd = newObj.GetComponentInChildren<SpriteRenderer>();
-//			if(null == sprRd) 
+//		public MonoDrop CreateDrop(int keyOfPosition, Transform parent , eResKind eDrop , float relativeCoord_x , float relativeCoord_y)
+//		{
+//
+//			GameObject newObj = CreatePrefab(SResDefine.pfDROPINFO);
+//			if(null == newObj) 
 //			{
-//				CDefine.DebugLogError(string.Format("SpriteRenderer is null"));
+//				CDefine.DebugLogError(string.Format("Failed to create Prefab : " + SResDefine.pfDROPINFO));
 //				return null;
 //			}
-
-			//-------------------------------------------------
-
-			drop.keyOfPosition = keyOfPosition;
-			newObj.name = "drop" + keyOfPosition.ToString("000");
-
-			//CDefine.DebugLog(newObj.transform.localPosition+ "before--------"); //chamto test
-
-			if(null != parent)
-			{	//Specify the parent object
-				newObj.transform.parent = parent.transform;
-			}
-
-			//CDefine.DebugLog(newObj.transform.localPosition+ "after--------"); //chamto test
-
-			//SetTheDropSprite(sprRd , eDrop);
-
-			//newObj.transform.position = new Vector3(relativeCoord_x,relativeCoord_y,0); //[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
-			newObj.transform.localPosition = new Vector3(relativeCoord_x,relativeCoord_y,0);
-
-
-			drop.setKind = eDrop;
-			drop.firstLocalPosition = newObj.transform.localPosition;
-
-			return drop;
-
-		}
+//			MonoDrop drop = newObj.GetComponent<MonoDrop>();
+//			if(null == drop) 
+//			{
+//				CDefine.DebugLogError(string.Format("MonoDrop is null"));
+//				return null;
+//			}
+//
+//			//20150212 chamto - MonoDrop::Awake  에서 랜더러와 콜리더를 얻는다
+////			SpriteRenderer sprRd = newObj.GetComponentInChildren<SpriteRenderer>();
+////			if(null == sprRd) 
+////			{
+////				CDefine.DebugLogError(string.Format("SpriteRenderer is null"));
+////				return null;
+////			}
+//
+//			//-------------------------------------------------
+//
+//			drop.keyOfPosition = keyOfPosition;
+//			newObj.name = "drop" + keyOfPosition.ToString("000");
+//
+//			//CDefine.DebugLog(newObj.transform.localPosition+ "before--------"); //chamto test
+//
+//			if(null != parent)
+//			{	//Specify the parent object
+//				newObj.transform.parent = parent.transform;
+//			}
+//
+//			//CDefine.DebugLog(newObj.transform.localPosition+ "after--------"); //chamto test
+//
+//			//SetTheDropSprite(sprRd , eDrop);
+//
+//			//newObj.transform.position = new Vector3(relativeCoord_x,relativeCoord_y,0); //[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
+//			newObj.transform.localPosition = new Vector3(relativeCoord_x,relativeCoord_y,0);
+//
+//
+//			drop.setKind = eDrop;
+//			drop.firstLocalPosition = newObj.transform.localPosition;
+//
+//			return drop;
+//
+//		}
 
 
 
