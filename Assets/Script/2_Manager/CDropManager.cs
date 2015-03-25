@@ -382,8 +382,8 @@ namespace PuzzAndBidurgi
 			//const float WIDTH_DROP = 1.15f;
 			//const float HEIGHT_DROP = 1.15f;
 			const uint MAX_DROP_COLUMN = 6;
-			const uint MAX_DROP6X5 = 6 * 5;
-			const uint MAX_DROP6X5X2 = 6 * 5 * 2;
+			const uint MAX_DROP5X6 = 5 * 6;
+			const uint MAX_DROP5X6X2 = 5 * 6 * 2;
 			const byte MAX_DROPKIND = 6;
 			eResKind[] dropKind = new  eResKind[MAX_DROPKIND];
 			dropKind[0] = eResKind.Red;
@@ -397,7 +397,7 @@ namespace PuzzAndBidurgi
 
 			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
-			for(int i=0 ; i<MAX_DROP6X5X2 ; i++)
+			for(int i=0 ; i<MAX_DROP5X6X2 ; i++)
 			{
 				pos.x = (i% MAX_DROP_COLUMN) * DropInfo.WIDTH_DROP;
 				pos.y = (i/MAX_DROP_COLUMN) * DropInfo.HEIGHT_DROP;
@@ -414,7 +414,7 @@ namespace PuzzAndBidurgi
 				//m_dtnrDrop.Add(i,pDrop);
 
 				//------ setting drop of color that invisialbe 30~  ------------
-				if(null != pDrop && i >= MAX_DROP6X5)
+				if(null != pDrop && i >= MAX_DROP5X6)
 				{
 					pDrop.SetColor(Color.blue);
 					pDrop.GetBoxCollider2D().enabled = false; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
