@@ -418,6 +418,26 @@ public struct Index2
 		this.ix = ix;
 		this.iy = iy;
 	}
+
+	static public Index2 Index1ToIndex2(int index1 , int maxColumn)
+	{
+		if (0 == maxColumn) 
+		{
+			Debug.LogError ("exception !! : divide by 0 ");
+			return new Index2();
+		}
+
+		Index2 value;
+		value.ix = index1 % maxColumn;
+		value.iy = index1 / maxColumn;
+
+		return value;
+	}
+
+	static public int Index2ToIndex1(Index2 ixyPair , int maxColumn)
+	{
+		return ixyPair.ix + ixyPair.iy * maxColumn;
+	}
 }
 public struct Index3
 {
