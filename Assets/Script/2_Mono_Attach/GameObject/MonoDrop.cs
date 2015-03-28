@@ -410,6 +410,12 @@ public class MonoDrop : MonoBehaviour
 
 public struct Index2
 {
+
+	//max_column = root(int_max + 1)
+	//min_column = root(int_min - 1)
+	static int MAX_COLUMN = 46340;
+	static int MIN_COLUMN = -46341;
+
 	public int ix;
 	public int iy;
 
@@ -419,13 +425,30 @@ public struct Index2
 		this.iy = iy;
 	}
 
+	static bool ValidMaxColumn(int maxColumn)
+	{
+		if (MIN_COLUMN <= maxColumn && maxColumn <= MAX_COLUMN) 
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	static public Index2 Index1ToIndex2(int index1 , int maxColumn)
 	{
+		if (false == ValidMaxColumn (maxColumn)) 
+		{
+			Debug.LogError("exception !! : invalid value that maxcolumn");
+			return new Index2();
+		}
+
 		if (0 == maxColumn) 
 		{
 			Debug.LogError ("exception !! : divide by 0 ");
 			return new Index2();
 		}
+
 
 		Index2 value;
 		value.ix = index1 % maxColumn;
