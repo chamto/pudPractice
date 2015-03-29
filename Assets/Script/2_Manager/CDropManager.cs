@@ -114,7 +114,62 @@ namespace PuzzAndBidurgi
 	}//namespace NDrop
 
 
+	public class DropMap : Dictionary<int,MonoDrop>
+	{
+		//단순히 인덱스를 조회하기 위한 인덱스맵을 조직한다
+		private Dictionary<Index2,int> mapIndex2 = new Dictionary<Index2,int>();
 
+
+		public MonoDrop GetMonoDropByUID(int keyUID) 
+		{
+			MonoDrop getValue = null;
+			if(TryGetValue(keyUID,out getValue))
+				return getValue;
+
+			return null;
+		}
+
+		public MonoDrop GetMonoDropByIndex2(Index2 ixy)
+		{
+			int getUID = 0;
+			if(mapIndex2.TryGetValue(ixy,out getUID))
+				return this.GetMonoDropByUID(getUID);
+
+			return null;
+		}
+
+		public MonoDrop GetMonoDropByIndex1(int ixy , int maxColumn)
+		{
+			return null;
+		}
+
+	
+		//==============: override method:========================================================================================
+		virtual public void Add(int key, MonoDrop value)
+		{
+			if (null == value) 
+			{
+				Debug.LogError("Add : null == value");
+				return;
+			}
+
+			base.Add (key, value);
+			mapIndex2.Add (value.dropInfo.index2D, key);
+
+		}
+
+		virtual public bool Remove(int key)
+		{
+			MonoDrop getValue = null;
+			if (TryGetValue (key, out getValue)) 
+			{
+				mapIndex2.Remove(getValue.dropInfo.index2D);
+			}
+
+			return base.Remove (key);
+		}
+
+	}
 
 
 
@@ -126,9 +181,28 @@ namespace PuzzAndBidurgi
 	{
 		
 		//==============: member variables :==============
-		private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
+		/// <summary>
+		/// The m_map find it the unique identity number interface.
+		/// </summary>
+		private DropMap 						m_mapDrop = new DropMap();
+
+
+		//private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
 		//private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
 		private NDrop.CPath m_dropPath = new NDrop.CPath();
+
+
+		//==============: property definition :========================================================================================
+		public DropMap 						MapDrop
+		{
+			get
+			{
+
+				return m_mapDrop;
+			}
+		}
+
+
 
 
 		//------------------------------------------------------------------------
@@ -262,7 +336,8 @@ namespace PuzzAndBidurgi
 			//빗변*빗변 = 가로*가로*2
 			//실수값을 비교, 오차가 발생할것이기 떄문에 가중치값을 더함
 			//빗변*빗변 = 가로*가로*2 + 가중치
-			float dist = ConstDrop.UI_Width * ConstDrop.UI_Width * 2 + 0.15f;
+			//float dist = ConstDrop.UI_Width * ConstDrop.UI_Width * 2 + 0.15f;
+			float dist = DropInfo.WIDTH_DROP * DropInfo.WIDTH_DROP * 2 + 0.15f;
 
 			return (dist > GetSqrDistance (drop1.firstWorldPosition, drop2.firstWorldPosition));
 		}
@@ -280,20 +355,20 @@ namespace PuzzAndBidurgi
 
 			MonoDrop temp1 = null;
 			MonoDrop temp2 = null;
-			if (false == m_dtnrDrop.TryGetValue (keyOfPos1, out temp1))
+			if (false == m_mapDrop.TryGetValue (keyOfPos1, out temp1))
 								return false;
 
-			if (false == m_dtnrDrop.TryGetValue (keyOfPos2, out temp2))
+			if (false == m_mapDrop.TryGetValue (keyOfPos2, out temp2))
 								return false;
 
 			if (false == ValidSwapMonoDrop (temp1, temp2))
 								return false;
 
 			//1. swap position of dtnr 
-			m_dtnrDrop.Remove (keyOfPos1);
-			m_dtnrDrop.Remove (keyOfPos2);
-			m_dtnrDrop.Add (keyOfPos1, temp2);
-			m_dtnrDrop.Add (keyOfPos2, temp1);
+			m_mapDrop.Remove (keyOfPos1);
+			m_mapDrop.Remove (keyOfPos2);
+			m_mapDrop.Add (keyOfPos1, temp2);
+			m_mapDrop.Add (keyOfPos2, temp1);
 
 
 			//2. swap key of monoDrop
@@ -405,7 +480,7 @@ namespace PuzzAndBidurgi
 				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
 				                        pos);
 
-				m_dtnrDrop.Add(pDrop.dropInfo.id, pDrop);
+				m_mapDrop.Add(pDrop.dropInfo.id, pDrop);
 
 				//6x5 : width6 height5
 				//pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
@@ -458,12 +533,13 @@ namespace PuzzAndBidurgi
 		}
 
 
+		//20150330 chamto - fixme keyOfPosition
 		public MonoDrop GetMonoDrop(PairInt dropPair)
 		{
 			int keyOfPos1 = this.ChangeKeyOfPosition (dropPair.column, dropPair.row);
 			
 			MonoDrop temp1 = null;
-			if (false == m_dtnrDrop.TryGetValue (keyOfPos1, out temp1))
+			if (false == m_mapDrop.TryGetValue (keyOfPos1, out temp1))
 				return null;
 			
 			return temp1;
@@ -606,9 +682,9 @@ namespace PuzzAndBidurgi
 		public MonoDrop GetShortestDistance(MonoDrop standardDrop, float minDistance)
 		{
 			if(null == standardDrop || 0 >= minDistance) return null;
-			if(0 == m_dtnrDrop.Count) return null;
+			if(0 == m_mapDrop.Count) return null;
 
-			List<MonoDrop> list = m_dtnrDrop.Values.ToList();
+			List<MonoDrop> list = m_mapDrop.Values.ToList();
 			//list.Remove(standardDrop); //deduplicate
 
 			//list.Sort(SortDistanceCompareTo);
@@ -663,7 +739,7 @@ namespace PuzzAndBidurgi
 			//SortedDictionary<float , MonoDrop> collisionDtnr = new Dictionary<float , MonoDrop> ();
 			List<MonoDrop> collisionList = new List<MonoDrop> ();
 			float t_c = 0.0f;
-			foreach (MonoDrop dstDrop in m_dtnrDrop.Values) 
+			foreach (MonoDrop dstDrop in m_mapDrop.Values) 
 			{
 				//self exclusion
 				if(srcDrop == dstDrop) continue;
@@ -716,7 +792,7 @@ namespace PuzzAndBidurgi
 			srcBox.height = BOX_HEIGHT;
 			srcBox.center = new Vector2(srcDrop.transform.position.x,srcDrop.transform.position.y);
 			dstBox = srcBox;
-			foreach(MonoDrop dstDrop in m_dtnrDrop.Values)
+			foreach(MonoDrop dstDrop in m_mapDrop.Values)
 			{
 				//self exclusion
 				if(srcDrop == dstDrop) continue;
