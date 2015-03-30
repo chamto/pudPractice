@@ -197,7 +197,6 @@ namespace PuzzAndBidurgi
 		{
 			get
 			{
-
 				return m_mapDrop;
 			}
 		}
@@ -508,43 +507,7 @@ namespace PuzzAndBidurgi
 		{
 		}
 
-		/// <summary>
-		/// Changes the key of position.
-		/// </summary>
-		/// <returns>The key of position.</returns>
-		/// <param name="column">Column.</param>
-		/// <param name="row">Row.</param>
-		public int ChangeKeyOfPosition(int column, int row)
-		{
-			return (int)(column * ConstBoard.Max_Row + row);
-		}
-		
-		/// <summary>
-		/// Changes the pair in matrix on board
-		/// </summary>
-		/// <returns>The pair in matrix.</returns>
-		/// <param name="keyOfPosition">Key of position.</param>
-		public PairInt ChangePairInMatrix(int keyOfPosition)
-		{
-			return new PairInt (
-				(int)(keyOfPosition / ConstBoard.Max_Row) , 
-				(int)(keyOfPosition % ConstBoard.Max_Row)
-				);
-		}
 
-
-		//20150330 chamto - fixme keyOfPosition
-		public MonoDrop GetMonoDrop(PairInt dropPair)
-		{
-			int keyOfPos1 = this.ChangeKeyOfPosition (dropPair.column, dropPair.row);
-			
-			MonoDrop temp1 = null;
-			if (false == m_mapDrop.TryGetValue (keyOfPos1, out temp1))
-				return null;
-			
-			return temp1;
-		}
-		
 		
 		/// <summary>
 		/// Get Position of put Drop of board
@@ -554,103 +517,15 @@ namespace PuzzAndBidurgi
 		public Vector3 GetPositionOfPutDrop(PairInt dropPair)
 		{
 			Vector3 posOfPut;
-			posOfPut.x = Single.UIRoot.transform.position.x + ConstDrop.UI_Width * dropPair.row;
-			posOfPut.y = Single.UIRoot.transform.position.y - ConstDrop.UI_Height * dropPair.column;
+			posOfPut.x = Single.UIRoot.transform.position.x + DropInfo.WIDTH_DROP * dropPair.row;
+			posOfPut.y = Single.UIRoot.transform.position.y - DropInfo.HEIGHT_DROP * dropPair.column;
 			posOfPut.z = Single.UIRoot.transform.position.z;
 			
 			return posOfPut;
 		}
 
-//		private GameObject CreatePrefab(string path)
-//		{
-//			const string root = "Prefab/";
-//			return MonoBehaviour.Instantiate(Resources.Load(root + path)) as GameObject;
-//		}
-
-		public void SetTheDropSprite(SpriteRenderer sprRd , eResKind eDrop)
-		{
-			if(null == sprRd) 
-			{
-				CDefine.DebugLogError(string.Format("SpriteRenderer is null"));
-				return;
-			}
 
 
-			//"Texture/drop/dropHeart"
-			//Array.IndexOf(
-
-			sprRd.sprite = Single.ResMgr.LoadSprites(eDrop,SResDefine.spINDEX_ZERO);
-
-		}
-
-		/// <summary>
-		/// Creates the drop.
-		/// </summary>
-		/// <returns>The drop.</returns>
-		/// <param name="in_eKind">Dropkind.</param>
-		/// <param name="relativeCoord_x">Relative coordinate X.</param>
-		/// <param name="relativeCoord_y">Relative coordinate Y.</param>
-//		public MonoDrop CreateDrop(int keyOfPosition, Transform parent , eResKind eDrop , float relativeCoord_x , float relativeCoord_y)
-//		{
-//
-//			GameObject newObj = CreatePrefab(SResDefine.pfDROPINFO);
-//			if(null == newObj) 
-//			{
-//				CDefine.DebugLogError(string.Format("Failed to create Prefab : " + SResDefine.pfDROPINFO));
-//				return null;
-//			}
-//			MonoDrop drop = newObj.GetComponent<MonoDrop>();
-//			if(null == drop) 
-//			{
-//				CDefine.DebugLogError(string.Format("MonoDrop is null"));
-//				return null;
-//			}
-//
-//			//20150212 chamto - MonoDrop::Awake  에서 랜더러와 콜리더를 얻는다
-////			SpriteRenderer sprRd = newObj.GetComponentInChildren<SpriteRenderer>();
-////			if(null == sprRd) 
-////			{
-////				CDefine.DebugLogError(string.Format("SpriteRenderer is null"));
-////				return null;
-////			}
-//
-//			//-------------------------------------------------
-//
-//			drop.keyOfPosition = keyOfPosition;
-//			newObj.name = "drop" + keyOfPosition.ToString("000");
-//
-//			//CDefine.DebugLog(newObj.transform.localPosition+ "before--------"); //chamto test
-//
-//			if(null != parent)
-//			{	//Specify the parent object
-//				newObj.transform.parent = parent.transform;
-//			}
-//
-//			//CDefine.DebugLog(newObj.transform.localPosition+ "after--------"); //chamto test
-//
-//			//SetTheDropSprite(sprRd , eDrop);
-//
-//			//newObj.transform.position = new Vector3(relativeCoord_x,relativeCoord_y,0); //[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
-//			newObj.transform.localPosition = new Vector3(relativeCoord_x,relativeCoord_y,0);
-//
-//
-//			drop.setKind = eDrop;
-//			drop.firstLocalPosition = newObj.transform.localPosition;
-//
-//			return drop;
-//
-//		}
-
-
-
-		public void RemoveDrop(int keyOfPosition)
-		{
-			MonoDrop drop = GetMonoDrop(ChangePairInMatrix(keyOfPosition));
-			if (null != drop) 
-			{
-				//drop.transform.
-			}
-		}
 
 
 
@@ -810,7 +685,7 @@ namespace PuzzAndBidurgi
 			return null;
 		}
 
-
+		
 
 
 
