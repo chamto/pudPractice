@@ -461,6 +461,23 @@ public struct Index2
 	{
 		return ixyPair.ix + ixyPair.iy * maxColumn;
 	}
+
+
+	static public bool operator != (Index2 ixy1 , Index2 ixy2)
+	{
+		if (ixy1.ix == ixy2.ix && ixy1.iy == ixy2.iy)
+			return true;
+
+		return false;
+	}
+
+	static public bool operator == (Index2 ixy1 , Index2 ixy2)
+	{
+		if (ixy1.ix == ixy2.ix && ixy1.iy == ixy2.iy)
+			return true;
+
+		return false;
+	}
 }
 public struct Index3
 {
