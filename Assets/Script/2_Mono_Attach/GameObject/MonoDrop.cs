@@ -276,7 +276,7 @@ public class MonoDrop : MonoBehaviour
 				//2.setting target position 
 				//swap firstPostion
 				//Single.DropMgr.SwapFirstLocalPosition(this,dstDrop);
-				Single.DropMgr.SwapMonoDropInBoard(this.keyOfPosition , dstDrop.keyOfPosition, false);
+				Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.index2D , dstDrop.dropInfo.index2D, false);
 				//break;
 
 				//3.animation target drop
@@ -320,7 +320,7 @@ public class MonoDrop : MonoBehaviour
 			//collisionDrop.firstLocalPosition = temp;
 
 			//_SwapFirstLocalPosition(this , collisionDrop);
-			Single.DropMgr.SwapMonoDropInBoard(this.keyOfPosition , collisionDrop.keyOfPosition , false);
+			Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.index2D , collisionDrop.dropInfo.index2D , false);
 			
 			//rolling drop
 			collisionDrop.MovingAni(collisionDrop.firstLocalPosition); //test comment
@@ -477,6 +477,20 @@ public struct Index2
 			return true;
 
 		return false;
+	}
+
+
+	public bool Equals(Index2 ixy)
+	{
+		if (this.ix == ixy.ix && this.iy == ixy.iy)
+			return true;
+
+		return false;
+	}
+
+	override public int GetHashCode()
+	{
+		return ix ^ iy;
 	}
 }
 public struct Index3

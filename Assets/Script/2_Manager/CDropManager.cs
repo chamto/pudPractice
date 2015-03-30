@@ -346,33 +346,30 @@ namespace PuzzAndBidurgi
 		// drop method
 		//------------------------------------------------------------------------
 
-		public bool SwapMonoDropInBoard(int keyOfPos1 , int keyOfPos2 , bool applyPosition)
+		//public bool SwapMonoDropInBoard(int keyOfPos1 , int keyOfPos2 , bool applyPosition)
+		public bool SwapMonoDropInBoard(Index2 ixy1 , Index2 ixy2 , bool applyPosition)
 		{
 
-			if (keyOfPos1 == keyOfPos2)
-								return false; 
+			if (ixy1 == ixy2) 
+				return false; 
 
-			MonoDrop temp1 = null;
-			MonoDrop temp2 = null;
-			if (false == m_mapDrop.TryGetValue (keyOfPos1, out temp1))
-								return false;
+			MonoDrop temp1 = m_mapDrop.GetMonoDropByIndex2 (ixy1);
+			MonoDrop temp2 = m_mapDrop.GetMonoDropByIndex2 (ixy2);
 
-			if (false == m_mapDrop.TryGetValue (keyOfPos2, out temp2))
+			if (null == temp1 || null == temp2)
 								return false;
 
 			if (false == ValidSwapMonoDrop (temp1, temp2))
 								return false;
 
-			//1. swap position of dtnr 
-			m_mapDrop.Remove (keyOfPos1);
-			m_mapDrop.Remove (keyOfPos2);
-			m_mapDrop.Add (keyOfPos1, temp2);
-			m_mapDrop.Add (keyOfPos2, temp1);
-
+			//swap index2 coord
+			Index2 tempIndex = temp1.dropInfo.index2D;
+			temp1.dropInfo.index2D = temp2.dropInfo.index2D;
+			temp2.dropInfo.index2D = tempIndex;
 
 			//2. swap key of monoDrop
-			temp1.keyOfPosition = keyOfPos2;
-			temp2.keyOfPosition = keyOfPos1;
+			//temp1.keyOfPosition = keyOfPos2;
+			//temp2.keyOfPosition = keyOfPos1;
 
 			//3. swap localPosition of monoDrop
 			SwapFirstLocalPosition (temp1, temp2);
@@ -382,9 +379,6 @@ namespace PuzzAndBidurgi
 				temp2.transform.localPosition = temp2.firstLocalPosition;
 			}
 
-			//4. swap name of monoDrop
-			temp1.name = "drop" + temp1.keyOfPosition.ToString("000");
-			temp2.name = "drop" + temp2.keyOfPosition.ToString("000");
 
 
 			return true;
@@ -471,14 +465,17 @@ namespace PuzzAndBidurgi
 
 			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
+			Index2 ixy;
 			for(int i=0 ; i<MAX_DROP5X6X2 ; i++)
 			{
-				pos.x = (i% MAX_DROP_COLUMN) * DropInfo.WIDTH_DROP;
-				pos.y = (i/MAX_DROP_COLUMN) * DropInfo.HEIGHT_DROP;
+				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
+				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
+				pos.x = ixy.ix * DropInfo.WIDTH_DROP;
+				pos.y = ixy.iy * DropInfo.HEIGHT_DROP;
 				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
 				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
 				                        pos);
-
+				pDrop.dropInfo.index2D = ixy;
 				m_mapDrop.Add(pDrop.dropInfo.id, pDrop);
 
 				//6x5 : width6 height5
