@@ -12,6 +12,7 @@ public class MonoDrop : MonoBehaviour
 	private DropInfo 		m_dropInfo;
 
 	public TextMesh			m_textMesh_Index2 = null;
+	public TextMesh			m_textMesh_LocalIdx = null;
 	//public Index2			testIndex2;
 
 	//spr : sprite , rdr : renderer
@@ -279,7 +280,7 @@ public class MonoDrop : MonoBehaviour
 				//2.setting target position 
 				//swap firstPostion
 				//Single.DropMgr.SwapFirstLocalPosition(this,dstDrop);
-				Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.index2D , dstDrop.dropInfo.index2D, false);
+				Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.id , dstDrop.dropInfo.id, true);
 				//break;
 
 				//3.animation target drop
@@ -310,6 +311,7 @@ public class MonoDrop : MonoBehaviour
 			Single.DropMgr.AddMovedPath(collisionDrop);
 			//CDefine.DebugLog("_______________"); //chamto test
 			//moving complete after process
+
 			if(null != m_prevCollisionDrop) m_prevCollisionDrop.StopAni(); //test comment
 			collisionDrop.StopAni(); 
 
@@ -318,18 +320,13 @@ public class MonoDrop : MonoBehaviour
 //			                 "  local+Parent : " + (collisionDrop.transform.localPosition + collisionDrop.transform.parent.transform.position)); //chamto test
 
 			//swap firstPostion
-			//Vector3 temp = firstLocalPosition;
-			//firstLocalPosition = collisionDrop.firstLocalPosition;
-			//collisionDrop.firstLocalPosition = temp;
-
-			//_SwapFirstLocalPosition(this , collisionDrop);
-			Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.index2D , collisionDrop.dropInfo.index2D , false);
+			Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.id , collisionDrop.dropInfo.id , false);
 			
 			//rolling drop
-			collisionDrop.MovingAni(collisionDrop.firstLocalPosition); //test comment
+			//collisionDrop.MovingAni(collisionDrop.firstLocalPosition); //test comment
 
 
-			//CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name); //chamto test
+			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name); //chamto test
 
 
 		}//else
@@ -401,22 +398,29 @@ public class MonoDrop : MonoBehaviour
 		
 		
 		//todo modify that localposition
-		drop.firstLocalPosition = newObj.transform.localPosition;
+		drop.firstLocalPosition = localPos;
 
 		//20150331 chamto test
 		//drop.testIndex2.ix = drop.dropInfo.index2D.ix;
 		//drop.testIndex2.iy = drop.dropInfo.index2D.iy;
 		drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.dropInfo.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
+		//Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (drop.firstLocalPosition);
+		//drop.m_textMesh_LocalIdx = MonoDrop.Add3DText (drop.transform, localIdx.ToString(), Color.red, new Vector3(-0.5f,-0.3f,-2f));
+
 		
 		return drop;
 	}
 
 	public void UpdateTextMesh()
 	{
-		if (null == m_textMesh_Index2)
-						return;
+		if (null != m_textMesh_Index2)
+			m_textMesh_Index2.text = this.dropInfo.index2D.ToString ();
 
-		m_textMesh_Index2.text = this.dropInfo.index2D.ToString ();
+		if (null != m_textMesh_LocalIdx) 
+		{
+			Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (this.firstLocalPosition);
+			m_textMesh_LocalIdx.text = localIdx.ToString();
+		}
 	}
 
 	static public TextMesh Add3DText(Transform parent, string text, Color color , Vector3 pos)

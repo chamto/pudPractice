@@ -77,10 +77,10 @@ namespace PuzzAndBidurgi
 			public void ClearMovedPath()
 			{
 				//chamto test
-				CDefine.DebugLog("=-=-=-=-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-=");
+				//CDefine.DebugLog("=-=-=-=-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-=");
 				foreach(KeyValuePair<float,MonoDrop>  kv in m_dtnrMovedPath)
 				{
-					CDefine.DebugLog(kv.Key + "  " + kv.Value.name);
+					//CDefine.DebugLog(kv.Key + "  " + kv.Value.name);
 				}
 				
 				m_dtnrMovedPath.Clear();
@@ -129,7 +129,9 @@ namespace PuzzAndBidurgi
 			return null;
 		}
 
-		public MonoDrop GetMonoDropByIndex2(Index2 ixy)
+
+		//20150331 chamto - mapIndex2 에서 index2 키에 해당하는 id 값의 무결성이 깨지기 쉬움, 어떻게 해결할지 생각해야함, 일단 사용안함
+		private MonoDrop needFix_GetMonoDropByIndex2(Index2 ixy)
 		{
 			int getUID = 0;
 			if(mapIndex2.TryGetValue(ixy,out getUID))
@@ -470,8 +472,8 @@ namespace PuzzAndBidurgi
 			//빗변*빗변 = 가로*가로*2
 			//실수값을 비교, 오차가 발생할것이기 떄문에 가중치값을 더함
 			//빗변*빗변 = 가로*가로*2 + 가중치
-			//float dist = ConstDrop.UI_Width * ConstDrop.UI_Width * 2 + 0.15f;
-			float dist = (m_board.squareWidth * m_board.squareWidth + m_board.squareHeight * m_board.squareHeight) + 0.15f;
+			float dist = m_board.squareWidth * m_board.squareWidth * 2 + 0.15f;
+			//float dist = (m_board.squareWidth * m_board.squareWidth + m_board.squareHeight * m_board.squareHeight) + 0.15f;
 
 			return (dist > GetSqrDistance (drop1.firstWorldPosition, drop2.firstWorldPosition));
 		}
@@ -482,22 +484,27 @@ namespace PuzzAndBidurgi
 		//------------------------------------------------------------------------
 
 		//public bool SwapMonoDropInBoard(int keyOfPos1 , int keyOfPos2 , bool applyPosition)
-		public bool SwapMonoDropInBoard(Index2 ixy1 , Index2 ixy2 , bool applyPosition)
+		public bool SwapMonoDropInBoard(int id1 , int id2 , bool applyPosition)
 		{
 
-			CDefine.DebugLog ("SwapMonoDropInBoard 1: " + ixy1.ToString() + "  " + ixy2.ToString()); //20150331 chamto test
 
-			if (ixy1 == ixy2) 
+
+			if (id1 == id2) 
 				return false; 
 
-			MonoDrop temp1 = m_mapDrop.GetMonoDropByIndex2 (ixy1);
-			MonoDrop temp2 = m_mapDrop.GetMonoDropByIndex2 (ixy2);
+			MonoDrop temp1 = m_mapDrop.GetMonoDropByUID (id1);
+			MonoDrop temp2 = m_mapDrop.GetMonoDropByUID (id2);
 
 			if (null == temp1 || null == temp2)
 								return false;
 
+			CDefine.DebugLog ("----------------SwapMonoDropInBoard 1: " + temp1.dropInfo.index2D.ToString() + "  " + temp2.dropInfo.index2D.ToString()); //20150331 chamto test
+
 			if (false == ValidSwapMonoDrop (temp1, temp2))
 								return false;
+
+
+			//CDefine.DebugLog ("----------------SwapMonoDropInBoard 2: " + ixy1.ToString() + "  " + ixy2.ToString()); //20150331 chamto test
 
 			//swap index2 coord
 			Index2 tempIndex = temp1.dropInfo.index2D;
@@ -505,9 +512,6 @@ namespace PuzzAndBidurgi
 			temp2.dropInfo.index2D = tempIndex;
 
 
-			//2. swap key of monoDrop
-			//temp1.keyOfPosition = keyOfPos2;
-			//temp2.keyOfPosition = keyOfPos1;
 
 			//3. swap localPosition of monoDrop
 			SwapFirstLocalPosition (temp1, temp2);
@@ -625,6 +629,7 @@ namespace PuzzAndBidurgi
 				//m_dtnrDrop.Add(i,pDrop);
 
 				//------ setting drop of color that invisialbe 30~  ------------
+				pDrop.SetColor(Color.gray); //chamto test
 				if(null != pDrop && i >= MAX_DROP5X6)
 				{
 					pDrop.SetColor(Color.blue);
@@ -783,6 +788,18 @@ namespace PuzzAndBidurgi
 
 
 //			CDefine.DebugLog ("----- line -----  ori :" + ls3.origin + "  last : " + ls3.last + " dict : " + ls3.direction); //chamto test
+
+			//20150331 chamto test
+			if (0 != result.Count) 
+			{
+				string sss = "";
+				foreach(MonoDrop mm  in result)
+				{
+					sss += mm.dropInfo.index2D.ToString() + " | ";
+				}
+				
+				CDefine.DebugLog (sss);
+			}
 
 
 			return result;
