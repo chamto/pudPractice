@@ -168,6 +168,14 @@ namespace PuzzAndBidurgi
 				mapIndex2.Remove(getValue.dropInfo.index2D);
 			}
 
+
+			if (null != getValue) 
+			{
+				getValue.SetColor(new Color(1,1,1,0.2f));
+				getValue.GetBoxCollider2D().enabled = false;
+				//getValue.gameObject.SetActive(false);
+				//MonoBehaviour.Destroy(getValue.gameObject);
+			}
 			return base.Remove (key);
 		}
 
@@ -472,8 +480,8 @@ namespace PuzzAndBidurgi
 			//빗변*빗변 = 가로*가로*2
 			//실수값을 비교, 오차가 발생할것이기 떄문에 가중치값을 더함
 			//빗변*빗변 = 가로*가로*2 + 가중치
-			float dist = m_board.squareWidth * m_board.squareWidth * 2 + 0.15f;
-			//float dist = (m_board.squareWidth * m_board.squareWidth + m_board.squareHeight * m_board.squareHeight) + 0.15f;
+			//float dist = m_board.squareWidth * m_board.squareWidth * 2 + 0.15f;
+			float dist = (m_board.squareWidth * m_board.squareWidth + m_board.squareHeight * m_board.squareHeight) + 0.15f;
 
 			return (dist > GetSqrDistance (drop1.firstWorldPosition, drop2.firstWorldPosition));
 		}

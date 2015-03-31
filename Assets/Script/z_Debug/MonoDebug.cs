@@ -32,16 +32,21 @@ public class MonoDebug : MonoBehaviour
 #if UNITY_EDITOR
 	void OnGUI()
 	{
-		if (GUI.Button (new Rect (10, 10, 100, 70), "Time -")) 
+		if (GUI.Button (new Rect (10, 10, 100, 70), "Drop Delete")) 
 		{
-			Time.timeScale -= 0.1f;
-			CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
+			//Time.timeScale -= 0.1f;
+			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
+			if(Single.DropMgr.MapDrop.Remove(1))
+			{
+				CDefine.DebugLog("Drop Remove 1 ");
+			}
+
 		}
 
 		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Time +")) 
 		{
-			Time.timeScale += 0.1f;
-			CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
+			//Time.timeScale += 0.1f;
+			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
 		}
 
 		Rule_PuzzleAndDragon rule = Single.MonoMain.rules as Rule_PuzzleAndDragon; 
