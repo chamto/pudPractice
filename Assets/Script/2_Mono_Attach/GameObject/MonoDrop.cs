@@ -11,12 +11,15 @@ public class MonoDrop : MonoBehaviour
 
 	private DropInfo 		m_dropInfo;
 
+	public TextMesh			m_textMesh_Index2 = null;
+	//public Index2			testIndex2;
+
 	//spr : sprite , rdr : renderer
 	private SpriteRenderer 	m_sprRdr = null;
 	private BoxCollider2D		m_boxCollider2D = null;
 
 
-	public int 				keyOfPosition; //chamto deprecate
+	//public int 				keyOfPosition; //chamto deprecate
 
 	public eResKind 		m_eKind = eResKind.None;
 
@@ -399,15 +402,43 @@ public class MonoDrop : MonoBehaviour
 		
 		//todo modify that localposition
 		drop.firstLocalPosition = newObj.transform.localPosition;
+
+		//20150331 chamto test
+		//drop.testIndex2.ix = drop.dropInfo.index2D.ix;
+		//drop.testIndex2.iy = drop.dropInfo.index2D.iy;
+		drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.dropInfo.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
 		
 		return drop;
 	}
 
+	public void UpdateTextMesh()
+	{
+		if (null == m_textMesh_Index2)
+						return;
+
+		m_textMesh_Index2.text = this.dropInfo.index2D.ToString ();
+	}
+
+	static public TextMesh Add3DText(Transform parent, string text, Color color , Vector3 pos)
+	{
+		
+		GameObject objGui = MonoBehaviour.Instantiate (Resources.Load("Prefab/3DText"),Vector3.zero,Quaternion.identity) as GameObject;
+		TextMesh gui = objGui.GetComponent<TextMesh> ();
+		objGui.transform.parent = parent;
+		objGui.transform.localPosition = pos;
+		gui.text = text;
+		gui.color = color;
+		gui.anchor = TextAnchor.UpperLeft;
+
+		return gui;
+	}
+	
 }
 
 
 //=====================================================================
 
+[System.Serializable]
 public struct Index2
 {
 
@@ -419,6 +450,38 @@ public struct Index2
 	public int ix;
 	public int iy;
 
+
+	public int this [int index]
+	{
+		get
+		{
+			switch (index)
+			{
+			case 0:
+				return this.ix;
+			case 1:
+				return this.iy;
+			
+			default:
+				throw new IndexOutOfRangeException ("Invalid Index2 index!");
+			}
+		}
+		set
+		{
+			switch (index)
+			{
+			case 0:
+				this.ix = value;
+				break;
+			case 1:
+				this.iy = value;
+				break;
+			
+			default:
+				throw new IndexOutOfRangeException ("Invalid Index2 index!");
+			}
+		}
+	}
 
 	public Index2(int ix, int iy)
 	{
@@ -481,6 +544,16 @@ public struct Index2
 	}
 
 
+	public override bool Equals (object other)
+	{
+		if (!(other is Index2))
+		{
+			return false;
+		}
+		Index2 ixy = (Index2)other;
+		return Equals (ixy);
+	}
+
 	public bool Equals(Index2 ixy)
 	{
 		if (this.ix == ixy.ix && this.iy == ixy.iy)
@@ -492,6 +565,11 @@ public struct Index2
 	override public int GetHashCode()
 	{
 		return ix ^ iy;
+	}
+
+	override public string ToString()
+	{
+		return ix + "," + iy;
 	}
 }
 public struct Index3
@@ -508,7 +586,7 @@ public struct Index3
 	}
 }
 
-
+[System.Serializable]
 public class DropInfo
 {
 
@@ -521,7 +599,10 @@ public class DropInfo
 	private int 	m_id;
 	private	Index2	m_index2D;
 
+
 	//==============: property definition :========================================================================================
+	//[HideInInspector] [SerializeField]
+	//[ExposeProperty]
 	public int id
 	{
 		get
@@ -533,6 +614,8 @@ public class DropInfo
 			m_id = value;
 		}
 	}
+
+
 	public Index2 index2D
 	{
 		get

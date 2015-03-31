@@ -485,6 +485,8 @@ namespace PuzzAndBidurgi
 		public bool SwapMonoDropInBoard(Index2 ixy1 , Index2 ixy2 , bool applyPosition)
 		{
 
+			CDefine.DebugLog ("SwapMonoDropInBoard 1: " + ixy1.ToString() + "  " + ixy2.ToString()); //20150331 chamto test
+
 			if (ixy1 == ixy2) 
 				return false; 
 
@@ -502,6 +504,7 @@ namespace PuzzAndBidurgi
 			temp1.dropInfo.index2D = temp2.dropInfo.index2D;
 			temp2.dropInfo.index2D = tempIndex;
 
+
 			//2. swap key of monoDrop
 			//temp1.keyOfPosition = keyOfPos2;
 			//temp2.keyOfPosition = keyOfPos1;
@@ -514,6 +517,8 @@ namespace PuzzAndBidurgi
 				temp2.transform.localPosition = temp2.firstLocalPosition;
 			}
 
+			temp1.UpdateTextMesh ();
+			temp2.UpdateTextMesh ();
 
 
 			return true;
@@ -739,6 +744,7 @@ namespace PuzzAndBidurgi
 			Single.MonoDebug.lineRender.SetWidth (0.1f, 0.4f);
 			Single.MonoDebug.lineRender.SetPosition (0, ls3.origin);
 			Single.MonoDebug.lineRender.SetPosition (1, ls3.direction + ls3.origin);
+			Single.MonoDebug.lineRender.useWorldSpace = false;
 			//-------------------------------------------------------------------------
 #endif
 

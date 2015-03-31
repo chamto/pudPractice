@@ -10,7 +10,7 @@ public class TestFuncMinDist : MonoBehaviour
 	public GameObject	point;
 	public float t_c=0;
 	public float minDistSquared=0;
-	public GUIText		guiText;
+	public GUIText		guiText2;
 
 	private ML.LineSegment3 lineSegment; 
 
@@ -29,6 +29,6 @@ public class TestFuncMinDist : MonoBehaviour
 		minDistSquared = lineSegment.MinimumDistanceSquared (point.transform.position, out t_c);
 		lineRender.SetPosition (0, lineSrc.transform.position);
 		lineRender.SetPosition (1, lineDest.transform.position);
-		guiText.text = "t_c : " + t_c.ToString() + "  minDistSqu : " + minDistSquared.ToString ();
+		guiText2.text = "t_c : " + t_c.ToString() + "  minDistSqu : " + minDistSquared.ToString ();
 	}
 }
