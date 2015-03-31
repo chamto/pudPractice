@@ -172,6 +172,151 @@ namespace PuzzAndBidurgi
 	}
 
 
+	public  class DropBoard
+	{
+		public enum eStandard
+		{
+			eLeftBottom = 0,
+			eLeftUp = 1,
+			eCenter = 2,
+		}
+
+
+		private Vector2 m_squareLength;
+		private Index2 m_boardSize;
+
+		private Index2 		m_viewPosition;
+		private eStandard 	m_eViewStandard;
+
+		public float squareWidth
+		{
+			get
+			{
+				return m_squareLength.x;
+			}
+		}
+		public float squareHeight
+		{
+			get
+			{
+				return m_squareLength.y;
+			}
+		}
+		public Index2 boardSize
+		{
+			get
+			{
+				return m_boardSize;
+			}
+		}
+
+	
+
+		public DropBoard()
+		{
+			m_squareLength = new Vector2 (1.15f, 1.15f);
+			m_boardSize = new Index2 (6, 5);
+
+			m_viewPosition = new Index2 (0, 0);
+			m_eViewStandard = eStandard.eLeftBottom;
+		}
+
+
+		public  Vector3 GetPositionAt_ViewLeftUp()
+		{
+			return this.GetIndex2DToPosition (this.GetIndexAt_ViewLeftUp ());
+		}
+		public  Vector3 GetPositionAt_ViewRightUp()
+		{
+			return this.GetIndex2DToPosition (this.GetIndexAt_ViewRightUp ());
+		}
+		public  Vector3 GetPositionAt_ViewLeftBottom()
+		{
+			return this.GetIndex2DToPosition (this.GetIndexAt_ViewLeftBottom ());
+		}
+		public  Vector3 GetPositionAt_ViewRightBottom()
+		{
+			return this.GetIndex2DToPosition (this.GetIndexAt_ViewRightBottom ());
+		}
+
+
+		public  Index2 GetIndexAt_ViewLeftUp()
+		{
+			return new Index2 (m_viewPosition.ix, m_viewPosition.iy + boardSize.iy -1);
+		}
+		public  Index2 GetIndexAt_ViewRightUp()
+		{
+			return new Index2 (m_viewPosition.ix + boardSize.ix -1, m_viewPosition.iy + boardSize.iy -1);
+		}
+		public  Index2 GetIndexAt_ViewLeftBottom()
+		{
+			return new Index2 (m_viewPosition.ix, m_viewPosition.iy);
+		}
+		public  Index2 GetIndexAt_ViewRightBottom()
+		{
+			return new Index2 (m_viewPosition.ix + boardSize.ix -1, m_viewPosition.iy);
+		}
+
+
+
+		public Index2 GetPositionToIndex2D(Vector3 pos)
+		{
+			return DropBoard.GetPositionToIndex2D(pos, this.squareWidth, this.squareHeight);
+		}
+
+		static public Index2 GetPositionToIndex2D(Vector3 pos , float in_squareWidth , float in_squareHeight)
+		{
+			Index2 ixy;
+			ixy.ix = (int)((pos.x + (in_squareWidth * 0.5f)) / in_squareWidth);
+			ixy.iy = (int)((pos.y + (in_squareHeight * 0.5f)) / in_squareHeight);
+			
+			return ixy;
+		}
+
+		//return localPosition  
+		public Vector3 GetIndex2DToPosition(Index2 ixy)
+		{
+			return DropBoard.GetIndex2DToPosition(ixy, this.squareWidth, this.squareHeight);
+		}
+
+		static public Vector3 GetIndex2DToPosition(Index2 ixy , float in_squareWidth , float in_squareHeight)
+		{
+			Vector3 posOfPut;
+			posOfPut.x = in_squareWidth * ixy.ix;
+			posOfPut.y = in_squareHeight * ixy.iy;
+			posOfPut.z = 0;
+			
+			return posOfPut;
+		}
+
+		public Bounds GetBoundaryOfView(Vector3 UIRootPos)
+		{
+			Vector3 center, size;
+			size.x = this.squareWidth * m_boardSize.ix;
+			size.y = this.squareHeight * m_boardSize.iy;
+			//size.x = ConstDrop.UI_Width * ConstBoard.Max_Row;
+			//size.y = ConstDrop.UI_Height * ConstBoard.Max_Column;
+			size.z = 0;
+			
+			center.x = UIRootPos.x + (size.x * 0.5f) - (this.squareWidth * 0.5f) + (this.squareWidth * m_viewPosition.ix);
+			center.y = UIRootPos.y - (size.y * 0.5f) + (this.squareHeight * 0.5f) - (this.squareHeight * m_viewPosition.iy);
+			//center.x = Single.UIRoot.transform.position.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f);
+			//center.y = Single.UIRoot.transform.position.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f);// - size.y;
+			center.z = 0;
+
+#if UNITY_EDITOR
+			//-------------------------------------------------------------------------
+			//20140906 chamto test - debugCode
+			//-------------------------------------------------------------------------
+			Single.MonoDebug.boundary.transform.position = center;
+			Single.MonoDebug.boundary.transform.localScale = size;
+			//-------------------------------------------------------------------------
+#endif
+			
+			return new Bounds (center, size);
+		}
+	}
+
 
 	/// <summary>
 	/// C drop manager.
@@ -185,7 +330,7 @@ namespace PuzzAndBidurgi
 		/// The m_map find it the unique identity number interface.
 		/// </summary>
 		private DropMap 						m_mapDrop = new DropMap();
-
+		private DropBoard						m_board = new DropBoard();
 
 		//private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
 		//private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
@@ -200,6 +345,20 @@ namespace PuzzAndBidurgi
 				return m_mapDrop;
 			}
 		}
+		public DropBoard					Board 
+		{
+			get 
+			{
+				return m_board;
+			}
+		}
+		public Index2						BoardSize
+		{
+			get
+			{
+				return m_board.boardSize;
+			}
+		}
 
 
 
@@ -208,63 +367,39 @@ namespace PuzzAndBidurgi
 		// currection method
 		//------------------------------------------------------------------------
 
-		public Bounds GetBoundaryOfBoard(PairInt boardSize , PairInt boardPos ,Vector3 startPointLeftUp)
-		{
-			Vector3 center, size;
-			size.x = ConstDrop.UI_Width * boardSize.row;
-			size.y = ConstDrop.UI_Height * boardSize.column;
-			//size.x = ConstDrop.UI_Width * ConstBoard.Max_Row;
-			//size.y = ConstDrop.UI_Height * ConstBoard.Max_Column;
-			size.z = 0;
 
-			center.x = startPointLeftUp.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f) + (ConstDrop.UI_Width * boardPos.row);
-			center.y = startPointLeftUp.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f) - (ConstDrop.UI_Height * boardPos.column);;
-			//center.x = Single.UIRoot.transform.position.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f);
-			//center.y = Single.UIRoot.transform.position.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f);// - size.y;
-			center.z = 0;
-
-			//-------------------------------------------------------------------------
-			//20140906 chamto test - debugCode
-			//-------------------------------------------------------------------------
-#if UNITY_EDITOR
-			Single.MonoDebug.boundary.transform.position = center;
-			Single.MonoDebug.boundary.transform.localScale = size;
-#endif
-			//-------------------------------------------------------------------------
-
-			return new Bounds (center, size);
-		}
 
 
 		public ML.LineSegment3 CorrectionLineSegment(MonoDrop srcDrop , ML.LineSegment3 lineSeg3)
 		{
 			if (null == srcDrop)
-								return lineSeg3;
+				return lineSeg3;
 
 			//Correction value
 			//PairInt parameter is array index(0 start , 1 is not ).
-			PairInt startPos = PairInt.Start_C5_R0;
-			Vector3 putPos_left_up = GetPositionOfPutDrop (BoardPosition.GetLeftUp(PairInt.Size_5x6 , startPos));
-			Vector3 putPos_right_up = GetPositionOfPutDrop (BoardPosition.GetRightUp(PairInt.Size_5x6 , startPos));
-			Vector3 putPos_left_bottom = GetPositionOfPutDrop (BoardPosition.GetLeftBottom(PairInt.Size_5x6 , startPos));
-			Vector3 putPos_right_bottom = GetPositionOfPutDrop (BoardPosition.GetRightBottom(PairInt.Size_5x6 , startPos));
+			//Index2 startPos = PairInt.Start_C5_R0;
+			Vector3 putPos_left_up = m_board.GetPositionAt_ViewLeftUp ();
+			Vector3 putPos_right_up = m_board.GetPositionAt_ViewRightUp ();
+			Vector3 putPos_left_bottom = m_board.GetPositionAt_ViewLeftBottom ();
+			Vector3 putPos_right_bottom = m_board.GetPositionAt_ViewRightBottom ();
 
 			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
 			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
 			//Vector3 putPos_left_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, 0));
 			//Vector3 putPos_right_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, (int)ConstBoard.Max_Row-1));
 
-
+#if UNITY_EDITOR
 			//-------------------------------------------------------------------------
 			//20140906 chamto test
 			//-------------------------------------------------------------------------
-//			Single.MonoDebug.cube01.transform.position = putPos_left_up;
-//			Single.MonoDebug.cube02.transform.position = putPos_right_up;
-//			Single.MonoDebug.cube03.transform.position = putPos_left_bottom;
-//			Single.MonoDebug.cube04.transform.position = putPos_right_bottom;
+			Single.MonoDebug.cube_LeftUp.transform.position = putPos_left_up;
+			Single.MonoDebug.cube_RightUp.transform.position = putPos_right_up;
+			Single.MonoDebug.cube_LeftBottom.transform.position = putPos_left_bottom;
+			Single.MonoDebug.cube_RightBottom.transform.position = putPos_right_bottom;
 			//-------------------------------------------------------------------------
+#endif
 
-			Bounds bob = GetBoundaryOfBoard (PairInt.Size_5x6, startPos, Single.UIRoot.transform.position);
+			Bounds bob = m_board.GetBoundaryOfView (Single.UIRoot.transform.position);
 			ML.LineSegment3 result = new ML.LineSegment3();
 			result.origin = srcDrop.firstWorldPosition;
 			result.last = lineSeg3.last;
@@ -336,7 +471,7 @@ namespace PuzzAndBidurgi
 			//실수값을 비교, 오차가 발생할것이기 떄문에 가중치값을 더함
 			//빗변*빗변 = 가로*가로*2 + 가중치
 			//float dist = ConstDrop.UI_Width * ConstDrop.UI_Width * 2 + 0.15f;
-			float dist = DropInfo.WIDTH_DROP * DropInfo.WIDTH_DROP * 2 + 0.15f;
+			float dist = (m_board.squareWidth * m_board.squareWidth + m_board.squareHeight * m_board.squareHeight) + 0.15f;
 
 			return (dist > GetSqrDistance (drop1.firstWorldPosition, drop2.firstWorldPosition));
 		}
@@ -470,8 +605,8 @@ namespace PuzzAndBidurgi
 			{
 				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
 				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
-				pos.x = ixy.ix * DropInfo.WIDTH_DROP;
-				pos.y = ixy.iy * DropInfo.HEIGHT_DROP;
+				pos.x = ixy.ix * m_board.squareWidth;
+				pos.y = ixy.iy * m_board.squareHeight;
 				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
 				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
 				                        pos);
@@ -511,15 +646,15 @@ namespace PuzzAndBidurgi
 		/// </summary>
 		/// <returns> center position of put drop.</returns>
 		/// <param name="dropPair">Drop pair.</param>
-		public Vector3 GetPositionOfPutDrop(PairInt dropPair)
-		{
-			Vector3 posOfPut;
-			posOfPut.x = Single.UIRoot.transform.position.x + DropInfo.WIDTH_DROP * dropPair.row;
-			posOfPut.y = Single.UIRoot.transform.position.y - DropInfo.HEIGHT_DROP * dropPair.column;
-			posOfPut.z = Single.UIRoot.transform.position.z;
-			
-			return posOfPut;
-		}
+//		public Vector3 GetPositionOfPutDrop(Index2 dropPair)
+//		{
+//			Vector3 posOfPut;
+//			posOfPut.x = Single.UIRoot.transform.position.x + m_board.squareWidth * dropPair.ix;
+//			posOfPut.y = Single.UIRoot.transform.position.y + m_board.squareHeight * dropPair.iy;
+//			posOfPut.z = Single.UIRoot.transform.position.z;
+//			
+//			return posOfPut;
+//		}
 
 
 
@@ -597,15 +732,15 @@ namespace PuzzAndBidurgi
 			ls3.direction.z = 0;
 
 
-			//LineRenderer lr = new LineRenderer ();
-
+#if UNITY_EDITOR
 			//-------------------------------------------------------------------------
 			//20140906 chamto - test
 			//-------------------------------------------------------------------------
-			//Single.MonoDebug.lineRender.SetWidth (0.1f, 0.4f);
-			//Single.MonoDebug.lineRender.SetPosition (0, ls3.origin);
-			//Single.MonoDebug.lineRender.SetPosition (1, ls3.direction + ls3.origin);
+			Single.MonoDebug.lineRender.SetWidth (0.1f, 0.4f);
+			Single.MonoDebug.lineRender.SetPosition (0, ls3.origin);
+			Single.MonoDebug.lineRender.SetPosition (1, ls3.direction + ls3.origin);
 			//-------------------------------------------------------------------------
+#endif
 
 			//2. 3. 모든드롭에 대해 전수 조사한다. (선분 근처 드롭만 조사하게 최적화 필요)
 			//SortedDictionary<float , MonoDrop> collisionDtnr = new Dictionary<float , MonoDrop> ();

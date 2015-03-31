@@ -386,7 +386,7 @@ public class MonoDrop : MonoBehaviour
 
 		//drop.dropInfo = DropInfo.Create ();
 		drop.dropInfo.id = Single.ResMgr.GetSequenceId ();
-		drop.dropInfo.SetPositionToIndex2D (localPos);
+		drop.dropInfo.index2D = Single.DropMgr.Board.GetPositionToIndex2D (localPos);
 		drop.setKind = eDrop;
 
 		//Specify the parent object
@@ -418,6 +418,7 @@ public struct Index2
 
 	public int ix;
 	public int iy;
+
 
 	public Index2(int ix, int iy)
 	{
@@ -512,8 +513,8 @@ public class DropInfo
 {
 
 	//==============: member Constant :========================================================================================
-	public const float WIDTH_DROP = 1.15f;
-	public const float HEIGHT_DROP = 1.15f;
+	//public const float WIDTH_DROP = 1.15f;
+	//public const float HEIGHT_DROP = 1.15f;
 
 
 	//==============: member variables :========================================================================================
@@ -545,20 +546,7 @@ public class DropInfo
 	}
 
 	//==============: get,set method :========================================================================================
-	public void SetPositionToIndex2D(Vector3 pos)
-	{
-		m_index2D.ix = (int)((pos.x + (WIDTH_DROP * 0.5f)) / WIDTH_DROP);
-		m_index2D.iy = (int)((pos.y + (HEIGHT_DROP * 0.5f)) / HEIGHT_DROP);
-	}
 
-	public Vector3 GetIndex2DToPosition()
-	{
-		Vector3 pos = Vector3.zero;
-		pos.x = WIDTH_DROP * m_index2D.ix;
-		pos.y = HEIGHT_DROP * m_index2D.iy;
-
-		return pos;
-	}
 
 
 	//==============: factory method :========================================================================================

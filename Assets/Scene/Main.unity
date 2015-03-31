@@ -125,7 +125,7 @@ GameObject:
   - 65: {fileID: 466879939}
   - 23: {fileID: 466879938}
   m_Layer: 0
-  m_Name: Cube01
+  m_Name: Cube_LeftUp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -194,7 +194,7 @@ GameObject:
   - 65: {fileID: 482179559}
   - 23: {fileID: 482179558}
   m_Layer: 0
-  m_Name: Cube02
+  m_Name: Cube_RightUp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -263,7 +263,7 @@ GameObject:
   - 65: {fileID: 677249951}
   - 23: {fileID: 677249950}
   m_Layer: 0
-  m_Name: Cube04
+  m_Name: Cube_RightBottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -917,10 +917,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lineRender: {fileID: 1973474996}
-  cube01: {fileID: 466879936}
-  cube02: {fileID: 482179556}
-  cube03: {fileID: 2107381479}
-  cube04: {fileID: 677249948}
+  cube_LeftUp: {fileID: 466879936}
+  cube_RightUp: {fileID: 482179556}
+  cube_LeftBottom: {fileID: 2107381479}
+  cube_RightBottom: {fileID: 677249948}
   boundary: {fileID: 825200395}
   firstCube: {fileID: 932901351}
 --- !u!1 &1973474995
@@ -1114,7 +1114,7 @@ GameObject:
   - 65: {fileID: 2107381482}
   - 23: {fileID: 2107381481}
   m_Layer: 0
-  m_Name: Cube03
+  m_Name: Cube_LeftBottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

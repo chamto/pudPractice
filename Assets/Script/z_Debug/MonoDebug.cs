@@ -9,10 +9,10 @@ public class MonoDebug : MonoBehaviour
 {
 
 	public LineRenderer lineRender = null;
-	public GameObject cube01 = null;
-	public GameObject cube02 = null;
-	public GameObject cube03 = null;
-	public GameObject cube04 = null;
+	public GameObject cube_LeftUp = null;
+	public GameObject cube_RightUp = null;
+	public GameObject cube_LeftBottom = null;
+	public GameObject cube_RightBottom = null;
 	public GameObject boundary = null;
 	public GameObject firstCube = null;
 
