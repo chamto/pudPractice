@@ -299,7 +299,7 @@ namespace PuzzAndBidurgi
 			size.z = 0;
 			
 			center.x = UIRootPos.x + (size.x * 0.5f) - (this.squareWidth * 0.5f) + (this.squareWidth * m_viewPosition.ix);
-			center.y = UIRootPos.y - (size.y * 0.5f) + (this.squareHeight * 0.5f) - (this.squareHeight * m_viewPosition.iy);
+			center.y = UIRootPos.y + (size.y * 0.5f) - (this.squareHeight * 0.5f) + (this.squareHeight * m_viewPosition.iy);
 			//center.x = Single.UIRoot.transform.position.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f);
 			//center.y = Single.UIRoot.transform.position.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f);// - size.y;
 			center.z = 0;
@@ -378,10 +378,10 @@ namespace PuzzAndBidurgi
 			//Correction value
 			//PairInt parameter is array index(0 start , 1 is not ).
 			//Index2 startPos = PairInt.Start_C5_R0;
-			Vector3 putPos_left_up = m_board.GetPositionAt_ViewLeftUp ();
-			Vector3 putPos_right_up = m_board.GetPositionAt_ViewRightUp ();
-			Vector3 putPos_left_bottom = m_board.GetPositionAt_ViewLeftBottom ();
-			Vector3 putPos_right_bottom = m_board.GetPositionAt_ViewRightBottom ();
+			Vector3 putPos_left_up = m_board.GetPositionAt_ViewLeftUp () + Single.UIRoot.transform.position;
+			Vector3 putPos_right_up = m_board.GetPositionAt_ViewRightUp () + Single.UIRoot.transform.position;
+			Vector3 putPos_left_bottom = m_board.GetPositionAt_ViewLeftBottom () + Single.UIRoot.transform.position;
+			Vector3 putPos_right_bottom = m_board.GetPositionAt_ViewRightBottom () + Single.UIRoot.transform.position;
 
 			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
 			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
