@@ -154,6 +154,7 @@ namespace PuzzAndBidurgi
 				Debug.LogError("Add : null == value");
 				return;
 			}
+			//fix me : Exception the same key
 
 			base.Add (key, value);
 			mapIndex2.Add (value.dropInfo.index2D, key);
@@ -179,6 +180,12 @@ namespace PuzzAndBidurgi
 			return base.Remove (key);
 		}
 
+		public List<MonoDrop> FindJoinConditions()
+		{
+		}
+
+
+
 	}
 
 
@@ -192,9 +199,10 @@ namespace PuzzAndBidurgi
 		}
 
 
-		private Vector2 m_squareLength;
-		private Index2 m_boardSize;
+		private Vector2 	m_squareLength;
+		private Index2 		m_boardSize;
 
+		private Index2 		m_viewSize;
 		private Index2 		m_viewPosition;
 		private eStandard 	m_eViewStandard;
 
@@ -219,13 +227,21 @@ namespace PuzzAndBidurgi
 				return m_boardSize;
 			}
 		}
+		public Index2 viewSize
+		{
+			get
+			{
+				return m_viewSize;
+			}
+		}
 
 	
 
 		public DropBoard()
 		{
 			m_squareLength = new Vector2 (1.15f, 1.15f);
-			m_boardSize = new Index2 (6, 5);
+			m_boardSize = new Index2 (6, 10);
+			m_viewSize = new Index2 (6, 5);
 
 			m_viewPosition = new Index2 (0, 0);
 			m_eViewStandard = eStandard.eLeftBottom;
@@ -252,11 +268,11 @@ namespace PuzzAndBidurgi
 
 		public  Index2 GetIndexAt_ViewLeftUp()
 		{
-			return new Index2 (m_viewPosition.ix, m_viewPosition.iy + boardSize.iy -1);
+			return new Index2 (m_viewPosition.ix, m_viewPosition.iy + m_viewSize.iy -1);
 		}
 		public  Index2 GetIndexAt_ViewRightUp()
 		{
-			return new Index2 (m_viewPosition.ix + boardSize.ix -1, m_viewPosition.iy + boardSize.iy -1);
+			return new Index2 (m_viewPosition.ix + m_viewSize.ix -1, m_viewPosition.iy + m_viewSize.iy -1);
 		}
 		public  Index2 GetIndexAt_ViewLeftBottom()
 		{
@@ -264,7 +280,7 @@ namespace PuzzAndBidurgi
 		}
 		public  Index2 GetIndexAt_ViewRightBottom()
 		{
-			return new Index2 (m_viewPosition.ix + boardSize.ix -1, m_viewPosition.iy);
+			return new Index2 (m_viewPosition.ix + m_viewSize.ix -1, m_viewPosition.iy);
 		}
 
 
@@ -302,8 +318,8 @@ namespace PuzzAndBidurgi
 		public Bounds GetBoundaryOfView(Vector3 UIRootPos)
 		{
 			Vector3 center, size;
-			size.x = this.squareWidth * m_boardSize.ix;
-			size.y = this.squareHeight * m_boardSize.iy;
+			size.x = this.squareWidth * m_viewSize.ix;
+			size.y = this.squareHeight * m_viewSize.iy;
 			//size.x = ConstDrop.UI_Width * ConstBoard.Max_Row;
 			//size.y = ConstDrop.UI_Height * ConstBoard.Max_Column;
 			size.z = 0;
@@ -324,6 +340,23 @@ namespace PuzzAndBidurgi
 #endif
 			
 			return new Bounds (center, size);
+		}
+
+		public bool BelongToViewArea(Index2 ixy)
+		{
+			Index2 lb = this.GetIndexAt_ViewLeftBottom ();
+			Index2 ru = this.GetIndexAt_ViewRightUp ();
+
+			if ((lb.ix <= ixy.ix && ixy.ix <= ru.ix) && (lb.iy <= ixy.iy && ixy.iy <= ru.iy))
+				return true;
+
+			return false;
+		}
+
+		//빈공간에 드롭이 떨어진 후의 전체 드롭배치도를 반환한다
+		public void WholeDropping()
+		{
+
 		}
 	}
 
@@ -362,11 +395,11 @@ namespace PuzzAndBidurgi
 				return m_board;
 			}
 		}
-		public Index2						BoardSize
+		public Index2						ViewSize
 		{
 			get
 			{
-				return m_board.boardSize;
+				return m_board.viewSize;
 			}
 		}
 
