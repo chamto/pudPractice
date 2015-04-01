@@ -365,7 +365,21 @@ public class MonoDrop : MonoBehaviour
 	}
 
 	//==============: factory method :========================================================================================
-	
+
+	static public bool Remove(MonoDrop drop)
+	{
+		if (null == drop)
+						return false;
+
+		drop.SetColor(new Color(1,1,1,0.2f));
+		drop.GetBoxCollider2D().enabled = false;
+		//drop.gameObject.SetActive(false);
+		//MonoBehaviour.Destroy(drop.gameObject);
+
+		return true;
+	}
+
+
 	static public MonoDrop Create(Transform parent , eResKind eDrop , Vector3 localPos)
 	{
 		GameObject newObj = CResoureManager.CreatePrefab(SResDefine.pfDROPINFO);

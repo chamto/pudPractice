@@ -117,7 +117,7 @@ namespace PuzzAndBidurgi
 	public class DropMap : Dictionary<int,MonoDrop>
 	{
 		//단순히 인덱스를 조회하기 위한 인덱스맵을 조직한다
-		private Dictionary<Index2,int> mapIndex2 = new Dictionary<Index2,int>();
+		private Dictionary<Index2,MonoDrop> mapIndex2 = new Dictionary<Index2,MonoDrop>();
 
 
 		public MonoDrop GetMonoDropByUID(int keyUID) 
@@ -133,9 +133,9 @@ namespace PuzzAndBidurgi
 		//20150331 chamto - mapIndex2 에서 index2 키에 해당하는 id 값의 무결성이 깨지기 쉬움, 어떻게 해결할지 생각해야함, 일단 사용안함
 		private MonoDrop needFix_GetMonoDropByIndex2(Index2 ixy)
 		{
-			int getUID = 0;
-			if(mapIndex2.TryGetValue(ixy,out getUID))
-				return this.GetMonoDropByUID(getUID);
+			MonoDrop getValue = null;
+			if (mapIndex2.TryGetValue (ixy, out getValue))
+				return getValue;
 
 			return null;
 		}
@@ -147,18 +147,39 @@ namespace PuzzAndBidurgi
 
 	
 		//==============: override method:========================================================================================
-		virtual public void Add(int key, MonoDrop value)
+		virtual public bool Add(int key, MonoDrop value)
 		{
 			if (null == value) 
 			{
 				Debug.LogError("Add : null == value");
-				return;
+				return false;
 			}
-			//fix me : Exception the same key
 
-			base.Add (key, value);
-			mapIndex2.Add (value.dropInfo.index2D, key);
+			//-----------------------
+			//add this
+			if (this.ContainsKey (key)) 
+			{
+				this [key] = value;
 
+			} else 
+			{
+				base.Add (key, value);
+			}
+
+			//-----------------------
+			//add mapIndex2 
+			if (mapIndex2.ContainsKey (value.dropInfo.index2D)) 
+			{
+				mapIndex2[value.dropInfo.index2D] = value;
+			}else
+			{
+				mapIndex2.Add (value.dropInfo.index2D, value);
+			}
+
+
+
+
+			return false;
 		}
 
 		virtual public bool Remove(int key)
@@ -169,19 +190,12 @@ namespace PuzzAndBidurgi
 				mapIndex2.Remove(getValue.dropInfo.index2D);
 			}
 
-
-			if (null != getValue) 
-			{
-				getValue.SetColor(new Color(1,1,1,0.2f));
-				getValue.GetBoxCollider2D().enabled = false;
-				//getValue.gameObject.SetActive(false);
-				//MonoBehaviour.Destroy(getValue.gameObject);
-			}
 			return base.Remove (key);
 		}
 
 		public List<MonoDrop> FindJoinConditions()
 		{
+			return null;
 		}
 
 
@@ -626,6 +640,16 @@ namespace PuzzAndBidurgi
 		//------------------------------------------------------------------------
 		// basic method
 		//------------------------------------------------------------------------
+
+		public MonoDrop AddDropInBoard(Index2 placePos , eResKind eDropKind)
+		{
+			return null;
+		}
+
+		public void RemoveDrop(Index2 placedPos)
+		{
+			//m_mapDrop.Remove(
+		}
 
 		public void Init()
 		{
