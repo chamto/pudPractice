@@ -119,6 +119,49 @@ namespace PuzzAndBidurgi
 		//단순히 인덱스를 조회하기 위한 인덱스맵을 조직한다
 		private Dictionary<Index2,MonoDrop> mapIndex2 = new Dictionary<Index2,MonoDrop>();
 
+		//--------------------------------------------------
+		//idMap 자료구조와 indexMap 자료구조는 1대1 대응하지 않는다.
+		//예) 특정 드롭이 등록되지 않은 위치로 갈때 indexMap에 추가되게 된다. 
+		//   이때 idMap은 드롭이 추가된것이 아니기 때문에 변동이 없다.
+		public void SetValue(MonoDrop valueDrop)
+		{
+			if (null == valueDrop) 
+			{
+				CDefine.DebugLog("Error !!: null == valueDrop");
+				return;
+			}
+
+
+			MonoDrop getValue = null;
+			if (TryGetValue (valueDrop.dropInfo.id, out getValue)) 
+			{
+				//Set the new value 
+				Index2 prevIndex = this[valueDrop.dropInfo.id].dropInfo.index2D;
+				this[valueDrop.dropInfo.id] = valueDrop;
+
+				//Set the null value in the previous location
+				mapIndex2[prevIndex] = null;
+
+
+				//Add index2Coord in mapIndex2 if index2 is not register
+				if (false == mapIndex2.TryGetValue (valueDrop.dropInfo.index2D, out getValue)) 
+				{
+					mapIndex2.Add(valueDrop.dropInfo.index2D, valueDrop);
+				}
+
+				mapIndex2[valueDrop.dropInfo.index2D] = valueDrop;
+			}
+		}
+
+		public void SetIndex(Index2 placedIndex, MonoDrop valueDrop)
+		{
+		}
+
+		public void SwapIndex(Index2 ixy1, Index2 ixy2)
+		{
+
+
+		}
 
 		public MonoDrop GetMonoDropByUID(int keyUID) 
 		{
@@ -140,10 +183,7 @@ namespace PuzzAndBidurgi
 			return null;
 		}
 
-		public MonoDrop GetMonoDropByIndex1(int ixy , int maxColumn)
-		{
-			return null;
-		}
+
 
 	
 		//==============: override method:========================================================================================

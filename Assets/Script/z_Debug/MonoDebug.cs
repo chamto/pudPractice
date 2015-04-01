@@ -41,6 +41,8 @@ public class MonoDebug : MonoBehaviour
 				CDefine.DebugLog("Drop Remove 1 ");
 			}
 
+
+
 		}
 
 		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Time +")) 
