@@ -37,6 +37,10 @@ public class MonoDrop : MonoBehaviour
 		{
 			return m_id;
 		}
+		set
+		{
+			m_id = value;
+		}
 	}  
 	public Index2 	index2D
 	{
@@ -130,11 +134,13 @@ public class MonoDrop : MonoBehaviour
 		MonoDrop prevPlacedDrop = Single.DropMgr.mapDrop.GetMonoDropByIndex2 (placedIxy);
 
 		//Put the null in the previous index location
-		Single.DropMgr.mapDrop.UpdateValue (m_index2D, null);
+		MonoDrop currentDrop = Single.DropMgr.mapDrop.GetMonoDropByIndex2(m_index2D);
+		if(currentDrop == this)
+			Single.DropMgr.mapDrop.SetValue (m_index2D, null);
 
 		//Put the this MonoDrop in the new index location
 		m_index2D = placedIxy;
-		Single.DropMgr.mapDrop.UpdateValue (placedIxy, this);
+		Single.DropMgr.mapDrop.SetValue (placedIxy, this);
 
 		return prevPlacedDrop;
 	}
@@ -160,17 +166,28 @@ public class MonoDrop : MonoBehaviour
 		}
 	}
 
+	public void UpdateFirstLocalPosition()
+	{
+		this.firstLocalPosition = Single.DropMgr.boardInfo.GetIndex2DToPosition (this.index2D);
+	}
+
 	public void ApplyFirstLocalPosition()
 	{
 		this.transform.localPosition = this.firstLocalPosition;
 	}
 
+	public void MoveToIndex(Index2 dstIxy)
+	{
+		this.SetIndex (dstIxy);
+		this.UpdateFirstLocalPosition ();
+		this.ApplyFirstLocalPosition ();
+	}
 
 	//==============: Constructor definition :========================================================================================
 	
 	public MonoDrop()
 	{
-		m_id = Single.ResMgr.GetSequenceId ();
+		//m_id = Single.ResMgr.GetSequenceId ();
 	}
 
 	//==============: Initialization method :========================================================================================
@@ -291,6 +308,9 @@ public class MonoDrop : MonoBehaviour
 
 		//선택된 객체의 이동 종료처리
 		StopAni();
+
+		//20150403 chamto test
+		MonoDrop.Remove (this);
 
 	}
 
@@ -420,10 +440,12 @@ public class MonoDrop : MonoBehaviour
 		if (null == drop)
 						return false;
 
-		drop.SetColor(new Color(1,1,1,0.2f));
-		drop.GetBoxCollider2D().enabled = false;
+		Single.DropMgr.mapDrop.Remove (drop.id);
+
+		//drop.SetColor(new Color(1,1,1,0.2f));
+		//drop.GetBoxCollider2D().enabled = false;
 		//drop.gameObject.SetActive(false);
-		//MonoBehaviour.Destroy(drop.gameObject);
+		MonoBehaviour.Destroy(drop.gameObject);
 
 		return true;
 	}
@@ -448,7 +470,7 @@ public class MonoDrop : MonoBehaviour
 		//-------------------------------------------------
 
 		//drop.dropInfo = DropInfo.Create ();
-		//drop.id = Single.ResMgr.GetSequenceId ();
+		drop.id = Single.ResMgr.GetSequenceId ();
 		drop.SetIndex(Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos));
 		drop.setKind = eDrop;
 
@@ -517,6 +539,22 @@ public struct Index2
 	public int ix;
 	public int iy;
 
+
+	static public Index2 Zero
+	{
+		get 
+		{
+			return new Index2(0,0);
+		}
+	}
+
+	static public Index2 Max
+	{
+		get 
+		{
+			return new Index2(MAX_COLUMN,MAX_COLUMN);
+		}
+	}
 
 	public int this [int index]
 	{
@@ -638,6 +676,7 @@ public struct Index2
 	{
 		return ix + "," + iy;
 	}
+
 }
 public struct Index3
 {

@@ -159,7 +159,7 @@ namespace PuzzAndBidurgi
 			}
 		}
 
-		public bool UpdateValue(Index2 keyIndex , MonoDrop valueDrop)
+		public bool SetValue(Index2 keyIndex , MonoDrop valueDrop)
 		{
 			if (null != valueDrop && valueDrop.index2D != keyIndex) 
 			{
@@ -229,13 +229,11 @@ namespace PuzzAndBidurgi
 				_mapIndex2[value.index2D] = value;
 			}else
 			{
+				//CDefine.DebugLog("value.index2D : " + value.index2D); //chamto test
 				_mapIndex2.Add (value.index2D, value);
 			}
 
-
-
-
-			return false;
+			return true;
 		}
 
 		public bool Remove(int key)
@@ -252,6 +250,25 @@ namespace PuzzAndBidurgi
 		public List<MonoDrop> FindJoinConditions()
 		{
 			return null;
+		}
+
+		public void Debug_PrintMap()
+		{
+
+			
+			CDefine.DebugLog ("_mapId------------------------------------------------- : " + _mapId.Count);
+			for (int i=0; i<_mapId.Count; i++) 
+			{
+				CDefine.DebugLog (_mapId.Keys.ToList()[i].ToString() + "  drop: " + _mapId.Values.ToList()[i]);
+
+			}
+
+			CDefine.DebugLog ("_mapIndex2--------------------------------------------- : " + _mapIndex2.Count);
+			for (int i=0; i<_mapIndex2.Count; i++) 
+			{
+				CDefine.DebugLog (_mapIndex2.Keys.ToList()[i].ToString() + "  drop: " + _mapIndex2.Values.ToList()[i]);
+			}
+
 		}
 
 
@@ -423,11 +440,7 @@ namespace PuzzAndBidurgi
 			return false;
 		}
 
-		//빈공간에 드롭이 떨어진 후의 전체 드롭배치도를 반환한다
-		public void WholeDropping()
-		{
 
-		}
 	}
 
 
@@ -724,7 +737,7 @@ namespace PuzzAndBidurgi
 
 			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
-			Index2 ixy;
+			Index2 ixy = Index2.Zero;
 			for(int i=0 ; i<MAX_DROP5X6X2 ; i++)
 			{
 				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
@@ -765,25 +778,76 @@ namespace PuzzAndBidurgi
 		}
 
 
-		
-		/// <summary>
-		/// Get Position of put Drop of board
-		/// </summary>
-		/// <returns> center position of put drop.</returns>
-		/// <param name="dropPair">Drop pair.</param>
-//		public Vector3 GetPositionOfPutDrop(Index2 dropPair)
-//		{
-//			Vector3 posOfPut;
-//			posOfPut.x = Single.UIRoot.transform.position.x + m_board.squareWidth * dropPair.ix;
-//			posOfPut.y = Single.UIRoot.transform.position.y + m_board.squareHeight * dropPair.iy;
-//			posOfPut.z = Single.UIRoot.transform.position.z;
-//			
-//			return posOfPut;
-//		}
 
 
+		public void MoveDrop(MonoDrop movingDrop , Vector3 direction , ushort amountOfMovement)
+		{
+			if (null == movingDrop) 
+			{
+				return;
+			}
+
+			//길이를 1로 만든다 (정규화)
+			direction.Normalize ();
+
+			Index2 placedIndex = movingDrop.index2D;
+			Index2 nextIndex = movingDrop.index2D;;
+			MonoDrop nextDrop = null;
+			for (ushort aOm = 1; aOm <= amountOfMovement; aOm++) 
+			{
+
+				nextIndex.ix += ((int)direction.x) * aOm;
+				nextIndex.iy += ((int)direction.y) * aOm;
+				nextDrop = this.mapDrop.GetMonoDropByIndex2 (nextIndex);
+
+				if (null == nextDrop && this.boardInfo.BelongToViewArea (nextIndex)) 
+				{
+					placedIndex = nextIndex;
+					continue;
+				}
+				break;
+			}
+
+			movingDrop.MoveToIndex(placedIndex);
 
 
+			//CDefine.DebugLog ("----------MoveDrop : " + placedIndex.ToString() ); //chamto test
+
+		}
+
+		public void WholeDroppingOnView()
+		{
+			//view area
+			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
+			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
+			int maxColumn = maxView.ix - minView.ix;
+			int maxRow = maxView.iy - minView.iy;
+
+			//CDefine.DebugLog("maxColumn : " + maxColumn + "  max:" + maxView + " min:" + minView);
+
+			Index2 key = new Index2(0,0);
+			MonoDrop value = null;
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				key.iy = iy;
+
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					key.ix = ix;
+
+					value = this.mapDrop.GetMonoDropByIndex2(key);
+					//CDefine.DebugLog("WholeDroppingOnView : " + key.ToString() + "  " + value);
+					if(null != value)
+					{
+
+						this.MoveDrop(value,Vector3.down,5);
+					}
+				}
+			}
+
+			
+		}
+	
 
 
 

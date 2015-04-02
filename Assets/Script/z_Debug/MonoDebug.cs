@@ -32,16 +32,21 @@ public class MonoDebug : MonoBehaviour
 #if UNITY_EDITOR
 	void OnGUI()
 	{
-		if (GUI.Button (new Rect (10, 10, 100, 70), "Drop Delete")) 
+		if (GUI.Button (new Rect (10, 10, 100, 70), "Whole Dropping")) 
 		{
 			//Time.timeScale -= 0.1f;
 			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
-			if(Single.DropMgr.mapDrop.Remove(1))
-			{
-				CDefine.DebugLog("Drop Remove 1 ");
-			}
+
+//			if(Single.DropMgr.mapDrop.Remove(1))
+//			{
+//				CDefine.DebugLog("Drop Remove 1 ");
+//			}
 
 
+			CDefine.DebugLog("WholeDroppingOnView start -----------------------------");
+			Single.DropMgr.WholeDroppingOnView();
+
+			//Single.DropMgr.mapDrop.Debug_PrintMap();
 
 		}
 
