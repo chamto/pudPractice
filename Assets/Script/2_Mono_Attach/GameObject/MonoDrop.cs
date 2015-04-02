@@ -21,7 +21,7 @@ public class MonoDrop : MonoBehaviour
 
 	private int 			m_id;
 	private	Index2			m_index2D;
-	public eResKind 		m_eKind = eResKind.None;
+	private eResKind 		m_eKind = eResKind.None;
 
 	/// <summary>
 	/// first position the rolling drop
@@ -50,13 +50,17 @@ public class MonoDrop : MonoBehaviour
 		}
 	}
 
-	
-	public eResKind 		setKind
+
+	public eResKind 		dropKind
 	{
 		get
 		{
 			return m_eKind;
 		}
+	}
+	public eResKind 		setDropKind
+	{
+
 		set //chamto 20150130 fixme - 단순 대입코드로 오해 할수 있음. 행위코드라고 명시적으로 뽑아내기 
 		{
 			if(null == m_sprRdr) 
@@ -310,7 +314,8 @@ public class MonoDrop : MonoBehaviour
 		StopAni();
 
 		//20150403 chamto test
-		MonoDrop.Remove (this);
+		//MonoDrop.Remove (this);
+		Single.DropMgr.FindJoinConditions (3);
 
 	}
 
@@ -472,7 +477,7 @@ public class MonoDrop : MonoBehaviour
 		//drop.dropInfo = DropInfo.Create ();
 		drop.id = Single.ResMgr.GetSequenceId ();
 		drop.SetIndex(Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos));
-		drop.setKind = eDrop;
+		drop.setDropKind = eDrop;
 
 		//Specify the parent object
 		drop.transform.parent = parent;

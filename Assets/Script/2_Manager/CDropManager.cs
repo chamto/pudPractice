@@ -247,11 +247,6 @@ namespace PuzzAndBidurgi
 			return _mapId.Remove (key);
 		}
 
-		public List<MonoDrop> FindJoinConditions()
-		{
-			return null;
-		}
-
 		public void Debug_PrintMap()
 		{
 
@@ -848,6 +843,91 @@ namespace PuzzAndBidurgi
 			}
 
 			
+		}
+
+
+		public List<List<MonoDrop>> LineInspection(Index2 startIxy, Vector3 direction, ushort lengthOfLine, ushort minJoin)
+		{
+
+			direction.Normalize ();
+
+			//eResKind eDropKind = eResKind.None;
+			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
+
+			Index2 nextIndex = startIxy;
+			Index2 compaeIndex = startIxy;
+			MonoDrop nextDrop = null;
+			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compaeIndex);
+			List<MonoDrop> listJoin = new List<MonoDrop> ();
+			listJoin.Add (compareDrop);
+			for (ushort i=0; i < lengthOfLine; i++) 
+			{
+
+				nextIndex.ix += (int)direction.x;
+				nextIndex.iy += (int)direction.y;
+				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
+
+				//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
+				if(null != compareDrop && null != nextDrop)
+				{
+					if(compareDrop.dropKind == nextDrop.dropKind)
+					{
+						listJoin.Add(nextDrop);
+						Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
+
+
+						continue;
+					}
+
+				}
+				//다음 연속된 드롭넣기가 실패한후, 최소연속된수량이 넘는지 검사한다.
+				if(minJoin <= listJoin.Count)
+				{
+					listLineTotal.Add(listJoin);
+					listJoin = new List<MonoDrop>();
+				}
+
+				listJoin.Clear();
+				compareDrop = nextDrop;
+
+
+			}
+
+			return listLineTotal;
+		}
+
+		public List<List<MonoDrop>> FindJoinConditions(ushort minJoin)
+		{
+			List<List<MonoDrop>> listLineTotal = null;
+			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
+			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
+			int maxColumn = maxView.ix - minView.ix;
+			int maxRow = maxView.iy - minView.iy;
+
+
+			Index2 key = Index2.Zero;
+			for (int iy=0; iy <= 0; iy++) 
+			//for (int iy=0; iy <= maxRow; iy++) 
+			{
+				key.iy = iy;
+				key.ix = 0;
+				listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
+				CDefine.DebugLog("FindJoinConditions  count " + listLineTotal.Count); //chamto test
+				if(0 != listLineTotal.Count)
+				{
+					foreach(List<MonoDrop> lm in listLineTotal)
+					{
+						foreach(MonoDrop m in lm)
+						{
+							MonoDrop.Remove(m);
+						}
+					}
+				}//endif
+
+			}//endfor
+			
+			
+			return null;
 		}
 	
 
