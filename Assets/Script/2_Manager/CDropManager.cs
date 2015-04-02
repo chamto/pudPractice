@@ -431,10 +431,10 @@ namespace PuzzAndBidurgi
 
 		public bool BelongToViewArea(Index2 ixy)
 		{
-			Index2 lb = this.GetIndexAt_ViewLeftBottom ();
-			Index2 ru = this.GetIndexAt_ViewRightUp ();
+			Index2 min = this.GetIndexAt_ViewLeftBottom ();
+			Index2 max = this.GetIndexAt_ViewRightUp ();
 
-			if ((lb.ix <= ixy.ix && ixy.ix <= ru.ix) && (lb.iy <= ixy.iy && ixy.iy <= ru.iy))
+			if ((min.ix <= ixy.ix && ixy.ix <= max.ix) && (min.iy <= ixy.iy && ixy.iy <= max.iy))
 				return true;
 
 			return false;
@@ -796,13 +796,15 @@ namespace PuzzAndBidurgi
 			for (ushort aOm = 1; aOm <= amountOfMovement; aOm++) 
 			{
 
-				nextIndex.ix += ((int)direction.x) * aOm;
-				nextIndex.iy += ((int)direction.y) * aOm;
+				nextIndex.ix += ((int)direction.x);
+				nextIndex.iy += ((int)direction.y);
 				nextDrop = this.mapDrop.GetMonoDropByIndex2 (nextIndex);
 
+				//CDefine.DebugLog ("----------MoveDrop : "+ aOm +" :"+ nextIndex.ToString() + "  drop:"+nextDrop  ); //chamto test
 				if (null == nextDrop && this.boardInfo.BelongToViewArea (nextIndex)) 
 				{
 					placedIndex = nextIndex;
+					//CDefine.DebugLog ("----------MoveDrop : " + placedIndex.ToString() + "  v3:"+direction  ); //chamto test
 					continue;
 				}
 				break;
@@ -811,7 +813,7 @@ namespace PuzzAndBidurgi
 			movingDrop.MoveToIndex(placedIndex);
 
 
-			//CDefine.DebugLog ("----------MoveDrop : " + placedIndex.ToString() ); //chamto test
+
 
 		}
 
