@@ -43,7 +43,7 @@ public class MonoDrop : MonoBehaviour
 			m_dropInfo = value;
 		}
 	}
-
+	
 	public eResKind 		setKind
 	{
 		get
@@ -115,6 +115,19 @@ public class MonoDrop : MonoBehaviour
 		
 		return aabb;
 	}
+
+
+	public void SetIndex(Index2 placedIxy)
+	{
+		//Single.DropMgr.MapDrop.
+	}
+	
+	public void SwapIndex(Index2 dstIxy2)
+	{
+		
+		
+	}
+
 
 
 	//==============: Constructor definition :========================================================================================
@@ -400,7 +413,7 @@ public class MonoDrop : MonoBehaviour
 
 		//drop.dropInfo = DropInfo.Create ();
 		drop.dropInfo.id = Single.ResMgr.GetSequenceId ();
-		drop.dropInfo.index2D = Single.DropMgr.Board.GetPositionToIndex2D (localPos);
+		drop.dropInfo.index2D = Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos);
 		drop.setKind = eDrop;
 
 		//Specify the parent object
@@ -432,7 +445,7 @@ public class MonoDrop : MonoBehaviour
 
 		if (null != m_textMesh_LocalIdx) 
 		{
-			Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (this.firstLocalPosition);
+			Index2 localIdx = Single.DropMgr.boardInfo.GetPositionToIndex2D (this.firstLocalPosition);
 			m_textMesh_LocalIdx.text = localIdx.ToString();
 		}
 	}

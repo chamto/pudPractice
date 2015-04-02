@@ -114,11 +114,21 @@ namespace PuzzAndBidurgi
 	}//namespace NDrop
 
 
-	public class DropMap : Dictionary<int,MonoDrop>
+	public class MapDrop
 	{
-		//단순히 인덱스를 조회하기 위한 인덱스맵을 조직한다
-		private Dictionary<Index2,MonoDrop> mapIndex2 = new Dictionary<Index2,MonoDrop>();
+		//인덱스를 조회하기 위한 인덱스맵을 조직한다
+		private Dictionary<Index2,MonoDrop> _mapIndex2 = new Dictionary<Index2,MonoDrop>();
 
+		private Dictionary<int,MonoDrop> 	_mapId = new Dictionary<int, MonoDrop> ();
+
+
+		public Dictionary<int,MonoDrop> DtnrId
+		{
+			get
+			{
+				return _mapId;
+			}
+		}
 		//--------------------------------------------------
 		//idMap 자료구조와 indexMap 자료구조는 1대1 대응하지 않는다.
 		//예) 특정 드롭이 등록되지 않은 위치로 갈때 indexMap에 추가되게 된다. 
@@ -133,40 +143,32 @@ namespace PuzzAndBidurgi
 
 
 			MonoDrop getValue = null;
-			if (TryGetValue (valueDrop.dropInfo.id, out getValue)) 
+			if (_mapId.TryGetValue (valueDrop.dropInfo.id, out getValue)) 
 			{
 				//Set the new value 
-				Index2 prevIndex = this[valueDrop.dropInfo.id].dropInfo.index2D;
-				this[valueDrop.dropInfo.id] = valueDrop;
+				Index2 prevIndex = _mapId[valueDrop.dropInfo.id].dropInfo.index2D;
+				_mapId[valueDrop.dropInfo.id] = valueDrop;
 
 				//Set the null value in the previous location
-				mapIndex2[prevIndex] = null;
+				_mapIndex2[prevIndex] = null;
 
 
 				//Add index2Coord in mapIndex2 if index2 is not register
-				if (false == mapIndex2.TryGetValue (valueDrop.dropInfo.index2D, out getValue)) 
+				if (false == _mapIndex2.TryGetValue (valueDrop.dropInfo.index2D, out getValue)) 
 				{
-					mapIndex2.Add(valueDrop.dropInfo.index2D, valueDrop);
+					_mapIndex2.Add(valueDrop.dropInfo.index2D, valueDrop);
 				}
 
-				mapIndex2[valueDrop.dropInfo.index2D] = valueDrop;
+				_mapIndex2[valueDrop.dropInfo.index2D] = valueDrop;
 			}
 		}
 
-		public void SetIndex(Index2 placedIndex, MonoDrop valueDrop)
-		{
-		}
 
-		public void SwapIndex(Index2 ixy1, Index2 ixy2)
-		{
-
-
-		}
 
 		public MonoDrop GetMonoDropByUID(int keyUID) 
 		{
 			MonoDrop getValue = null;
-			if(TryGetValue(keyUID,out getValue))
+			if(_mapId.TryGetValue(keyUID,out getValue))
 				return getValue;
 
 			return null;
@@ -177,7 +179,7 @@ namespace PuzzAndBidurgi
 		private MonoDrop needFix_GetMonoDropByIndex2(Index2 ixy)
 		{
 			MonoDrop getValue = null;
-			if (mapIndex2.TryGetValue (ixy, out getValue))
+			if (_mapIndex2.TryGetValue (ixy, out getValue))
 				return getValue;
 
 			return null;
@@ -187,7 +189,7 @@ namespace PuzzAndBidurgi
 
 	
 		//==============: override method:========================================================================================
-		virtual public bool Add(int key, MonoDrop value)
+		public bool Add(int key, MonoDrop value)
 		{
 			if (null == value) 
 			{
@@ -197,23 +199,23 @@ namespace PuzzAndBidurgi
 
 			//-----------------------
 			//add this
-			if (this.ContainsKey (key)) 
+			if (_mapId.ContainsKey (key)) 
 			{
-				this [key] = value;
+				_mapId [key] = value;
 
 			} else 
 			{
-				base.Add (key, value);
+				_mapId.Add (key, value);
 			}
 
 			//-----------------------
 			//add mapIndex2 
-			if (mapIndex2.ContainsKey (value.dropInfo.index2D)) 
+			if (_mapIndex2.ContainsKey (value.dropInfo.index2D)) 
 			{
-				mapIndex2[value.dropInfo.index2D] = value;
+				_mapIndex2[value.dropInfo.index2D] = value;
 			}else
 			{
-				mapIndex2.Add (value.dropInfo.index2D, value);
+				_mapIndex2.Add (value.dropInfo.index2D, value);
 			}
 
 
@@ -222,15 +224,15 @@ namespace PuzzAndBidurgi
 			return false;
 		}
 
-		virtual public bool Remove(int key)
+		public bool Remove(int key)
 		{
 			MonoDrop getValue = null;
-			if (TryGetValue (key, out getValue)) 
+			if (_mapId.TryGetValue (key, out getValue)) 
 			{
-				mapIndex2.Remove(getValue.dropInfo.index2D);
+				_mapIndex2.Remove(getValue.dropInfo.index2D);
 			}
 
-			return base.Remove (key);
+			return _mapId.Remove (key);
 		}
 
 		public List<MonoDrop> FindJoinConditions()
@@ -243,7 +245,7 @@ namespace PuzzAndBidurgi
 	}
 
 
-	public  class DropBoard
+	public  class BoardInfo
 	{
 		public enum eStandard
 		{
@@ -291,7 +293,7 @@ namespace PuzzAndBidurgi
 
 	
 
-		public DropBoard()
+		public BoardInfo()
 		{
 			m_squareLength = new Vector2 (1.15f, 1.15f);
 			m_boardSize = new Index2 (6, 10);
@@ -341,7 +343,7 @@ namespace PuzzAndBidurgi
 
 		public Index2 GetPositionToIndex2D(Vector3 pos)
 		{
-			return DropBoard.GetPositionToIndex2D(pos, this.squareWidth, this.squareHeight);
+			return BoardInfo.GetPositionToIndex2D(pos, this.squareWidth, this.squareHeight);
 		}
 
 		static public Index2 GetPositionToIndex2D(Vector3 pos , float in_squareWidth , float in_squareHeight)
@@ -356,7 +358,7 @@ namespace PuzzAndBidurgi
 		//return localPosition  
 		public Vector3 GetIndex2DToPosition(Index2 ixy)
 		{
-			return DropBoard.GetIndex2DToPosition(ixy, this.squareWidth, this.squareHeight);
+			return BoardInfo.GetIndex2DToPosition(ixy, this.squareWidth, this.squareHeight);
 		}
 
 		static public Vector3 GetIndex2DToPosition(Index2 ixy , float in_squareWidth , float in_squareHeight)
@@ -426,8 +428,8 @@ namespace PuzzAndBidurgi
 		/// <summary>
 		/// The m_map find it the unique identity number interface.
 		/// </summary>
-		private DropMap 						m_mapDrop = new DropMap();
-		private DropBoard						m_board = new DropBoard();
+		private MapDrop 						m_mapDrop = new MapDrop();
+		private BoardInfo						m_boardInfo = new BoardInfo();
 
 		//private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
 		//private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
@@ -435,25 +437,25 @@ namespace PuzzAndBidurgi
 
 
 		//==============: property definition :========================================================================================
-		public DropMap 						MapDrop
+		public MapDrop 						mapDrop
 		{
 			get
 			{
 				return m_mapDrop;
 			}
 		}
-		public DropBoard					Board 
+		public BoardInfo					boardInfo 
 		{
 			get 
 			{
-				return m_board;
+				return m_boardInfo;
 			}
 		}
-		public Index2						ViewSize
+		public Index2						VIEW_SIZE
 		{
 			get
 			{
-				return m_board.viewSize;
+				return m_boardInfo.viewSize;
 			}
 		}
 
@@ -475,10 +477,10 @@ namespace PuzzAndBidurgi
 			//Correction value
 			//PairInt parameter is array index(0 start , 1 is not ).
 			//Index2 startPos = PairInt.Start_C5_R0;
-			Vector3 putPos_left_up = m_board.GetPositionAt_ViewLeftUp () + Single.UIRoot.transform.position;
-			Vector3 putPos_right_up = m_board.GetPositionAt_ViewRightUp () + Single.UIRoot.transform.position;
-			Vector3 putPos_left_bottom = m_board.GetPositionAt_ViewLeftBottom () + Single.UIRoot.transform.position;
-			Vector3 putPos_right_bottom = m_board.GetPositionAt_ViewRightBottom () + Single.UIRoot.transform.position;
+			Vector3 putPos_left_up = m_boardInfo.GetPositionAt_ViewLeftUp () + Single.UIRoot.transform.position;
+			Vector3 putPos_right_up = m_boardInfo.GetPositionAt_ViewRightUp () + Single.UIRoot.transform.position;
+			Vector3 putPos_left_bottom = m_boardInfo.GetPositionAt_ViewLeftBottom () + Single.UIRoot.transform.position;
+			Vector3 putPos_right_bottom = m_boardInfo.GetPositionAt_ViewRightBottom () + Single.UIRoot.transform.position;
 
 			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
 			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
@@ -496,7 +498,7 @@ namespace PuzzAndBidurgi
 			//-------------------------------------------------------------------------
 #endif
 
-			Bounds bob = m_board.GetBoundaryOfView (Single.UIRoot.transform.position);
+			Bounds bob = m_boardInfo.GetBoundaryOfView (Single.UIRoot.transform.position);
 			ML.LineSegment3 result = new ML.LineSegment3();
 			result.origin = srcDrop.firstWorldPosition;
 			result.last = lineSeg3.last;
@@ -568,7 +570,7 @@ namespace PuzzAndBidurgi
 			//실수값을 비교, 오차가 발생할것이기 떄문에 가중치값을 더함
 			//빗변*빗변 = 가로*가로*2 + 가중치
 			//float dist = m_board.squareWidth * m_board.squareWidth * 2 + 0.15f;
-			float dist = (m_board.squareWidth * m_board.squareWidth + m_board.squareHeight * m_board.squareHeight) + 0.15f;
+			float dist = (m_boardInfo.squareWidth * m_boardInfo.squareWidth + m_boardInfo.squareHeight * m_boardInfo.squareHeight) + 0.15f;
 
 			return (dist > GetSqrDistance (drop1.firstWorldPosition, drop2.firstWorldPosition));
 		}
@@ -719,8 +721,8 @@ namespace PuzzAndBidurgi
 			{
 				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
 				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
-				pos.x = ixy.ix * m_board.squareWidth;
-				pos.y = ixy.iy * m_board.squareHeight;
+				pos.x = ixy.ix * m_boardInfo.squareWidth;
+				pos.y = ixy.iy * m_boardInfo.squareHeight;
 				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
 				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
 				                        pos);
@@ -804,9 +806,9 @@ namespace PuzzAndBidurgi
 		public MonoDrop GetShortestDistance(MonoDrop standardDrop, float minDistance)
 		{
 			if(null == standardDrop || 0 >= minDistance) return null;
-			if(0 == m_mapDrop.Count) return null;
+			if(0 == m_mapDrop.DtnrId.Count) return null;
 
-			List<MonoDrop> list = m_mapDrop.Values.ToList();
+			List<MonoDrop> list = m_mapDrop.DtnrId.Values.ToList();
 			//list.Remove(standardDrop); //deduplicate
 
 			//list.Sort(SortDistanceCompareTo);
@@ -862,7 +864,7 @@ namespace PuzzAndBidurgi
 			//SortedDictionary<float , MonoDrop> collisionDtnr = new Dictionary<float , MonoDrop> ();
 			List<MonoDrop> collisionList = new List<MonoDrop> ();
 			float t_c = 0.0f;
-			foreach (MonoDrop dstDrop in m_mapDrop.Values) 
+			foreach (MonoDrop dstDrop in m_mapDrop.DtnrId.Values) 
 			{
 				//self exclusion
 				if(srcDrop == dstDrop) continue;
@@ -927,7 +929,7 @@ namespace PuzzAndBidurgi
 			srcBox.height = BOX_HEIGHT;
 			srcBox.center = new Vector2(srcDrop.transform.position.x,srcDrop.transform.position.y);
 			dstBox = srcBox;
-			foreach(MonoDrop dstDrop in m_mapDrop.Values)
+			foreach(MonoDrop dstDrop in m_mapDrop.DtnrId.Values)
 			{
 				//self exclusion
 				if(srcDrop == dstDrop) continue;

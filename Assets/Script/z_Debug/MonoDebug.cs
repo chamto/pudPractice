@@ -36,7 +36,7 @@ public class MonoDebug : MonoBehaviour
 		{
 			//Time.timeScale -= 0.1f;
 			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
-			if(Single.DropMgr.MapDrop.Remove(1))
+			if(Single.DropMgr.mapDrop.Remove(1))
 			{
 				CDefine.DebugLog("Drop Remove 1 ");
 			}
