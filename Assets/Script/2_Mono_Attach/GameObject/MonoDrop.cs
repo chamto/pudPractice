@@ -7,9 +7,7 @@ using PuzzAndBidurgi;
 
 public class MonoDrop : MonoBehaviour 
 {
-	//==============: member variables :========================================================================================
-
-	private DropInfo 		m_dropInfo;
+	//==============: mono member variables :========================================================================================
 
 	public TextMesh			m_textMesh_Index2 = null;
 	public TextMesh			m_textMesh_LocalIdx = null;
@@ -17,11 +15,12 @@ public class MonoDrop : MonoBehaviour
 
 	//spr : sprite , rdr : renderer
 	private SpriteRenderer 	m_sprRdr = null;
-	private BoxCollider2D		m_boxCollider2D = null;
+	private BoxCollider2D	m_boxCollider2D = null;
 
+	//==============: member variables :========================================================================================
 
-	//public int 				keyOfPosition; //chamto deprecate
-
+	private int 			m_id;
+	private	Index2			m_index2D;
 	public eResKind 		m_eKind = eResKind.None;
 
 	/// <summary>
@@ -32,17 +31,21 @@ public class MonoDrop : MonoBehaviour
 
 	//==============: property definition :========================================================================================
 
-	public DropInfo dropInfo
+	public int id
 	{
-		get
+		get 
 		{
-			return m_dropInfo;
+			return m_id;
 		}
-		set
+	}  
+	public Index2 	index2D
+	{
+		get 
 		{
-			m_dropInfo = value;
+			return m_index2D;
 		}
 	}
+
 	
 	public eResKind 		setKind
 	{
@@ -117,24 +120,57 @@ public class MonoDrop : MonoBehaviour
 	}
 
 
-	public void SetIndex(Index2 placedIxy)
+	/// <summary>
+	/// Sets the index.
+	/// 놓여질 위치의 이전monoDrop도 같은 인덱스값을 가리키기 때문에, 반환되는 prevPlacedMonoDrop에 대한 추가처리를 해주어야 한다
+	/// </summary>
+	/// <param name="placedIxy">Placed ixy.</param>
+	public MonoDrop SetIndex(Index2 placedIxy )
 	{
-		//Single.DropMgr.MapDrop.
+		MonoDrop prevPlacedDrop = Single.DropMgr.mapDrop.GetMonoDropByIndex2 (placedIxy);
+
+		//Put the null in the previous index location
+		Single.DropMgr.mapDrop.UpdateValue (m_index2D, null);
+
+		//Put the this MonoDrop in the new index location
+		m_index2D = placedIxy;
+		Single.DropMgr.mapDrop.UpdateValue (placedIxy, this);
+
+		return prevPlacedDrop;
 	}
 	
-	public void SwapIndex(Index2 dstIxy2)
+	public void SwapIndex(Index2 dstIxy)
 	{
-		
-		
+		MonoDrop prevPlacedDrop = Single.DropMgr.mapDrop.GetMonoDropByIndex2 (dstIxy);
+		if (null != prevPlacedDrop) 
+		{
+			prevPlacedDrop.SetIndex(this.index2D);
+			this.SetIndex(dstIxy);
+		}
+
 	}
 
+	public void SwapFirstLocalPosition (MonoDrop dstDrop)
+	{
+		if (null != dstDrop) 
+		{ 
+			Vector3 dstLocalPos = dstDrop.firstLocalPosition;
+			dstDrop.firstLocalPosition = this.firstLocalPosition;
+			this.firstLocalPosition = dstLocalPos;
+		}
+	}
+
+	public void ApplyFirstLocalPosition()
+	{
+		this.transform.localPosition = this.firstLocalPosition;
+	}
 
 
 	//==============: Constructor definition :========================================================================================
 	
 	public MonoDrop()
 	{
-		m_dropInfo = DropInfo.Create ();
+		m_id = Single.ResMgr.GetSequenceId ();
 	}
 
 	//==============: Initialization method :========================================================================================
@@ -293,7 +329,7 @@ public class MonoDrop : MonoBehaviour
 				//2.setting target position 
 				//swap firstPostion
 				//Single.DropMgr.SwapFirstLocalPosition(this,dstDrop);
-				Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.id , dstDrop.dropInfo.id, true);
+				Single.DropMgr.SwapMonoDropInBoard(this.id , dstDrop.id, false);
 				//break;
 
 				//3.animation target drop
@@ -333,7 +369,7 @@ public class MonoDrop : MonoBehaviour
 //			                 "  local+Parent : " + (collisionDrop.transform.localPosition + collisionDrop.transform.parent.transform.position)); //chamto test
 
 			//swap firstPostion
-			Single.DropMgr.SwapMonoDropInBoard(this.dropInfo.id , collisionDrop.dropInfo.id , false);
+			Single.DropMgr.SwapMonoDropInBoard(this.id , collisionDrop.id , false);
 			
 			//rolling drop
 			//collisionDrop.MovingAni(collisionDrop.firstLocalPosition); //test comment
@@ -412,13 +448,13 @@ public class MonoDrop : MonoBehaviour
 		//-------------------------------------------------
 
 		//drop.dropInfo = DropInfo.Create ();
-		drop.dropInfo.id = Single.ResMgr.GetSequenceId ();
-		drop.dropInfo.index2D = Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos);
+		//drop.id = Single.ResMgr.GetSequenceId ();
+		drop.SetIndex(Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos));
 		drop.setKind = eDrop;
 
 		//Specify the parent object
 		drop.transform.parent = parent;
-		drop.name = "drop" + drop.dropInfo.id;
+		drop.name = "drop" + drop.id;
 		
 		//newObj.transform.position = new Vector3(relativeCoord_x,relativeCoord_y,0); //[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
 		drop.transform.localPosition = localPos;
@@ -428,9 +464,9 @@ public class MonoDrop : MonoBehaviour
 		drop.firstLocalPosition = localPos;
 
 		//20150331 chamto test
-		//drop.testIndex2.ix = drop.dropInfo.index2D.ix;
-		//drop.testIndex2.iy = drop.dropInfo.index2D.iy;
-		drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.dropInfo.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
+		//drop.testIndex2.ix = drop.index2D.ix;
+		//drop.testIndex2.iy = drop.index2D.iy;
+		drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
 		//Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (drop.firstLocalPosition);
 		//drop.m_textMesh_LocalIdx = MonoDrop.Add3DText (drop.transform, localIdx.ToString(), Color.red, new Vector3(-0.5f,-0.3f,-2f));
 
@@ -441,7 +477,7 @@ public class MonoDrop : MonoBehaviour
 	public void UpdateTextMesh()
 	{
 		if (null != m_textMesh_Index2)
-			m_textMesh_Index2.text = this.dropInfo.index2D.ToString ();
+			m_textMesh_Index2.text = this.index2D.ToString ();
 
 		if (null != m_textMesh_LocalIdx) 
 		{
@@ -560,7 +596,7 @@ public struct Index2
 
 	static public bool operator != (Index2 ixy1 , Index2 ixy2)
 	{
-		if (ixy1.ix == ixy2.ix && ixy1.iy == ixy2.iy)
+		if (ixy1.ix != ixy2.ix || ixy1.iy != ixy2.iy)
 			return true;
 
 		return false;
@@ -617,6 +653,7 @@ public struct Index3
 	}
 }
 
+//20150403 chamto - no use , must be cleared
 [System.Serializable]
 public class DropInfo
 {

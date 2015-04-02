@@ -129,11 +129,13 @@ namespace PuzzAndBidurgi
 				return _mapId;
 			}
 		}
+
+
 		//--------------------------------------------------
 		//idMap 자료구조와 indexMap 자료구조는 1대1 대응하지 않는다.
 		//예) 특정 드롭이 등록되지 않은 위치로 갈때 indexMap에 추가되게 된다. 
 		//   이때 idMap은 드롭이 추가된것이 아니기 때문에 변동이 없다.
-		public void SetValue(MonoDrop valueDrop)
+		private void notuse_UpdateValue(MonoDrop valueDrop , Index2 prevIndex)
 		{
 			if (null == valueDrop) 
 			{
@@ -143,24 +145,36 @@ namespace PuzzAndBidurgi
 
 
 			MonoDrop getValue = null;
-			if (_mapId.TryGetValue (valueDrop.dropInfo.id, out getValue)) 
+			if (_mapId.TryGetValue (valueDrop.id, out getValue) && getValue == valueDrop) 
 			{
-				//Set the new value 
-				Index2 prevIndex = _mapId[valueDrop.dropInfo.id].dropInfo.index2D;
-				_mapId[valueDrop.dropInfo.id] = valueDrop;
-
-				//Set the null value in the previous location
-				_mapIndex2[prevIndex] = null;
-
 
 				//Add index2Coord in mapIndex2 if index2 is not register
-				if (false == _mapIndex2.TryGetValue (valueDrop.dropInfo.index2D, out getValue)) 
+				if (false == _mapIndex2.TryGetValue (valueDrop.index2D, out getValue)) 
 				{
-					_mapIndex2.Add(valueDrop.dropInfo.index2D, valueDrop);
+					_mapIndex2.Add(valueDrop.index2D, valueDrop);
 				}
 
-				_mapIndex2[valueDrop.dropInfo.index2D] = valueDrop;
+				MonoDrop prevPlacedDrop = _mapIndex2[valueDrop.index2D];
+				_mapIndex2[valueDrop.index2D] = valueDrop;
 			}
+		}
+
+		public bool UpdateValue(Index2 keyIndex , MonoDrop valueDrop)
+		{
+			if (null != valueDrop && valueDrop.index2D != keyIndex) 
+			{
+				CDefine.DebugLog("Warring !!! : valueDrop.index2D != keyIndex : " + valueDrop.index2D + " " + keyIndex);
+				return false;
+			}
+
+			MonoDrop getValue = null;
+			if (false == _mapIndex2.TryGetValue (keyIndex, out getValue)) 
+			{
+				_mapIndex2.Add(keyIndex, valueDrop);
+			}
+
+			_mapIndex2[keyIndex] = valueDrop;
+			return true;
 		}
 
 
@@ -175,8 +189,8 @@ namespace PuzzAndBidurgi
 		}
 
 
-		//20150331 chamto - mapIndex2 에서 index2 키에 해당하는 id 값의 무결성이 깨지기 쉬움, 어떻게 해결할지 생각해야함, 일단 사용안함
-		private MonoDrop needFix_GetMonoDropByIndex2(Index2 ixy)
+
+		public MonoDrop GetMonoDropByIndex2(Index2 ixy)
 		{
 			MonoDrop getValue = null;
 			if (_mapIndex2.TryGetValue (ixy, out getValue))
@@ -210,12 +224,12 @@ namespace PuzzAndBidurgi
 
 			//-----------------------
 			//add mapIndex2 
-			if (_mapIndex2.ContainsKey (value.dropInfo.index2D)) 
+			if (_mapIndex2.ContainsKey (value.index2D)) 
 			{
-				_mapIndex2[value.dropInfo.index2D] = value;
+				_mapIndex2[value.index2D] = value;
 			}else
 			{
-				_mapIndex2.Add (value.dropInfo.index2D, value);
+				_mapIndex2.Add (value.index2D, value);
 			}
 
 
@@ -229,7 +243,7 @@ namespace PuzzAndBidurgi
 			MonoDrop getValue = null;
 			if (_mapId.TryGetValue (key, out getValue)) 
 			{
-				_mapIndex2.Remove(getValue.dropInfo.index2D);
+				_mapIndex2.Remove(getValue.index2D);
 			}
 
 			return _mapId.Remove (key);
@@ -595,7 +609,7 @@ namespace PuzzAndBidurgi
 			if (null == temp1 || null == temp2)
 								return false;
 
-			CDefine.DebugLog ("----------------SwapMonoDropInBoard 1: " + temp1.dropInfo.index2D.ToString() + "  " + temp2.dropInfo.index2D.ToString()); //20150331 chamto test
+			CDefine.DebugLog ("----------------SwapMonoDropInBoard 1: " + temp1.index2D.ToString() + "  " + temp2.index2D.ToString()); //20150331 chamto test
 
 			if (false == ValidSwapMonoDrop (temp1, temp2))
 								return false;
@@ -603,19 +617,21 @@ namespace PuzzAndBidurgi
 
 			//CDefine.DebugLog ("----------------SwapMonoDropInBoard 2: " + ixy1.ToString() + "  " + ixy2.ToString()); //20150331 chamto test
 
-			//swap index2 coord
-			Index2 tempIndex = temp1.dropInfo.index2D;
-			temp1.dropInfo.index2D = temp2.dropInfo.index2D;
-			temp2.dropInfo.index2D = tempIndex;
+			//swap the index2 coord
+			//Index2 tempIndex = temp1.index2D;
+			//temp1.SetIndex (temp2.index2D);
+			//temp2.SetIndex (tempIndex);
+			temp1.SwapIndex (temp2.index2D);
 
 
 
 			//3. swap localPosition of monoDrop
-			SwapFirstLocalPosition (temp1, temp2);
+			temp1.SwapFirstLocalPosition (temp2);
+
 			if (true == applyPosition) 
 			{
-				temp1.transform.localPosition = temp1.firstLocalPosition;
-				temp2.transform.localPosition = temp2.firstLocalPosition;
+				temp1.ApplyFirstLocalPosition();
+				temp2.ApplyFirstLocalPosition();
 			}
 
 			temp1.UpdateTextMesh ();
@@ -623,14 +639,6 @@ namespace PuzzAndBidurgi
 
 
 			return true;
-
-		}
-
-		public void SwapFirstLocalPosition(MonoDrop drop1 , MonoDrop drop2) 
-		{
-			Vector3 temp = drop1.firstLocalPosition;
-			drop1.firstLocalPosition = drop2.firstLocalPosition;
-			drop2.firstLocalPosition = temp;
 		}
 
 
@@ -726,8 +734,8 @@ namespace PuzzAndBidurgi
 				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
 				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
 				                        pos);
-				pDrop.dropInfo.index2D = ixy;
-				m_mapDrop.Add(pDrop.dropInfo.id, pDrop);
+				pDrop.SetIndex(ixy);
+				m_mapDrop.Add(pDrop.id, pDrop);
 
 				//6x5 : width6 height5
 				//pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
@@ -902,7 +910,7 @@ namespace PuzzAndBidurgi
 				string sss = "";
 				foreach(MonoDrop mm  in result)
 				{
-					sss += mm.dropInfo.index2D.ToString() + " | ";
+					sss += mm.index2D.ToString() + " | ";
 				}
 				
 				CDefine.DebugLog (sss);
