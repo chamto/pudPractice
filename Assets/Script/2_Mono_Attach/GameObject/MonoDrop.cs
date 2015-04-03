@@ -21,7 +21,7 @@ public class MonoDrop : MonoBehaviour
 
 	private int 			m_id;
 	private	Index2			m_index2D;
-	private eResKind 		m_eKind = eResKind.None;
+	public eResKind 		m_eKind = eResKind.None;
 
 	/// <summary>
 	/// first position the rolling drop
@@ -47,6 +47,10 @@ public class MonoDrop : MonoBehaviour
 		get 
 		{
 			return m_index2D;
+		}
+		set
+		{
+			m_index2D = value;
 		}
 	}
 
@@ -145,6 +149,9 @@ public class MonoDrop : MonoBehaviour
 		//Put the this MonoDrop in the new index location
 		m_index2D = placedIxy;
 		Single.DropMgr.mapDrop.SetValue (placedIxy, this);
+
+		//20150403 chamto test
+		Single.DropMgr.Update_DebugMap ();
 
 		return prevPlacedDrop;
 	}
@@ -314,8 +321,10 @@ public class MonoDrop : MonoBehaviour
 		StopAni();
 
 		//20150403 chamto test
-		//MonoDrop.Remove (this);
-		Single.DropMgr.FindJoinConditions (3);
+		MonoDrop.Remove (this);
+		//Single.DropMgr.FindJoinConditions (3);
+
+		//this.setDropKind = eResKind.Obstruction; //chamto test
 
 	}
 
@@ -452,6 +461,9 @@ public class MonoDrop : MonoBehaviour
 		//drop.gameObject.SetActive(false);
 		MonoBehaviour.Destroy(drop.gameObject);
 
+		//20150403 chamto test
+		Single.DropMgr.Update_DebugMap ();
+
 		return true;
 	}
 
@@ -476,7 +488,8 @@ public class MonoDrop : MonoBehaviour
 
 		//drop.dropInfo = DropInfo.Create ();
 		drop.id = Single.ResMgr.GetSequenceId ();
-		drop.SetIndex(Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos));
+		//drop.SetIndex(Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos));
+		drop.index2D = Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos);
 		drop.setDropKind = eDrop;
 
 		//Specify the parent object

@@ -8,6 +8,7 @@ using UnityEditor;
 public class MonoDebug : MonoBehaviour 
 {
 
+	public GameObject	UIMapRoot = null;
 	public LineRenderer lineRender = null;
 	public GameObject cube_LeftUp = null;
 	public GameObject cube_RightUp = null;

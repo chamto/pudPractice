@@ -642,9 +642,10 @@ namespace PuzzAndBidurgi
 				temp2.ApplyFirstLocalPosition();
 			}
 
+
+			//chamto test
 			temp1.UpdateTextMesh ();
 			temp2.UpdateTextMesh ();
-
 
 			return true;
 		}
@@ -712,10 +713,6 @@ namespace PuzzAndBidurgi
 		public void Init()
 		{
 
-
-			//print dropKind list
-			//const float WIDTH_DROP = 1.15f;
-			//const float HEIGHT_DROP = 1.15f;
 			const uint MAX_DROP_COLUMN = 6;
 			const uint MAX_DROP5X6 = 5 * 6;
 			const uint MAX_DROP5X6X2 = 5 * 6 * 2;
@@ -725,7 +722,7 @@ namespace PuzzAndBidurgi
 			dropKind[1] = eResKind.Green;
 			dropKind[2] = eResKind.Blue;
 			dropKind[3] = eResKind.Light;
-			dropKind[4] = eResKind.Dart;
+			dropKind[4] = eResKind.Dark;
 			dropKind[5] = eResKind.Heart;
 
 			System.Random rndDrop = new System.Random();
@@ -745,11 +742,6 @@ namespace PuzzAndBidurgi
 				pDrop.SetIndex(ixy);
 				m_mapDrop.Add(pDrop.id, pDrop);
 
-				//6x5 : width6 height5
-				//pDrop = CreateDrop(i, Single.UIRoot.transform, dropKind[rndDrop.Next(0,MAX_DROPKIND)] , 
-				//                   (i% MAX_DROP_COLUMN) * WIDTH_DROP ,(i/MAX_DROP_COLUMN) * -HEIGHT_DROP);
-
-				//m_dtnrDrop.Add(i,pDrop);
 
 				//------ setting drop of color that invisialbe 30~  ------------
 				pDrop.SetColor(Color.gray); //chamto test
@@ -761,11 +753,66 @@ namespace PuzzAndBidurgi
 
 			}
 
-			//chamto test
-			//Vector3 v3Pos = CMain.UIRoot.transform.position;
-			//v3Pos.x = -2.9f;
-			//CMain.UIRoot.transform.position = v3Pos;
+			//20150403 chamto test
+			DebugMap_Init (); 
+			Update_DebugMap ();
 		
+		}
+
+
+		Dictionary<Index2,MonoDrop> _debugMap = new Dictionary<Index2,MonoDrop>();
+		public void DebugMap_Init()
+		{
+			
+			const uint MAX_DROP_COLUMN = 6;
+			const uint MAX_DROP5X6 = 5 * 6;
+
+			Vector3 pos = Vector3.zero;
+			MonoDrop pDrop = null;
+			Index2 ixy = Index2.Zero;
+			for(int i=0 ; i<MAX_DROP5X6 ; i++)
+			{
+				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
+				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
+				pos.x = ixy.ix * m_boardInfo.squareWidth;
+				pos.y = ixy.iy * m_boardInfo.squareHeight;
+				pDrop = MonoDrop.Create(Single.MonoDebug.UIMapRoot.transform, 
+				                        eResKind.None,
+				                        pos);
+
+				pDrop.SetColor(Color.gray); 
+				pDrop.GetBoxCollider2D().enabled = false; 
+
+				_debugMap.Add(ixy,pDrop);
+								
+			}
+
+		}
+
+		public void Update_DebugMap()
+		{
+			const uint MAX_DROP_COLUMN = 6;
+			const uint MAX_DROP5X6 = 5 * 6;
+			MonoDrop pDropInMap = null;
+			MonoDrop pDropInDebug = null;
+			Index2 ixy = Index2.Zero;
+			for (int i=0; i<MAX_DROP5X6; i++) 
+			{
+				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
+				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
+				pDropInMap = this.mapDrop.GetMonoDropByIndex2(ixy);
+				_debugMap.TryGetValue(ixy,out pDropInDebug);
+				if(null != pDropInMap && null != pDropInDebug)
+				{
+					//Debug.Log("111----------------------------------------:"+pDropInMap);
+					pDropInDebug.setDropKind = pDropInMap.dropKind;
+				}
+				if(null == pDropInMap && null != pDropInDebug)
+				{
+					//Debug.Log("222----------------------------------------");
+					pDropInDebug.setDropKind = eResKind.None;
+				}
+			}
 		}
 
 		public void Update()
