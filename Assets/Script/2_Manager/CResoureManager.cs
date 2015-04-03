@@ -10,14 +10,14 @@ namespace PuzzAndBidurgi
 	/// </summary>
 	public enum eResKind
 	{
-		None = -1,
+		None = 0,
 
 		//기본 드랍 5종
-		TextureDropRed = 0,
+		TextureDropRed,
 		TextureDropGreen,
 		TextureDropBlue,
 		TextureDropLight,
-		TextureDropDart,
+		TextureDropDark,
 
 		//회복드랍
 		TextureDropHeart,
@@ -32,8 +32,10 @@ namespace PuzzAndBidurgi
 		Green = TextureDropGreen,
 		Blue = TextureDropBlue,
 		Light = TextureDropLight,
-		Dart = TextureDropDart,
+		Dark = TextureDropDark,
 		Heart = TextureDropHeart,
+		Obstruction = TextureDropObstruction,
+		Posion = TextureDropPosion,
 	}
 
 	/// <summary>
@@ -90,12 +92,15 @@ namespace PuzzAndBidurgi
 		{
 
 			//Init TextureInfo 
+			//m_dictTextureInfo.Add((ushort)eResKind.None , new SResInfo("Texture/drop","None"));
 			m_dictTextureInfo.Add((ushort)eResKind.TextureDropRed , new SResInfo("Texture/drop","dropRed"));
 			m_dictTextureInfo.Add((ushort)eResKind.TextureDropGreen , new SResInfo("Texture/drop","dropGreen"));
 			m_dictTextureInfo.Add((ushort)eResKind.TextureDropBlue , new SResInfo("Texture/drop","dropBlue"));
 			m_dictTextureInfo.Add((ushort)eResKind.TextureDropLight , new SResInfo("Texture/drop","dropLight"));
-			m_dictTextureInfo.Add((ushort)eResKind.TextureDropDart , new SResInfo("Texture/drop","dropDark"));
+			m_dictTextureInfo.Add((ushort)eResKind.TextureDropDark , new SResInfo("Texture/drop","dropDark"));
 			m_dictTextureInfo.Add((ushort)eResKind.TextureDropHeart , new SResInfo("Texture/drop","dropHeart"));
+			m_dictTextureInfo.Add((ushort)eResKind.TextureDropObstruction , new SResInfo("Texture/drop","dropObstruction"));
+			m_dictTextureInfo.Add((ushort)eResKind.TextureDropPosion , new SResInfo("Texture/drop","dropPosion"));
 
 
 			return (ushort)eError.Success;
@@ -116,6 +121,10 @@ namespace PuzzAndBidurgi
 
 		public Sprite LoadSprites(eResKind in_eKey , ushort index)
 		{
+
+			if (eResKind.None == in_eKey)
+								return null;
+
 			SResInfo info;
 			if(m_dictTextureInfo.TryGetValue((ushort)in_eKey,out info) )
 			{
@@ -123,7 +132,8 @@ namespace PuzzAndBidurgi
 				//return Resources.Load<Sprite>(info.GetFullPath());
 
 				Sprite[] sp = Resources.LoadAll<Sprite>(info.GetFullPath());
-				if(0 < sp.Length && index <= sp.Length) return sp[index];
+				if(0 < sp.Length && index <= sp.Length) 
+					return sp[index];
 
 			}
 
