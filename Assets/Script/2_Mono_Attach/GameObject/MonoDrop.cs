@@ -24,9 +24,9 @@ public class MonoDrop : MonoBehaviour
 	public eResKind 		m_eKind = eResKind.None;
 
 	/// <summary>
-	/// first position the rolling drop
+	/// goto position the rolling drop
 	/// </summary>
-	private Vector3			m_firstLocalPosition;
+	private Vector3			m_gotoLocalPosition;
 
 
 	//==============: property definition :========================================================================================
@@ -78,14 +78,14 @@ public class MonoDrop : MonoBehaviour
 	}
 
 
-	public Vector3			firstLocalPosition
+	public Vector3			gotoLocalPosition
 	{
-		get { return m_firstLocalPosition; }
-		set { m_firstLocalPosition = value; }	
+		get { return m_gotoLocalPosition; }
+		set { m_gotoLocalPosition = value; }	
 	}
-	public Vector3			firstWorldPosition
+	public Vector3			gotoWorldPosition
 	{
-		get { return m_firstLocalPosition + transform.parent.position; }
+		get { return m_gotoLocalPosition + transform.parent.position; }
 	}
 
 
@@ -143,8 +143,10 @@ public class MonoDrop : MonoBehaviour
 
 		//Put the null in the previous index location
 		MonoDrop currentDrop = Single.DropMgr.mapDrop.GetMonoDropByIndex2(m_index2D);
-		if(currentDrop == this)
-			Single.DropMgr.mapDrop.SetValue (m_index2D, null);
+		if (currentDrop == this) //blocking that put the null , the default index value (0,0)
+				Single.DropMgr.mapDrop.SetValue (m_index2D, null);
+		//else if(currentDrop != null) // mapIndex is pointing value ,the currentDrop is not same
+			//Debug.Log ("id: "+this.id+" SetIndex :" + placedIxy + " currentDrop != this && currentDrop != null :" + currentDrop + " : " + this + " / "); //chamto test
 
 		//Put the this MonoDrop in the new index location
 		m_index2D = placedIxy;
@@ -161,37 +163,40 @@ public class MonoDrop : MonoBehaviour
 		MonoDrop prevPlacedDrop = Single.DropMgr.mapDrop.GetMonoDropByIndex2 (dstIxy);
 		if (null != prevPlacedDrop) 
 		{
+			//Debug.Log("1----id: "+this.id+" SwapIndex :" + dstIxy + "  thisIndex :"+this.index2D); //chamto test
 			prevPlacedDrop.SetIndex(this.index2D);
+			//Debug.Log("2----");
 			this.SetIndex(dstIxy);
 		}
 
 	}
 
-	public void SwapFirstLocalPosition (MonoDrop dstDrop)
+	public void SwapgotoLocalPosition (MonoDrop dstDrop)
 	{
 		if (null != dstDrop) 
 		{ 
-			Vector3 dstLocalPos = dstDrop.firstLocalPosition;
-			dstDrop.firstLocalPosition = this.firstLocalPosition;
-			this.firstLocalPosition = dstLocalPos;
+			Vector3 dstLocalPos = dstDrop.gotoLocalPosition;
+			dstDrop.gotoLocalPosition = this.gotoLocalPosition;
+			this.gotoLocalPosition = dstLocalPos;
 		}
 	}
 
-	public void UpdateFirstLocalPosition()
+	public void UpdategotoLocalPosition()
 	{
-		this.firstLocalPosition = Single.DropMgr.boardInfo.GetIndex2DToPosition (this.index2D);
+		this.gotoLocalPosition = Single.DropMgr.boardInfo.GetIndex2DToPosition (this.index2D);
 	}
 
-	public void ApplyFirstLocalPosition()
+	public void ApplygotoLocalPosition()
 	{
-		this.transform.localPosition = this.firstLocalPosition;
+		this.transform.localPosition = this.gotoLocalPosition;
 	}
 
 	public void MoveToIndex(Index2 dstIxy)
 	{
 		this.SetIndex (dstIxy);
-		this.UpdateFirstLocalPosition ();
-		this.ApplyFirstLocalPosition ();
+		this.UpdategotoLocalPosition ();
+		//this.ApplygotoLocalPosition ();
+		this.MovingAni (this.gotoLocalPosition);
 	}
 
 	//==============: Constructor definition :========================================================================================
@@ -354,21 +359,21 @@ public class MonoDrop : MonoBehaviour
 			
 			if(null != dstDrop && this != dstDrop)
 			{
-
+				//Debug.Log("--------- onCollision ---------"); //chamto test
 				//moving complete after process
 				//1.stop move animation
 				if(null != m_prevCollisionDrop) m_prevCollisionDrop.StopAni();
 				dstDrop.StopAni(); 
 				
 				//2.setting target position 
-				//swap firstPostion
-				//Single.DropMgr.SwapFirstLocalPosition(this,dstDrop);
+				//swap gotoPostion
+				//Single.DropMgr.SwapgotoLocalPosition(this,dstDrop);
 				Single.DropMgr.SwapMonoDropInBoard(this.id , dstDrop.id, false);
 				//break;
 
 				//3.animation target drop
 				//rolling drop
-				dstDrop.MovingAni(dstDrop.firstLocalPosition);
+				dstDrop.MovingAni(dstDrop.gotoLocalPosition);
 				
 				
 			}
@@ -402,11 +407,11 @@ public class MonoDrop : MonoBehaviour
 //			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name + " pos : " + collisionDrop.transform.position + 
 //			                 "  local+Parent : " + (collisionDrop.transform.localPosition + collisionDrop.transform.parent.transform.position)); //chamto test
 
-			//swap firstPostion
+			//swap gotoPostion
 			Single.DropMgr.SwapMonoDropInBoard(this.id , collisionDrop.id , false);
 			
 			//rolling drop
-			//collisionDrop.MovingAni(collisionDrop.firstLocalPosition); //test comment
+			//collisionDrop.MovingAni(collisionDrop.gotoLocalPosition); //test comment
 
 
 			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name); //chamto test
@@ -430,20 +435,21 @@ public class MonoDrop : MonoBehaviour
 	}
 	public void StopAni()
 	{
-		transform.localPosition = firstLocalPosition;
+		transform.localPosition = gotoLocalPosition;
 		StopCoroutine("cortnMovingAni");
 	}
 	IEnumerator cortnMovingAni(Vector3 dstLocalPos)
 	{
 		Vector3 diff = new Vector3(1,1,1);
-		while(diff.sqrMagnitude > 0)
+		while(Math.Abs(diff.sqrMagnitude) > float.Epsilon )
 		{
 			diff = dstLocalPos - transform.localPosition;
 			transform.localPosition += diff * Time.deltaTime * 30;
+			//Debug.Log("loop.. :"+ this+ " dstLocalPos :"+dstLocalPos + "  target:"+transform.localPosition + "  diff:"+diff.sqrMagnitude ); //chamto test
 			yield return null;
 		}
 
-		//CDefine.DebugLog("cortnMoving " + gameObject.name); //chamto test
+		//CDefine.DebugLog("!!!!!!! Ended cortnMovingAni " + this); //chamto test
 		transform.localPosition = dstLocalPos;
 	}
 
@@ -501,13 +507,13 @@ public class MonoDrop : MonoBehaviour
 		
 		
 		//todo modify that localposition
-		drop.firstLocalPosition = localPos;
+		drop.gotoLocalPosition = localPos;
 
 		//20150331 chamto test
 		//drop.testIndex2.ix = drop.index2D.ix;
 		//drop.testIndex2.iy = drop.index2D.iy;
 		drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
-		//Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (drop.firstLocalPosition);
+		//Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (drop.gotoLocalPosition);
 		//drop.m_textMesh_LocalIdx = MonoDrop.Add3DText (drop.transform, localIdx.ToString(), Color.red, new Vector3(-0.5f,-0.3f,-2f));
 
 		
@@ -521,7 +527,7 @@ public class MonoDrop : MonoBehaviour
 
 		if (null != m_textMesh_LocalIdx) 
 		{
-			Index2 localIdx = Single.DropMgr.boardInfo.GetPositionToIndex2D (this.firstLocalPosition);
+			Index2 localIdx = Single.DropMgr.boardInfo.GetPositionToIndex2D (this.gotoLocalPosition);
 			m_textMesh_LocalIdx.text = localIdx.ToString();
 		}
 	}
