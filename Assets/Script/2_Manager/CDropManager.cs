@@ -522,7 +522,7 @@ namespace PuzzAndBidurgi
 
 			Bounds bob = m_boardInfo.GetBoundaryOfView (Single.UIRoot.transform.position);
 			ML.LineSegment3 result = new ML.LineSegment3();
-			result.origin = srcDrop.firstWorldPosition;
+			result.origin = srcDrop.gotoWorldPosition;
 			result.last = lineSeg3.last;
 
 
@@ -594,7 +594,7 @@ namespace PuzzAndBidurgi
 			//float dist = m_board.squareWidth * m_board.squareWidth * 2 + 0.15f;
 			float dist = (m_boardInfo.squareWidth * m_boardInfo.squareWidth + m_boardInfo.squareHeight * m_boardInfo.squareHeight) + 0.15f;
 
-			return (dist > GetSqrDistance (drop1.firstWorldPosition, drop2.firstWorldPosition));
+			return (dist > GetSqrDistance (drop1.gotoWorldPosition, drop2.gotoWorldPosition));
 		}
 
 
@@ -634,12 +634,12 @@ namespace PuzzAndBidurgi
 
 
 			//3. swap localPosition of monoDrop
-			temp1.SwapFirstLocalPosition (temp2);
+			temp1.SwapgotoLocalPosition (temp2);
 
 			if (true == applyPosition) 
 			{
-				temp1.ApplyFirstLocalPosition();
-				temp2.ApplyFirstLocalPosition();
+				temp1.ApplygotoLocalPosition();
+				temp2.ApplygotoLocalPosition();
 			}
 
 
@@ -846,13 +846,17 @@ namespace PuzzAndBidurgi
 				if (null == nextDrop && this.boardInfo.BelongToViewArea (nextIndex)) 
 				{
 					placedIndex = nextIndex;
-					//CDefine.DebugLog ("----------MoveDrop : " + placedIndex.ToString() + "  v3:"+direction  ); //chamto test
+					//CDefine.DebugLog ("----------MoveDrop : " + movingDrop.index2D + "  placedIndex :" + placedIndex.ToString() + "  v3:"+direction  ); //chamto test
 					continue;
 				}
 				break;
 			}
 
-			movingDrop.MoveToIndex(placedIndex);
+			if (movingDrop.index2D != placedIndex) 
+			{
+				//CDefine.DebugLog ("----------MoveToIndex : " + placedIndex.ToString() ); //chamto test
+				movingDrop.MoveToIndex (placedIndex);
+			}
 
 
 
@@ -868,7 +872,7 @@ namespace PuzzAndBidurgi
 			int maxRow = maxView.iy - minView.iy;
 
 			//CDefine.DebugLog("maxColumn : " + maxColumn + "  max:" + maxView + " min:" + minView);
-
+			//maxRow = 1; //chamto test
 			Index2 key = new Index2(0,0);
 			MonoDrop value = null;
 			for (int iy=0; iy <= maxRow; iy++) 
@@ -994,7 +998,7 @@ namespace PuzzAndBidurgi
 		//private float GetSqrDistance(MonoDrop standardDrop , MonoDrop toDstDrop)
 		private float GetSqrDistance(Vector3 standardPos , Vector3 toDstPos)
 		{
-			//note!! before moveing , dstDrop is firstPosition 
+			//note!! before moveing , dstDrop is gotoPosition 
 			return (toDstPos - standardPos).sqrMagnitude;
 		}
 
@@ -1016,13 +1020,13 @@ namespace PuzzAndBidurgi
 
 			//기준점으로 부터 제곱길이가 가장 작은순으로 정렬한 드롭목록을 얻는다.
 			list = (from dstDrop in list
-			        orderby GetSqrDistance(standardDrop.firstWorldPosition,dstDrop.firstWorldPosition) ascending
+			        orderby GetSqrDistance(standardDrop.gotoWorldPosition,dstDrop.gotoWorldPosition) ascending
 					select dstDrop).ToList();
 
 			//foreach(MonoDrop drop in list)			
 			//	CDefine.DebugLog(drop + "  " + Math.Sqrt(GetSqrDistance(standardDrop,drop)));
 			//CDefine.DebugLog(GetSqrDistance(standardDrop,list[0]) + "  " + (minDistance*minDistance)); //chamto test
-			if(GetSqrDistance(standardDrop.firstWorldPosition,list[0].firstWorldPosition) <= (minDistance * minDistance)) return null;
+			if(GetSqrDistance(standardDrop.gotoWorldPosition,list[0].gotoWorldPosition) <= (minDistance * minDistance)) return null;
 			//if(standardDrop == list[0]) return null;
 
 			return list[0];
@@ -1038,7 +1042,7 @@ namespace PuzzAndBidurgi
 			//1.터치드래그한 선분을 구한다.
 			ML.LineSegment3 ls3 = new ML.LineSegment3 ();
 			//ls3.origin = srcDrop.transform.position;
-			ls3.origin = srcDrop.firstWorldPosition;
+			ls3.origin = srcDrop.gotoWorldPosition;
 			ls3.last = Input_Unity.GetTouchWorldPos ();
 
 
@@ -1070,12 +1074,12 @@ namespace PuzzAndBidurgi
 				//self exclusion
 				if(srcDrop == dstDrop) continue;
 
-				if((nonCollision_minDistance * nonCollision_minDistance) > ls3.MinimumDistanceSquared(dstDrop.firstWorldPosition,out t_c))
+				if((nonCollision_minDistance * nonCollision_minDistance) > ls3.MinimumDistanceSquared(dstDrop.gotoWorldPosition,out t_c))
 				{
 					//20140907 chamto test
-//					float dist = ls3.MinimumDistanceSquared(dstDrop.firstWorldPosition,out t_c);
+//					float dist = ls3.MinimumDistanceSquared(dstDrop.gotoWorldPosition,out t_c);
 //					{
-//						CDefine.DebugLog("object : "+dstDrop  +"  mSqrtDist : "+dist + " noncSqrtDist : " + nonCollision_minDistance * nonCollision_minDistance + "  firstwp : "+dstDrop.firstWorldPosition + " t_c : " + t_c);
+//						CDefine.DebugLog("object : "+dstDrop  +"  mSqrtDist : "+dist + " noncSqrtDist : " + nonCollision_minDistance * nonCollision_minDistance + "  gotowp : "+dstDrop.gotoWorldPosition + " t_c : " + t_c);
 //					}
 
 					//Input collision list
@@ -1091,7 +1095,7 @@ namespace PuzzAndBidurgi
 
 
 			List<MonoDrop> result = (from dstDrop in collisionList
-			                         orderby GetSqrDistance(srcDrop.firstWorldPosition,dstDrop.firstWorldPosition) ascending
+			                         orderby GetSqrDistance(srcDrop.gotoWorldPosition,dstDrop.gotoWorldPosition) ascending
 			                         select dstDrop).ToList();
 
 
@@ -1136,7 +1140,7 @@ namespace PuzzAndBidurgi
 				if(srcDrop == dstDrop) continue;
 
 				//dstBox.center = new Vector2(dstDrop.transform.position.x,dstDrop.transform.position.y);
-				dstBox.center = new Vector2(dstDrop.firstWorldPosition.x , dstDrop.firstWorldPosition.y);
+				dstBox.center = new Vector2(dstDrop.gotoWorldPosition.x , dstDrop.gotoWorldPosition.y);
 
 				if(true == srcBox.Overlaps(dstBox,true)) //include allowInverse
 				{
