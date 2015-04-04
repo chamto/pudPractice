@@ -51,10 +51,11 @@ public class MonoDebug : MonoBehaviour
 
 		}
 
-		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Time +")) 
+		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Update DebugMap")) 
 		{
 			//Time.timeScale += 0.1f;
 			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
+			Single.DropMgr.Update_DebugMap ();
 		}
 
 		Rule_PuzzleAndDragon rule = Single.MonoMain.rules as Rule_PuzzleAndDragon; 
