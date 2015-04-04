@@ -424,15 +424,19 @@ namespace PuzzAndBidurgi
 			return new Bounds (center, size);
 		}
 
+		public bool BelongToArea(Index2 min, Index2 max, Index2 ixy)
+		{
+			if ((min.ix <= ixy.ix && ixy.ix <= max.ix) && (min.iy <= ixy.iy && ixy.iy <= max.iy))
+				return true;
+			
+			return false;
+		}
+
 		public bool BelongToViewArea(Index2 ixy)
 		{
 			Index2 min = this.GetIndexAt_ViewLeftBottom ();
 			Index2 max = this.GetIndexAt_ViewRightUp ();
-
-			if ((min.ix <= ixy.ix && ixy.ix <= max.ix) && (min.iy <= ixy.iy && ixy.iy <= max.iy))
-				return true;
-
-			return false;
+			return BelongToArea (min, max, ixy);
 		}
 
 
@@ -843,7 +847,8 @@ namespace PuzzAndBidurgi
 				nextDrop = this.mapDrop.GetMonoDropByIndex2 (nextIndex);
 
 				//CDefine.DebugLog ("----------MoveDrop : "+ aOm +" :"+ nextIndex.ToString() + "  drop:"+nextDrop  ); //chamto test
-				if (null == nextDrop && this.boardInfo.BelongToViewArea (nextIndex)) 
+				//if (null == nextDrop && this.boardInfo.BelongToViewArea (nextIndex)) 
+				if (null == nextDrop && this.boardInfo.BelongToArea (new Index2(0,0), new Index2(5,9), nextIndex)) 
 				{
 					placedIndex = nextIndex;
 					//CDefine.DebugLog ("----------MoveDrop : " + movingDrop.index2D + "  placedIndex :" + placedIndex.ToString() + "  v3:"+direction  ); //chamto test
@@ -855,22 +860,24 @@ namespace PuzzAndBidurgi
 			if (movingDrop.index2D != placedIndex) 
 			{
 				//CDefine.DebugLog ("----------MoveToIndex : " + placedIndex.ToString() ); //chamto test
+				//chamto test , temp code
+				if(this.boardInfo.BelongToArea(new Index2(0,5),new Index2(5,9) ,movingDrop.index2D)
+				   && this.boardInfo.BelongToViewArea(placedIndex))
+				{
+					movingDrop.SetColor(Color.white);
+					movingDrop.GetBoxCollider2D().enabled = true; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
+				}
+
 				movingDrop.MoveToIndex (placedIndex);
 			}
 
-
-
-
 		}
 
-		public void WholeDroppingOnView()
+		public void WholeDropping(Index2 min , Index2 max)
 		{
-			//view area
-			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
-			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
-			int maxColumn = maxView.ix - minView.ix;
-			int maxRow = maxView.iy - minView.iy;
-
+			int maxColumn = max.ix - min.ix;
+			int maxRow = max.iy - min.iy;
+			
 			//CDefine.DebugLog("maxColumn : " + maxColumn + "  max:" + maxView + " min:" + minView);
 			//maxRow = 1; //chamto test
 			Index2 key = new Index2(0,0);
@@ -878,22 +885,28 @@ namespace PuzzAndBidurgi
 			for (int iy=0; iy <= maxRow; iy++) 
 			{
 				key.iy = iy;
-
+				
 				for (int ix=0; ix <= maxColumn; ix++) 
 				{
 					key.ix = ix;
-
+					
 					value = this.mapDrop.GetMonoDropByIndex2(key);
 					//CDefine.DebugLog("WholeDroppingOnView : " + key.ToString() + "  " + value);
 					if(null != value)
 					{
-
 						this.MoveDrop(value,Vector3.down,5);
+
 					}
 				}
 			}
+		}
+		public void WholeDroppingOnView()
+		{
+			//view area
+			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
+			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
 
-			
+			WholeDropping (minView, maxView);
 		}
 
 

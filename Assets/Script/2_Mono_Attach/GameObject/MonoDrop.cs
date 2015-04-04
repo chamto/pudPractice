@@ -328,6 +328,7 @@ public class MonoDrop : MonoBehaviour
 		//20150403 chamto test
 		//MonoDrop.Remove (this);
 		Single.DropMgr.FindJoinConditions (3);
+		Single.DropMgr.WholeDropping (new Index2 (0, 0), new Index2 (5, 9));
 
 	}
 
