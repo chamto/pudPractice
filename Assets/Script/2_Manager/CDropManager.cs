@@ -910,8 +910,8 @@ namespace PuzzAndBidurgi
 			MonoDrop nextDrop = null;
 			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compaeIndex);
 			List<MonoDrop> listJoin = new List<MonoDrop> ();
-			listJoin.Add (compareDrop);
-			for (ushort i=0; i < lengthOfLine; i++) 
+
+			for (ushort i=0; i <= lengthOfLine; i++) 
 			{
 
 				nextIndex.ix += (int)direction.x;
@@ -923,8 +923,11 @@ namespace PuzzAndBidurgi
 				{
 					if(compareDrop.dropKind == nextDrop.dropKind)
 					{
+						if(0 == listJoin.Count) 
+							listJoin.Add (compareDrop);
+
 						listJoin.Add(nextDrop);
-						Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
+						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
 
 
 						continue;
@@ -957,13 +960,12 @@ namespace PuzzAndBidurgi
 
 
 			Index2 key = Index2.Zero;
-			for (int iy=0; iy <= 0; iy++) 
-			//for (int iy=0; iy <= maxRow; iy++) 
+			for (int iy=0; iy <= maxRow; iy++) 
 			{
 				key.iy = iy;
 				key.ix = 0;
 				listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
-				CDefine.DebugLog("FindJoinConditions  count " + listLineTotal.Count); //chamto test
+				CDefine.DebugLog("FindJoinConditionsX  count " + listLineTotal.Count); //chamto test
 				if(0 != listLineTotal.Count)
 				{
 					foreach(List<MonoDrop> lm in listLineTotal)
@@ -974,8 +976,27 @@ namespace PuzzAndBidurgi
 						}
 					}
 				}//endif
-
 			}//endfor
+
+			for (int ix=0; ix <= maxColumn; ix++) 
+			{
+				key.iy = 0;
+				key.ix = ix;
+				listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
+				CDefine.DebugLog("FindJoinConditionsY  count " + listLineTotal.Count); //chamto test
+				if(0 != listLineTotal.Count)
+				{
+					foreach(List<MonoDrop> lm in listLineTotal)
+					{
+						foreach(MonoDrop m in lm)
+						{
+							MonoDrop.Remove(m);
+						}
+					}
+				}//endif
+			}//endfor
+
+
 			
 			
 			return null;

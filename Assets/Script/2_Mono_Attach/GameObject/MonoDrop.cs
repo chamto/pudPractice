@@ -326,10 +326,8 @@ public class MonoDrop : MonoBehaviour
 		StopAni();
 
 		//20150403 chamto test
-		MonoDrop.Remove (this);
-		//Single.DropMgr.FindJoinConditions (3);
-
-		//this.setDropKind = eResKind.Obstruction; //chamto test
+		//MonoDrop.Remove (this);
+		Single.DropMgr.FindJoinConditions (3);
 
 	}
 
