@@ -937,20 +937,23 @@ namespace PuzzAndBidurgi
 				nextIndex.ix += (int)direction.x;
 				nextIndex.iy += (int)direction.y;
 				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
-				Debug.Log (" startIxy:"+startIxy+" nextIxy:"+nextIndex+" nextDrop:"+nextDrop+" compareDrop:"+compareDrop+" listLineTotal:"+listLineTotal.Count); //chamto test
+				//Debug.Log (" startIxy:"+startIxy+" nextIxy:"+nextIndex+" nextDrop:"+nextDrop+" compareDrop:"+compareDrop+" listLineTotal:"+listLineTotal.Count); //chamto test
 				//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
 				if(null != compareDrop && null != nextDrop)
 				{
 					if(compareDrop.dropKind == nextDrop.dropKind)
 					{
+						//first add
 						if(0 == listJoin.Count) 
 							listJoin.Add (compareDrop);
 
-						listJoin.Add(nextDrop);
-						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
-
-
-						continue;
+						//next add , end is not processed
+						if(lengthOfLine != i)
+						{
+							listJoin.Add(nextDrop);
+							//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
+							continue;
+						}
 					}
 
 				}
