@@ -45,8 +45,8 @@ public class MonoDebug : MonoBehaviour
 
 
 			CDefine.DebugLog("WholeDroppingOnView start -----------------------------");
-			Single.DropMgr.WholeDroppingOnView();
-
+			//Single.DropMgr.WholeDroppingOnView();
+			Single.DropMgr.WholeDropping (new Index2 (0, 0), new Index2 (5, 9));
 			//Single.DropMgr.mapDrop.Debug_PrintMap();
 
 		}

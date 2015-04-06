@@ -757,6 +757,12 @@ namespace PuzzAndBidurgi
 
 			}
 
+			//20150406 chamto - bug1-1 reproduction : The removal of non-union drop : at func LineInspection 
+			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 5)).setDropKind = eResKind.Dark;
+			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 4)).setDropKind = eResKind.Dark;
+			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 3)).setDropKind = eResKind.Dark;
+			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 2)).setDropKind = eResKind.Dark;
+
 			//20150403 chamto test
 			DebugMap_Init (); 
 			Update_DebugMap ();
@@ -916,13 +922,14 @@ namespace PuzzAndBidurgi
 			direction.Normalize ();
 
 			//eResKind eDropKind = eResKind.None;
-			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
+
 
 			Index2 nextIndex = startIxy;
 			Index2 compaeIndex = startIxy;
 			MonoDrop nextDrop = null;
 			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compaeIndex);
 			List<MonoDrop> listJoin = new List<MonoDrop> ();
+			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
 
 			for (ushort i=0; i <= lengthOfLine; i++) 
 			{
@@ -930,7 +937,7 @@ namespace PuzzAndBidurgi
 				nextIndex.ix += (int)direction.x;
 				nextIndex.iy += (int)direction.y;
 				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
-
+				Debug.Log (" startIxy:"+startIxy+" nextIxy:"+nextIndex+" nextDrop:"+nextDrop+" compareDrop:"+compareDrop+" listLineTotal:"+listLineTotal.Count); //chamto test
 				//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
 				if(null != compareDrop && null != nextDrop)
 				{
@@ -978,9 +985,9 @@ namespace PuzzAndBidurgi
 				key.iy = iy;
 				key.ix = 0;
 				listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
-				CDefine.DebugLog("FindJoinConditionsX  count " + listLineTotal.Count); //chamto test
 				if(0 != listLineTotal.Count)
-				{
+				{	
+					CDefine.DebugLog("FindJoinConditionsX  count " + listLineTotal.Count); //chamto test
 					foreach(List<MonoDrop> lm in listLineTotal)
 					{
 						foreach(MonoDrop m in lm)
@@ -996,9 +1003,9 @@ namespace PuzzAndBidurgi
 				key.iy = 0;
 				key.ix = ix;
 				listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
-				CDefine.DebugLog("FindJoinConditionsY  count " + listLineTotal.Count); //chamto test
 				if(0 != listLineTotal.Count)
 				{
+					CDefine.DebugLog("FindJoinConditionsY  count " + listLineTotal.Count); //chamto test
 					foreach(List<MonoDrop> lm in listLineTotal)
 					{
 						foreach(MonoDrop m in lm)
