@@ -6,6 +6,13 @@ using System.Collections.Generic;
 using System.Reflection;
 
 
+//ref : http://wiki.unity3d.com/index.php?title=Expose_properties_in_inspector
+[AttributeUsage( AttributeTargets.Property )]
+public class ExposePropertyAttribute : Attribute
+{
+	
+}
+
 public static class ExposeProperties
 {
 	public static void Expose( PropertyField[] properties )
