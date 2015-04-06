@@ -280,7 +280,7 @@ public class MonoDrop : MonoBehaviour
 		if (false == Single.InputMgr.permitEvent_DropTouch)
 						return;
 
-		//CDefine.DebugLog("TouchBegan "+ gameObject.name);
+		//CDefine.DebugLog("___________________TouchBegan "+ gameObject.name+"___________________");
 		//CDefine.DebugLog("TouchBegan : " + CInputManager.IsTouch());
 
 

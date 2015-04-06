@@ -196,43 +196,56 @@ public class MonoInputManager : MonoBehaviour
 			}
 		}else if(Application.platform == RuntimePlatform.OSXEditor)
 		{
+			//Debug.Log("mousedown:" +Input.GetMouseButtonDown(0)+ "  mouseup:" + Input.GetMouseButtonUp(0) + " state:" +Input.GetMouseButton(0)); //chamto test
 			if(Input.GetMouseButtonDown(0)) 
 			{
-				
+
+				//Debug.Log ("______________ MouseBottonDown ______________" + m_TouchedObject); //chamto test
+
 				//if(0 == (m_prevMousePosition - Input.mousePosition).sqrMagnitude)
 				{	//mouse Down
-					
-					Init_PrevTouchMovedPos();
-					m_TouchedObject = SendMessage_TouchObject("TouchBegan",Input.mousePosition);
+
+
+					if(false == f_isEditorDraging)
+					{
+						//Init_PrevTouchMovedPos();
+						m_TouchedObject = SendMessage_TouchObject("TouchBegan",Input.mousePosition);
+						if(null != m_TouchedObject)
+							f_isEditorDraging = true;
+					}
+
 					
 				}
-				
-				f_isEditorDraging = true;
-				
-				
+
 				//CDefine.DebugLog("--------------"); //chamto test
 				
 			}
-			else if(Input.GetMouseButtonUp(0))
+
+			if(Input.GetMouseButtonUp(0))
 			{	//mouse Up
+
+				//Debug.Log ("______________ MouseButtonUp ______________" + m_TouchedObject); //chamto test
 				f_isEditorDraging = false;
 				
 				if(null != m_TouchedObject)
 					m_TouchedObject.SendMessage("TouchEnded",0,SendMessageOptions.DontRequireReceiver);
 				m_TouchedObject = null;
 				//checkInput("TouchEnded",Input.mousePosition);
+
 			}else
 			{	//mouse Move
 				
 				if(f_isEditorDraging)
 				{	///mouse Down + Move (Drag)
 					
+					//Debug.Log ("______________ MouseMoved ______________" + m_TouchedObject); //chamto test
+					
 					if(null != m_TouchedObject)					
 						m_TouchedObject.SendMessage("TouchMoved",0,SendMessageOptions.DontRequireReceiver);
-
-					Update_PrevTouchMovedPos();
-				}
-			}
+					
+					//Update_PrevTouchMovedPos();
+				}//if
+			}//if
 			
 			//m_prevMousePosition = Input.mousePosition;
 		}
@@ -242,6 +255,12 @@ public class MonoInputManager : MonoBehaviour
 	void Update()
 	//void FixedUpdate()
 	{
+		//drag state ?
+		if (Input.GetMouseButton (0) && Input.GetMouseButtonDown (0) == false) 
+		{
+			Debug.Log("Drag state??? -------------");
+		}
+
 		Push_TouchEvent();
 	}
 
