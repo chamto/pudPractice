@@ -758,10 +758,10 @@ namespace PuzzAndBidurgi
 			}
 
 			//20150406 chamto - bug1-1 reproduction : The removal of non-union drop : at func LineInspection 
-			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 5)).setDropKind = eResKind.Dark;
-			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 4)).setDropKind = eResKind.Dark;
-			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 3)).setDropKind = eResKind.Dark;
-			m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 2)).setDropKind = eResKind.Dark;
+			//m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 5)).setDropKind = eResKind.Dark;
+			//m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 4)).setDropKind = eResKind.Dark;
+			//m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 3)).setDropKind = eResKind.Dark;
+			//m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 2)).setDropKind = eResKind.Dark;
 
 			//20150403 chamto test
 			DebugMap_Init (); 
