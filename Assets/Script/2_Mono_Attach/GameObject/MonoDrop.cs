@@ -16,6 +16,7 @@ public class MonoDrop : MonoBehaviour
 	//spr : sprite , rdr : renderer
 	private SpriteRenderer 	m_sprRdr = null;
 	private BoxCollider2D	m_boxCollider2D = null;
+	public  float 			aniSpeed = 30f;
 
 	//==============: member variables :========================================================================================
 
@@ -197,6 +198,7 @@ public class MonoDrop : MonoBehaviour
 		this.UpdateGotoLocalPosition ();
 
 		//this.ApplygotoLocalPosition ();
+		this.aniSpeed = 30f;
 		this.MovingAni (this.gotoLocalPosition);
 	}
 
@@ -374,6 +376,7 @@ public class MonoDrop : MonoBehaviour
 
 				//3.animation target drop
 				//rolling drop
+				dstDrop.aniSpeed = 30;
 				dstDrop.MovingAni(dstDrop.gotoLocalPosition);
 				
 				
@@ -433,7 +436,7 @@ public class MonoDrop : MonoBehaviour
 	{
 		this.StopCoroutine("cortnMovingAni"); //기존 동작되던 coroutine을 정지후, 새로운 coroutine을 동작시킨다.
 
-		this.StartCoroutine("cortnMovingAni",dstLocalPos);
+		this.StartCoroutine("cortnMovingAni",dstLocalPos );
 	}
 	public void StopAni()
 	{
@@ -448,7 +451,7 @@ public class MonoDrop : MonoBehaviour
 		while(Math.Abs(diff.sqrMagnitude) > float.Epsilon )
 		{
 			diff = dstLocalPos - transform.localPosition;
-			transform.localPosition += diff * Time.deltaTime * 30;
+			transform.localPosition += diff * Time.deltaTime * aniSpeed;
 			//Debug.Log("loop.. :"+ this+ " dstLocalPos :"+dstLocalPos + "  target:"+transform.localPosition + "  diff:"+diff.sqrMagnitude ); //chamto test
 			yield return null;
 		}
@@ -489,13 +492,16 @@ public class MonoDrop : MonoBehaviour
 		//---------------------------------- move to emptySquare in nonviewArea
 		Index2 empty = Single.DropMgr.mapDrop.FindEmptySquare (Single.DropMgr.boardInfo.GetMinNonviewArea (),
 		                                                                  Single.DropMgr.boardInfo.GetMaxNonviewArea ());
-		Debug.Log ("MoveToEmptySquare : " + empty);
+		//Debug.Log ("MoveToEmptySquare : " + empty);
 		if (Index2.None != empty) 
 		{
 			drop.SetIndex (empty);
 			drop.UpdateGotoLocalPosition ();
-			drop.ApplyGotoLocalPosition();
 			drop.SetColor(Color.red);
+
+			//drop.ApplyGotoLocalPosition();
+			drop.aniSpeed = 5;
+			drop.MovingAni(drop.gotoLocalPosition);
 		}
 
 #if UNITY_EDITOR

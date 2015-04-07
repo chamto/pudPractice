@@ -203,7 +203,7 @@ namespace PuzzAndBidurgi
 		//Inefficiency code !!
 		public Index2 FindEmptySquare(Index2 min, Index2 max)
 		{
-			Debug.Log ("FindEmptySquare :" + min + " max:" + max);
+			//Debug.Log ("FindEmptySquare :" + min + " max:" + max);
 			int maxColumn = max.ix - min.ix;
 			int maxRow = max.iy - min.iy;
 
