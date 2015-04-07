@@ -198,7 +198,7 @@ public class MonoDrop : MonoBehaviour
 		this.UpdateGotoLocalPosition ();
 
 		//this.ApplygotoLocalPosition ();
-		this.aniSpeed = 30f;
+		this.aniSpeed = 3f;
 		this.MovingAni (this.gotoLocalPosition);
 	}
 
@@ -502,6 +502,8 @@ public class MonoDrop : MonoBehaviour
 			//drop.ApplyGotoLocalPosition();
 			drop.aniSpeed = 5;
 			drop.MovingAni(drop.gotoLocalPosition);
+			drop.GetBoxCollider2D().enabled = false;
+			drop.setDropKind = Single.DropMgr.GetRandDrop(9);
 		}
 
 #if UNITY_EDITOR

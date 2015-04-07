@@ -544,6 +544,7 @@ namespace PuzzAndBidurgi
 		//private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
 		//private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
 		private NDrop.CPath m_dropPath = new NDrop.CPath();
+		System.Random 		m_random = new System.Random();
 
 
 		//==============: property definition :========================================================================================
@@ -798,21 +799,18 @@ namespace PuzzAndBidurgi
 			//m_mapDrop.Remove(
 		}
 
-		public void Init()
+
+		public eResKind GetRandDrop(byte max_dropKind)
 		{
 
+			return (eResKind)m_random.Next (1, max_dropKind);
+		}
+		public void Init()
+		{
+			const byte MAX_DROPKIND = 6;
 			int COUNT_BOARDAREA = boardInfo.boardSize.ix * boardInfo.boardSize.iy ;
 			int COUNT_VIEWAREA = (boardInfo.GetMaxViewArea ()+1).ix * (boardInfo.GetMaxViewArea ()+1).iy;
-			const byte MAX_DROPKIND = 6;
-			eResKind[] dropKind = new  eResKind[MAX_DROPKIND];
-			dropKind[0] = eResKind.Red;
-			dropKind[1] = eResKind.Green;
-			dropKind[2] = eResKind.Blue;
-			dropKind[3] = eResKind.Light;
-			dropKind[4] = eResKind.Dark;
-			dropKind[5] = eResKind.Heart;
 
-			System.Random rndDrop = new System.Random();
 
 			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
@@ -826,7 +824,7 @@ namespace PuzzAndBidurgi
 
 
 				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
-				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
+				                        GetRandDrop(MAX_DROPKIND),
 				                        pos);
 				pDrop.SetIndex(ixy);
 				m_mapDrop.Add(pDrop.id, pDrop);
