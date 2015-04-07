@@ -181,12 +181,12 @@ public class MonoDrop : MonoBehaviour
 		}
 	}
 
-	public void UpdategotoLocalPosition()
+	public void UpdateGotoLocalPosition()
 	{
 		this.gotoLocalPosition = Single.DropMgr.boardInfo.GetIndex2DToPosition (this.index2D);
 	}
 
-	public void ApplygotoLocalPosition()
+	public void ApplyGotoLocalPosition()
 	{
 		this.transform.localPosition = this.gotoLocalPosition;
 	}
@@ -194,7 +194,7 @@ public class MonoDrop : MonoBehaviour
 	public void MoveToIndex(Index2 dstIxy)
 	{
 		this.SetIndex (dstIxy);
-		this.UpdategotoLocalPosition ();
+		this.UpdateGotoLocalPosition ();
 
 		//this.ApplygotoLocalPosition ();
 		this.MovingAni (this.gotoLocalPosition);
@@ -320,7 +320,7 @@ public class MonoDrop : MonoBehaviour
 
 		//CDefine.DebugLog("___________________TouchEnded "+ gameObject.name+"___________________");
 		transform.Translate(0,0,1); //drop sprite down
-		m_prevCollisionDrop = null;
+		//m_prevCollisionDrop = null;
 		Single.DropMgr.ClearMovedPath();
 
 		//선택된 객체의 이동 종료처리
@@ -329,7 +329,7 @@ public class MonoDrop : MonoBehaviour
 		//20150403 chamto test
 		//MonoDrop.Remove (this);
 		Single.DropMgr.FindJoinConditions (3);
-		//Single.DropMgr.WholeDropping (new Index2 (0, 0), new Index2 (5, 9));
+		Single.DropMgr.WholeDropping (new Index2 (0, 0), new Index2 (5, 9));
 
 	}
 
@@ -362,7 +362,7 @@ public class MonoDrop : MonoBehaviour
 				//Debug.Log("--------- onCollision ---------"); //chamto test
 				//moving complete after process
 				//1.stop move animation
-				if(null != m_prevCollisionDrop) m_prevCollisionDrop.StopAni();
+				if(null != _prevLastCollisionDrop) _prevLastCollisionDrop.StopAni();
 				dstDrop.StopAni(); 
 				
 				//2.setting target position 
@@ -381,48 +381,48 @@ public class MonoDrop : MonoBehaviour
 		_prevLastCollisionDrop = lastDrop;
 	}
 
-	MonoDrop m_prevCollisionDrop = null;
-	void OnCollision1111()
-	{
-		const float NONCOLLISION_MIN_DISTANCE = 0.55f;
-		//CDrop collisionDrop = CMain.MGDrop.CalcCollision(this); //chamto test 
-		MonoDrop collisionDrop = Single.DropMgr.GetShortestDistance(this,NONCOLLISION_MIN_DISTANCE); 
-		//CDefine.DebugLog("___"+collisionDrop); //chamto test
-
-
-
-		if(m_prevCollisionDrop == collisionDrop) return; //one treatment , avoidance continuous collision
-
-		if(null != collisionDrop && this != collisionDrop)
-		{
-
-			Single.DropMgr.AddMovedPath(collisionDrop);
-			//CDefine.DebugLog("_______________"); //chamto test
-			//moving complete after process
-
-			if(null != m_prevCollisionDrop) m_prevCollisionDrop.StopAni(); //test comment
-			collisionDrop.StopAni(); 
-
-
-//			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name + " pos : " + collisionDrop.transform.position + 
-//			                 "  local+Parent : " + (collisionDrop.transform.localPosition + collisionDrop.transform.parent.transform.position)); //chamto test
-
-			//swap gotoPostion
-			Single.DropMgr.SwapMonoDropInBoard(this.id , collisionDrop.id , false);
-			
-			//rolling drop
-			//collisionDrop.MovingAni(collisionDrop.gotoLocalPosition); //test comment
-
-
-			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name); //chamto test
-
-
-		}//else
-		//{
-		//	CDefine.DebugLog("unreachead OnCollision else : prevDrop : " + m_prevCollisionDrop); //chamto test
-		//}
-		m_prevCollisionDrop = collisionDrop;
-	}
+//	MonoDrop m_prevCollisionDrop = null;
+//	void OnCollision1111()
+//	{
+//		const float NONCOLLISION_MIN_DISTANCE = 0.55f;
+//		//CDrop collisionDrop = CMain.MGDrop.CalcCollision(this); //chamto test 
+//		MonoDrop collisionDrop = Single.DropMgr.GetShortestDistance(this,NONCOLLISION_MIN_DISTANCE); 
+//		//CDefine.DebugLog("___"+collisionDrop); //chamto test
+//
+//
+//
+//		if(m_prevCollisionDrop == collisionDrop) return; //one treatment , avoidance continuous collision
+//
+//		if(null != collisionDrop && this != collisionDrop)
+//		{
+//
+//			Single.DropMgr.AddMovedPath(collisionDrop);
+//			//CDefine.DebugLog("_______________"); //chamto test
+//			//moving complete after process
+//
+//			if(null != m_prevCollisionDrop) m_prevCollisionDrop.StopAni(); //test comment
+//			collisionDrop.StopAni(); 
+//
+//
+////			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name + " pos : " + collisionDrop.transform.position + 
+////			                 "  local+Parent : " + (collisionDrop.transform.localPosition + collisionDrop.transform.parent.transform.position)); //chamto test
+//
+//			//swap gotoPostion
+//			Single.DropMgr.SwapMonoDropInBoard(this.id , collisionDrop.id , false);
+//			
+//			//rolling drop
+//			//collisionDrop.MovingAni(collisionDrop.gotoLocalPosition); //test comment
+//
+//
+//			CDefine.DebugLog("OnCollision " + collisionDrop.gameObject.name); //chamto test
+//
+//
+//		}//else
+//		//{
+//		//	CDefine.DebugLog("unreachead OnCollision else : prevDrop : " + m_prevCollisionDrop); //chamto test
+//		//}
+//		m_prevCollisionDrop = collisionDrop;
+//	}
 
 
 	//==============: member method :========================================================================================
@@ -430,16 +430,19 @@ public class MonoDrop : MonoBehaviour
 
 	public void MovingAni(Vector3 dstLocalPos)
 	{
+		this.StopCoroutine("cortnMovingAni"); //기존 동작되던 coroutine을 정지후, 새로운 coroutine을 동작시킨다.
 
-		StartCoroutine("cortnMovingAni",dstLocalPos);
+		this.StartCoroutine("cortnMovingAni",dstLocalPos);
 	}
 	public void StopAni()
 	{
-		transform.localPosition = gotoLocalPosition;
-		StopCoroutine("cortnMovingAni");
+		this.ApplyGotoLocalPosition ();
+		//transform.localPosition = gotoLocalPosition;
+		this.StopCoroutine("cortnMovingAni");
 	}
 	IEnumerator cortnMovingAni(Vector3 dstLocalPos)
 	{
+
 		Vector3 diff = new Vector3(1,1,1);
 		while(Math.Abs(diff.sqrMagnitude) > float.Epsilon )
 		{

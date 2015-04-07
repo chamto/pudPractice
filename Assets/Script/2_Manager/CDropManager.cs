@@ -642,8 +642,8 @@ namespace PuzzAndBidurgi
 
 			if (true == applyPosition) 
 			{
-				temp1.ApplygotoLocalPosition();
-				temp2.ApplygotoLocalPosition();
+				temp1.ApplyGotoLocalPosition();
+				temp2.ApplyGotoLocalPosition();
 			}
 
 
