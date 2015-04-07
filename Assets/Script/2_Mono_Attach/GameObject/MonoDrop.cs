@@ -468,10 +468,16 @@ public class MonoDrop : MonoBehaviour
 		//drop.SetColor(new Color(1,1,1,0.2f));
 		//drop.GetBoxCollider2D().enabled = false;
 		//drop.gameObject.SetActive(false);
+
 		MonoBehaviour.Destroy(drop.gameObject);
 
 		//20150403 chamto test
 		Single.DropMgr.Update_DebugMap ();
+
+		//----------------------------------
+		//Single.DropMgr.mapDrop.FindEmptySquares(
+
+
 
 		return true;
 	}
@@ -675,7 +681,36 @@ public struct Index2
 		return false;
 	}
 
+	public static Index2 operator - (Index2 a, int d)
+	{
+		return new Index2 (a.ix - d, a.iy - d);
+	}
 
+	public static Index2 operator - (Index2 a, Index2 b)
+	{
+		return new Index2 (a.ix - b.ix, a.iy - b.iy);
+	}
+	
+	public static Index2 operator - (Index2 a)
+	{
+		return new Index2 (-a.ix, -a.iy);
+	}
+
+	public static Index2 operator + (Index2 a, Index2 b)
+	{
+		return new Index2 (a.ix + b.ix, a.iy + b.iy);
+	}
+
+	public static Index2 operator * (int d, Index2 a)
+	{
+		return new Index2 (a.ix * d, a.iy * d);
+	}
+	
+	public static Index2 operator * (Index2 a, int d)
+	{
+		return new Index2 (a.ix * d, a.iy * d);
+	}
+	
 	public override bool Equals (object other)
 	{
 		if (!(other is Index2))

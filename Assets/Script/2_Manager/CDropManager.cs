@@ -199,7 +199,32 @@ namespace PuzzAndBidurgi
 			return null;
 		}
 
+		public List<Index2> FindEmptySquares(Index2 min, Index2 max)
+		{
+			List<Index2> listEmptySquares = new List<Index2> ();
+			
+			int maxColumn = max.ix - min.ix;
+			int maxRow = max.iy - min.iy;
+			
+			
+			Index2 key = new Index2(0,0);
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				key.iy = iy;
+				
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					key.ix = ix;
+					
+					if(null == this.GetMonoDropByIndex2(key))
+					{
+						listEmptySquares.Add(key);	
+					}
+				}
+			}
 
+			return listEmptySquares;
+		}
 
 	
 		//==============: override method:========================================================================================
@@ -280,7 +305,6 @@ namespace PuzzAndBidurgi
 			eCenter = 2,
 		}
 
-
 		private Vector2 	m_squareLength;
 		private Index2 		m_boardSize;
 
@@ -327,6 +351,40 @@ namespace PuzzAndBidurgi
 
 			m_viewPosition = new Index2 (0, 0);
 			m_eViewStandard = eStandard.eLeftBottom;
+		}
+
+
+		//min, max nonviewArea
+		public Index2 GetMinNonviewArea()
+		{
+			Index2 value = this.GetMaxViewArea ();
+			value.iy += 1;
+			value.ix = 0;
+			return  value;
+		}
+		public Index2 GetMaxNonviewArea()
+		{
+			return this.GetMaxBoardArea ();
+		}
+
+		//min, max viewArea
+		public Index2 GetMinViewArea()
+		{
+			return this.GetIndexAt_ViewLeftBottom ();
+		}
+		public Index2 GetMaxViewArea()
+		{
+			return this.GetIndexAt_ViewRightUp ();
+		}
+
+		//min, max boardArea
+		public Index2 GetMinBoardArea()
+		{
+			return Index2.Zero;
+		}
+		public Index2 GetMaxBoardArea()
+		{
+			return new Index2 (m_boardSize.ix-1, m_boardSize.iy-1);
 		}
 
 
@@ -423,6 +481,8 @@ namespace PuzzAndBidurgi
 			
 			return new Bounds (center, size);
 		}
+
+
 
 		public bool BelongToArea(Index2 min, Index2 max, Index2 ixy)
 		{
