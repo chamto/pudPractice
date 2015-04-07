@@ -232,7 +232,10 @@ public class MonoInputManager : MonoBehaviour
 				m_TouchedObject = null;
 				//checkInput("TouchEnded",Input.mousePosition);
 
-			}else
+			}
+
+			//else
+			if(Input_Unity.GetMouseButtonMove(0))
 			{	//mouse Move
 				
 				if(f_isEditorDraging)
@@ -255,11 +258,6 @@ public class MonoInputManager : MonoBehaviour
 	void Update()
 	//void FixedUpdate()
 	{
-		//drag state ?
-		if (Input.GetMouseButton (0) && Input.GetMouseButtonDown (0) == false) 
-		{
-			Debug.Log("Drag state??? -------------");
-		}
 
 		Push_TouchEvent();
 	}

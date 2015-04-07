@@ -46,4 +46,14 @@ public class Input_Unity
 
 		return Camera.main.ScreenToWorldPoint (pos);
 	}
+
+	public static bool GetMouseButtonMove(int button)
+	{
+		if (Input.GetMouseButton (button) && Input.GetMouseButtonDown (button) == false) 
+		{
+			return true;
+		}
+
+		return false;
+	}
 }
