@@ -328,8 +328,9 @@ public class MonoDrop : MonoBehaviour
 
 		//20150403 chamto test
 		//MonoDrop.Remove (this);
-		Single.DropMgr.FindJoinConditions (3);
-		Single.DropMgr.WholeDropping (new Index2 (0, 0), new Index2 (5, 9));
+		const int MIN_JOIN_NUMBER = 3;
+		Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
+		Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 
 	}
 
@@ -471,15 +472,35 @@ public class MonoDrop : MonoBehaviour
 
 		MonoBehaviour.Destroy(drop.gameObject);
 
-		//20150403 chamto test
-		Single.DropMgr.Update_DebugMap ();
-
-		//----------------------------------
-		//Single.DropMgr.mapDrop.FindEmptySquares(
-
+#if UNITY_EDITOR
+		Single.DropMgr.Update_DebugMap ();  //chamto test
+#endif
 
 
 		return true;
+	}
+
+	static public void MoveToEmptySquare(MonoDrop drop)
+	{
+
+		if (null == drop)
+						return;
+
+		//---------------------------------- move to emptySquare in nonviewArea
+		Index2 empty = Single.DropMgr.mapDrop.FindEmptySquare (Single.DropMgr.boardInfo.GetMinNonviewArea (),
+		                                                                  Single.DropMgr.boardInfo.GetMaxNonviewArea ());
+		Debug.Log ("MoveToEmptySquare : " + empty);
+		if (Index2.None != empty) 
+		{
+			drop.SetIndex (empty);
+			drop.UpdateGotoLocalPosition ();
+			drop.ApplyGotoLocalPosition();
+			drop.SetColor(Color.red);
+		}
+
+#if UNITY_EDITOR
+		Single.DropMgr.Update_DebugMap ();  //chamto test
+#endif
 	}
 
 
@@ -585,7 +606,15 @@ public struct Index2
 	{
 		get 
 		{
-			return new Index2(MAX_COLUMN,MAX_COLUMN);
+			return new Index2(MAX_COLUMN-1,MAX_COLUMN-1);
+		}
+	}
+
+	static public Index2 None
+	{
+		get
+		{
+			return new Index2(MAX_COLUMN + 100, MAX_COLUMN + 100);
 		}
 	}
 
@@ -694,6 +723,11 @@ public struct Index2
 	public static Index2 operator - (Index2 a)
 	{
 		return new Index2 (-a.ix, -a.iy);
+	}
+
+	public static Index2 operator + (Index2 a, int d)
+	{
+		return new Index2 (a.ix + d, a.iy + d);
 	}
 
 	public static Index2 operator + (Index2 a, Index2 b)

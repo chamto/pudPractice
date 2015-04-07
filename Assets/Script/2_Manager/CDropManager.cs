@@ -154,7 +154,7 @@ namespace PuzzAndBidurgi
 					_mapIndex2.Add(valueDrop.index2D, valueDrop);
 				}
 
-				MonoDrop prevPlacedDrop = _mapIndex2[valueDrop.index2D];
+				//MonoDrop prevPlacedDrop = _mapIndex2[valueDrop.index2D];
 				_mapIndex2[valueDrop.index2D] = valueDrop;
 			}
 		}
@@ -199,6 +199,32 @@ namespace PuzzAndBidurgi
 			return null;
 		}
 
+
+		//Inefficiency code !!
+		public Index2 FindEmptySquare(Index2 min, Index2 max)
+		{
+			Debug.Log ("FindEmptySquare :" + min + " max:" + max);
+			int maxColumn = max.ix - min.ix;
+			int maxRow = max.iy - min.iy;
+
+			Index2 key = new Index2(0,0);
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				key.iy = iy + min.iy;
+				
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					key.ix = ix + min.ix;
+					if(null == this.GetMonoDropByIndex2(key))
+					{
+						return key;
+					}
+				}
+			}
+
+			return Index2.None;
+		}
+
 		public List<Index2> FindEmptySquares(Index2 min, Index2 max)
 		{
 			List<Index2> listEmptySquares = new List<Index2> ();
@@ -210,12 +236,10 @@ namespace PuzzAndBidurgi
 			Index2 key = new Index2(0,0);
 			for (int iy=0; iy <= maxRow; iy++) 
 			{
-				key.iy = iy;
-				
+				key.iy = iy + min.iy;
 				for (int ix=0; ix <= maxColumn; ix++) 
 				{
-					key.ix = ix;
-					
+					key.ix = ix + min.ix;
 					if(null == this.GetMonoDropByIndex2(key))
 					{
 						listEmptySquares.Add(key);	
@@ -346,7 +370,7 @@ namespace PuzzAndBidurgi
 		public BoardInfo()
 		{
 			m_squareLength = new Vector2 (1.15f, 1.15f);
-			m_boardSize = new Index2 (6, 10);
+			m_boardSize = new Index2 (6, 10 + 5);
 			m_viewSize = new Index2 (6, 5);
 
 			m_viewPosition = new Index2 (0, 0);
@@ -777,9 +801,8 @@ namespace PuzzAndBidurgi
 		public void Init()
 		{
 
-			const uint MAX_DROP_COLUMN = 6;
-			const uint MAX_DROP5X6 = 5 * 6;
-			const uint MAX_DROP5X6X2 = 5 * 6 * 2;
+			int COUNT_BOARDAREA = boardInfo.boardSize.ix * boardInfo.boardSize.iy ;
+			int COUNT_VIEWAREA = (boardInfo.GetMaxViewArea ()+1).ix * (boardInfo.GetMaxViewArea ()+1).iy;
 			const byte MAX_DROPKIND = 6;
 			eResKind[] dropKind = new  eResKind[MAX_DROPKIND];
 			dropKind[0] = eResKind.Red;
@@ -794,12 +817,14 @@ namespace PuzzAndBidurgi
 			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
 			Index2 ixy = Index2.Zero;
-			for(int i=0 ; i<MAX_DROP5X6X2 ; i++)
+			for(int i=0 ; i < COUNT_BOARDAREA -30 ; i++)
 			{
-				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
-				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
+				ixy.ix = (int)(i% boardInfo.boardSize.ix); 
+				ixy.iy = (int)(i/boardInfo.boardSize.ix); 
 				pos.x = ixy.ix * m_boardInfo.squareWidth;
 				pos.y = ixy.iy * m_boardInfo.squareHeight;
+
+
 				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
 				                        dropKind[rndDrop.Next(0,MAX_DROPKIND)],
 				                        pos);
@@ -809,12 +834,22 @@ namespace PuzzAndBidurgi
 
 				//------ setting drop of color that invisialbe 30~  ------------
 				pDrop.SetColor(Color.gray); //chamto test
-				if(null != pDrop && i >= MAX_DROP5X6)
+				if(null != pDrop && i >= COUNT_VIEWAREA)
 				{
 					pDrop.SetColor(Color.blue);
 					pDrop.GetBoxCollider2D().enabled = false; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
 				}
 
+			}
+
+
+			//임시로 map의 빈공간을 만들어준다.
+			for (int i = COUNT_BOARDAREA -30; i < COUNT_BOARDAREA ; i++) 
+			{
+				ixy.ix = (int)(i% boardInfo.boardSize.ix); 
+				ixy.iy = (int)(i/boardInfo.boardSize.ix); 
+
+				m_mapDrop.SetValue(ixy,null);
 			}
 
 			//20150406 chamto - bug1-1 reproduction : The removal of non-union drop : at func LineInspection 
@@ -823,9 +858,11 @@ namespace PuzzAndBidurgi
 			//m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 3)).setDropKind = eResKind.Dark;
 			//m_mapDrop.GetMonoDropByIndex2 (new Index2 (4, 2)).setDropKind = eResKind.Dark;
 
+#if UNITY_EDITOR
 			//20150403 chamto test
 			DebugMap_Init (); 
 			Update_DebugMap ();
+#endif
 		
 		}
 
@@ -833,17 +870,16 @@ namespace PuzzAndBidurgi
 		Dictionary<Index2,MonoDrop> _debugMap = new Dictionary<Index2,MonoDrop>();
 		public void DebugMap_Init()
 		{
-			
-			const uint MAX_DROP_COLUMN = 6;
-			const uint MAX_DROP5X6 = 5 * 6;
+
+			int COUNT_BOARDAREA = boardInfo.boardSize.ix * boardInfo.boardSize.iy ;
 
 			Vector3 pos = Vector3.zero;
 			MonoDrop pDrop = null;
 			Index2 ixy = Index2.Zero;
-			for(int i=0 ; i<MAX_DROP5X6 ; i++)
+			for(int i=0 ; i<COUNT_BOARDAREA ; i++)
 			{
-				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
-				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
+				ixy.ix = (int)(i% boardInfo.boardSize.ix); 
+				ixy.iy = (int)(i/boardInfo.boardSize.ix); 
 				pos.x = ixy.ix * m_boardInfo.squareWidth;
 				pos.y = ixy.iy * m_boardInfo.squareHeight;
 				pDrop = MonoDrop.Create(Single.MonoDebug.UIMapRoot.transform, 
@@ -861,15 +897,15 @@ namespace PuzzAndBidurgi
 
 		public void Update_DebugMap()
 		{
-			const uint MAX_DROP_COLUMN = 6;
-			const uint MAX_DROP5X6 = 5 * 6;
+			int COUNT_BOARDAREA = boardInfo.boardSize.ix * boardInfo.boardSize.iy ;
+
 			MonoDrop pDropInMap = null;
 			MonoDrop pDropInDebug = null;
 			Index2 ixy = Index2.Zero;
-			for (int i=0; i<MAX_DROP5X6; i++) 
+			for (int i=0; i<COUNT_BOARDAREA; i++) 
 			{
-				ixy.ix = (int)(i% MAX_DROP_COLUMN); 
-				ixy.iy = (int)(i/MAX_DROP_COLUMN); 
+				ixy.ix = (int)(i% boardInfo.boardSize.ix); 
+				ixy.iy = (int)(i/boardInfo.boardSize.ix); 
 				pDropInMap = this.mapDrop.GetMonoDropByIndex2(ixy);
 				_debugMap.TryGetValue(ixy,out pDropInDebug);
 				if(null != pDropInMap && null != pDropInDebug)
@@ -914,7 +950,7 @@ namespace PuzzAndBidurgi
 
 				//CDefine.DebugLog ("----------MoveDrop : "+ aOm +" :"+ nextIndex.ToString() + "  drop:"+nextDrop  ); //chamto test
 				//if (null == nextDrop && this.boardInfo.BelongToViewArea (nextIndex)) 
-				if (null == nextDrop && this.boardInfo.BelongToArea (new Index2(0,0), new Index2(5,9), nextIndex)) 
+				if (null == nextDrop && this.boardInfo.BelongToArea (boardInfo.GetMinBoardArea(), boardInfo.GetMaxBoardArea(), nextIndex)) 
 				{
 					placedIndex = nextIndex;
 					//CDefine.DebugLog ("----------MoveDrop : " + movingDrop.index2D + "  placedIndex :" + placedIndex.ToString() + "  v3:"+direction  ); //chamto test
@@ -927,7 +963,7 @@ namespace PuzzAndBidurgi
 			{
 				//CDefine.DebugLog ("----------MoveToIndex : " + placedIndex.ToString() ); //chamto test
 				//chamto test , temp code
-				if(this.boardInfo.BelongToArea(new Index2(0,5),new Index2(5,9) ,movingDrop.index2D)
+				if(this.boardInfo.BelongToArea(boardInfo.GetMinNonviewArea(),boardInfo.GetMaxNonviewArea() ,movingDrop.index2D)
 				   && this.boardInfo.BelongToViewArea(placedIndex))
 				{
 					movingDrop.SetColor(Color.white);
@@ -941,6 +977,8 @@ namespace PuzzAndBidurgi
 
 		public void WholeDropping(Index2 min , Index2 max)
 		{
+
+			const ushort AMOUNT_MOVEMENT = 5;
 			int maxColumn = max.ix - min.ix;
 			int maxRow = max.iy - min.iy;
 			
@@ -960,7 +998,7 @@ namespace PuzzAndBidurgi
 					//CDefine.DebugLog("WholeDroppingOnView : " + key.ToString() + "  " + value);
 					if(null != value)
 					{
-						this.MoveDrop(value,Vector3.down,5);
+						this.MoveDrop(value,Vector3.down,AMOUNT_MOVEMENT);
 
 					}
 				}
@@ -1050,12 +1088,12 @@ namespace PuzzAndBidurgi
 				listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
 				if(0 != listLineTotal.Count)
 				{	
-					CDefine.DebugLog("FindJoinConditionsX  count " + listLineTotal.Count); //chamto test
+					//CDefine.DebugLog("FindJoinConditionsX  count " + listLineTotal.Count); //chamto test
 					foreach(List<MonoDrop> lm in listLineTotal)
 					{
 						foreach(MonoDrop m in lm)
 						{
-							MonoDrop.Remove(m);
+							MonoDrop.MoveToEmptySquare(m);
 						}
 					}
 				}//endif
@@ -1068,12 +1106,12 @@ namespace PuzzAndBidurgi
 				listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
 				if(0 != listLineTotal.Count)
 				{
-					CDefine.DebugLog("FindJoinConditionsY  count " + listLineTotal.Count); //chamto test
+					//CDefine.DebugLog("FindJoinConditionsY  count " + listLineTotal.Count); //chamto test
 					foreach(List<MonoDrop> lm in listLineTotal)
 					{
 						foreach(MonoDrop m in lm)
 						{
-							MonoDrop.Remove(m);
+							MonoDrop.MoveToEmptySquare(m);
 						}
 					}
 				}//endif
