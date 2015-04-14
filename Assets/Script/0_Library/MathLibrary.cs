@@ -371,6 +371,7 @@ namespace ML
 			});
 		}
 
+
 	}//End Class
 
 
@@ -415,6 +416,29 @@ namespace ML
 		#endregion
 		//endendendendendendendendendendendendendendendendendendendendendendendendendendendend
 
+
+
+		// ---------------------------------------------------------------------------
+		// Determine intersection between AABB and AABB
+		//-----------------------------------------------------------------------------
+		bool 
+		Intersect(AABBox other )
+		{
+			// if separated in x direction
+			if (mMinima.x > other.mMaxima.x || other.mMinima.x > mMaxima.x )
+				return false;
+			
+			// if separated in y direction
+			if (mMinima.y > other.mMaxima.y || other.mMinima.y > mMaxima.y )
+				return false;
+			
+			// if separated in z direction
+			if (mMinima.z > other.mMaxima.z || other.mMinima.z > mMaxima.z )
+				return false;
+			
+			// no separation, must be intersecting
+			return true;
+		}
 
 		public bool
 		Intersect(Ray3 ray )
