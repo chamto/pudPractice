@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 
+using T_DropList = System.Collections.Generic.List<MonoDrop> ;
+using T_JoinList = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
+
+
 namespace PuzzAndBidurgi
 {
 
@@ -1012,55 +1016,128 @@ namespace PuzzAndBidurgi
 		}
 
 
+
+
+		//temp code , 20150414 chamto 
+		private Dictionary<ushort, T_JoinList> m_joinGrops = new Dictionary<ushort, T_JoinList>();
+		private Dictionary<Index2, List<ushort>> m_mapForGroupsInfo = new Dictionary<Index2, List<ushort>>();
+
+		public void SetGroupInfo(ushort groupNumber , Index2 dstIndex)
+		{
+			List<ushort> listGroupNumber = null;
+			if(false == m_mapForGroupsInfo.TryGetValue(dstIndex, out listGroupNumber))
+			{
+				listGroupNumber = new List<ushort>();
+				listGroupNumber.Add(groupNumber);
+				m_mapForGroupsInfo.Add(dstIndex, listGroupNumber);
+			}else
+			{
+				foreach(ushort getNum in listGroupNumber)
+				{
+					if(getNum == groupNumber)
+					{
+						return;
+					}
+				}
+				listGroupNumber.Add(groupNumber);
+			}
+		}
+
+		public void SetGroupsInfo_FourDir(ushort groupNumber, Index2 dstIndex)
+		{
+			this.SetGroupInfo (groupNumber, dstIndex);
+			this.SetGroupInfo (groupNumber, dstIndex + Index2.Up);
+			this.SetGroupInfo (groupNumber, dstIndex + Index2.Down);
+			this.SetGroupInfo (groupNumber, dstIndex + Index2.Left);
+			this.SetGroupInfo (groupNumber, dstIndex + Index2.Right);
+		}
+
+
+		delegate bool AvailableJoin(MonoDrop start , out int jump);
 		public List<List<MonoDrop>> LineInspection(Index2 startIxy, Vector3 direction, ushort lengthOfLine, ushort minJoin)
 		{
 
-			direction.Normalize ();
-
-			//eResKind eDropKind = eResKind.None;
-
-
-			Index2 nextIndex = startIxy;
-			Index2 compaeIndex = startIxy;
-			MonoDrop nextDrop = null;
-			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compaeIndex);
-			List<MonoDrop> listJoin = new List<MonoDrop> ();
-			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
-
-			for (ushort i=0; i <= lengthOfLine; i++) 
+			AvailableJoin d_availableJoin = delegate(MonoDrop d_start , out int d_jump) 
 			{
 
-				nextIndex.ix += (int)direction.x;
-				nextIndex.iy += (int)direction.y;
-				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
-				//Debug.Log (" startIxy:"+startIxy+" nextIxy:"+nextIndex+" nextDrop:"+nextDrop+" compareDrop:"+compareDrop+" listLineTotal:"+listLineTotal.Count); //chamto test
-				//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
-				if(null != compareDrop && null != nextDrop)
+				if(null == d_start)
 				{
-					if(compareDrop.dropKind == nextDrop.dropKind)
-					{
-						//first add
-						if(0 == listJoin.Count) 
-							listJoin.Add (compareDrop);
+					d_jump = 1;
+					return false;
+				}
 
-						//next add , end is not processed
-						if(lengthOfLine != i)
-						{
-							listJoin.Add(nextDrop);
-							//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
-							continue;
-						}
+				Index2 d_next = d_start.index2D;
+				MonoDrop d_nextDrop = null;
+				for(int i=0;i<minJoin-1;i++)
+				{
+					d_next.ix += (int)direction.x;
+					d_next.iy += (int)direction.y;
+					d_nextDrop = this.mapDrop.GetMonoDropByIndex2(d_next);
+					if(null == d_nextDrop || d_start.dropKind != d_nextDrop.dropKind)
+					{
+						d_jump = i+1;
+						return false;
+					}
+				}
+
+				d_jump = 0;
+				return true;
+			};
+
+
+			direction.Normalize ();
+
+			int jumpCount = 0;
+			Index2 compareIndex = startIxy;
+			Index2 nextIndex = startIxy;
+			MonoDrop nextDrop = null;
+			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
+			List<MonoDrop> listJoin = new List<MonoDrop> ();
+			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
+			for (int i=0; i <= lengthOfLine; i++) 
+			{
+
+				nextIndex.ix = startIxy.ix + (int)(direction.x) * i;
+				nextIndex.iy = startIxy.iy + (int)(direction.y) * i;
+				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
+
+				if(0 == listJoin.Count)
+				{
+					if(false == d_availableJoin(compareDrop, out jumpCount))
+					{
+						//Debug.Log ("avJoin => false : compareIndex:"+compareIndex+" nextIxy:"+nextIndex+" compareDrop:"+compareDrop+" nextDrop:"+nextDrop+" jumpCount:"+jumpCount); //chamto test
+
+						i+=jumpCount-1;
+						compareIndex.ix = compareIndex.ix + (int)(direction.x) * jumpCount;
+						compareIndex.iy = compareIndex.iy + (int)(direction.y) * jumpCount;
+						compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
+						continue;
 					}
 
-				}
-				//다음 연속된 드롭넣기가 실패한후, 최소연속된수량이 넘는지 검사한다.
-				if(minJoin <= listJoin.Count)
-				{
 					listLineTotal.Add(listJoin);
-					listJoin = new List<MonoDrop>();
 				}
 
-				listJoin.Clear();
+
+				if(null != compareDrop)
+				{
+					//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
+					if(null != nextDrop && compareDrop.dropKind == nextDrop.dropKind)
+					{
+						//next add , end is not processed
+						listJoin.Add(nextDrop);
+						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
+						//this.SetGroupsInfo_FourDir(1, nextDrop.index2D);
+
+					}else
+					{
+						listJoin = new List<MonoDrop>();
+					}
+				}		
+
+
+
+
+				compareIndex = nextIndex;
 				compareDrop = nextDrop;
 
 
