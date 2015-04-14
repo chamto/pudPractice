@@ -626,6 +626,38 @@ public struct Index2
 		}
 	}
 
+	static public Index2 Up
+	{
+		get
+		{
+			return new Index2(0, 1);
+		}
+	}
+
+	static public Index2 Down
+	{
+		get
+		{
+			return new Index2(0, -1);
+		}
+	}
+
+	static public Index2 Left
+	{
+		get
+		{
+			return new Index2(-1, 0);
+		}
+	}
+
+	static public Index2 Right
+	{
+		get
+		{
+			return new Index2(1, 0);
+		}
+	}
+
 	public int this [int index]
 	{
 		get
