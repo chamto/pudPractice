@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using PuzzAndBidurgi;
 
 public class MonoDrop : MonoBehaviour 
@@ -28,6 +29,9 @@ public class MonoDrop : MonoBehaviour
 	/// goto position the rolling drop
 	/// </summary>
 	private Vector3			m_gotoLocalPosition;
+
+	//join group info
+	public GroupDrop		groupInfo = null;
 
 
 	//==============: property definition :========================================================================================
@@ -895,4 +899,66 @@ public class DropInfo
 
 }
 
+
+public class GroupDrop
+{
+	public Dictionary<Index2, List<List<MonoDrop>>> refBundle = null; 
+	
+	
+	public void Add(Index2 pos, List<MonoDrop> listJoinDrop)
+	{
+		if (null == refBundle) 
+		{
+			CDefine.DebugLogError("error !!! : null == refBundle");
+			return;				
+		}
+		
+		List<List<MonoDrop>> rows = null;
+		if (refBundle.TryGetValue (pos, out rows)) 
+		{
+			rows.Add (listJoinDrop);
+		} else 
+		{
+			rows = new List<List<MonoDrop>> ();
+			refBundle.Add (pos, rows);
+			rows.Add (listJoinDrop);
+		}
+	}
+	
+	//Engraft srcGroup to dstGroup
+	static public void EngraftBundleData(GroupDrop srcGroup , GroupDrop toDstGroup)
+	{
+		if (null == srcGroup || null == toDstGroup)
+			return;
+		
+		Index2 key;
+		List<List<MonoDrop>> rows = null;
+		for (int i=0; i< srcGroup.refBundle.Values.Count; i++) 
+		{
+			key = srcGroup.refBundle.Keys.ElementAt(i);
+			rows = srcGroup.refBundle.Values.ElementAt(i);
+			
+			foreach(List<MonoDrop> list in rows)
+			{
+				toDstGroup.Add(key, list);
+			}
+		}
+		
+		srcGroup.refBundle.Clear ();
+		
+		//Importance !! : Engraft the all refPointer
+		srcGroup.refBundle = toDstGroup.refBundle;
+		
+	}
+	
+	static public GroupDrop Create(Index2 pos, List<MonoDrop> listJoinDrop)
+	{
+		GroupDrop group = new GroupDrop ();
+		group.refBundle = new Dictionary<Index2, List<List<MonoDrop>>>(); 
+		
+		group.Add (pos, listJoinDrop);
+		
+		return group;
+	}
+}
 

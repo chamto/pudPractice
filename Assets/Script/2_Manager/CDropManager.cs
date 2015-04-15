@@ -1017,9 +1017,8 @@ namespace PuzzAndBidurgi
 
 
 
-
 		//temp code , 20150414 chamto 
-		private Dictionary<ushort, T_JoinList> m_joinGrops = new Dictionary<ushort, T_JoinList>();
+		private List<GroupDrop> m_ListJoinGroups = new List<GroupDrop>();
 		private Dictionary<Index2, List<ushort>> m_mapForGroupsInfo = new Dictionary<Index2, List<ushort>>();
 
 		public void SetGroupInfo(ushort groupNumber , Index2 dstIndex)
@@ -1115,6 +1114,9 @@ namespace PuzzAndBidurgi
 					}
 
 					listLineTotal.Add(listJoin);
+
+					//temp code
+					//nextDrop.groupInfo = GroupDrop.Create(nextIndex, listJoin);
 				}
 
 
@@ -1126,7 +1128,10 @@ namespace PuzzAndBidurgi
 						//next add , end is not processed
 						listJoin.Add(nextDrop);
 						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
+
+						//temp code
 						//this.SetGroupsInfo_FourDir(1, nextDrop.index2D);
+
 
 					}else
 					{
