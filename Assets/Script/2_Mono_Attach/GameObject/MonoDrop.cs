@@ -299,7 +299,7 @@ public class MonoDrop : MonoBehaviour
 
 
 		transform.Translate(0,0,-1); //drop sprite up
-		//StopCoroutine("cortnMouseDrag");
+		StopAni (); //20150417 chamto - 애니메이션 코루틴을 정지시킨 후 드래그 코루틴을 활성화한다. (버그수정 1-1-2 : 동시에 하나의 대상에 대하여 위치갱신하여, 드롭이 떨리는 문제 발생)
 		StartCoroutine("cortnMouseDrag");
 
 	}
@@ -460,6 +460,8 @@ public class MonoDrop : MonoBehaviour
 	{
 
 		Vector3 diff = new Vector3(1,1,1);
+
+		//while(diff.sqrMagnitude > 0) //bug code : 실수값 부정확도에 따른 문제 때문에 루프를 못빠져 나온다
 		while(Math.Abs(diff.sqrMagnitude) > float.Epsilon )
 		{
 			diff = dstLocalPos - transform.localPosition;
