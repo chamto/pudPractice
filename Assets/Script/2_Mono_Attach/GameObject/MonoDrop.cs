@@ -236,7 +236,8 @@ public class MonoDrop : MonoBehaviour
 
 	//==============: Touch method :========================================================================================
 
-	void TouchDrag()
+	//drag test code .. afterwards completing
+	void test_TouchDrag()
 	{
 		Vector2 touchPos = Input_Unity.GetTouchPos();
 		Vector3 scrSpace = Camera.main.WorldToScreenPoint (transform.position);
@@ -261,16 +262,23 @@ public class MonoDrop : MonoBehaviour
 
 		Vector3 curScreenSpace;
 		Vector3 curPosition;
+		Vector2 prevTouchPos = touchPos;
 		while (Input_Unity.IsTouch())
 		//while(Input.GetTouch(0).phase != TouchPhase.Ended)
 		//while(Input.touchCount > 0)
 		{
 			//CDefine.DebugLog("IsTouchCount : " + Input.touchCount); //chamto test
 			touchPos = Input_Unity.GetTouchPos();
-			curScreenSpace = new Vector3 (touchPos.x, touchPos.y, scrSpace.z);
-			curPosition = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
-			transform.position = curPosition;
-			//CDefine.DebugLog("cortnMouseDrag : [" + gameObject.name + "] offset : " + offset + " touchPos : " + touchPos + " curPosition : " + curPosition ); //chamto test
+			if((touchPos - prevTouchPos).sqrMagnitude > 0.5f)
+			{
+				curScreenSpace = new Vector3 (touchPos.x, touchPos.y, scrSpace.z);
+				curPosition = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
+				transform.position = curPosition;
+				CDefine.DebugLog("cortnMouseDrag : [" + gameObject.name + "] offset : " + offset + " touchPos : " + touchPos + " curPosition : " + curPosition + "  sqMag:" + (touchPos - prevTouchPos).sqrMagnitude); //chamto test
+			}
+
+
+			prevTouchPos = touchPos;
 			yield return null;
 
 		}
