@@ -699,8 +699,6 @@ namespace PuzzAndBidurgi
 		public bool SwapMonoDropInBoard(int id1 , int id2 , bool applyPosition)
 		{
 
-
-
 			if (id1 == id2) 
 				return false; 
 
@@ -1091,7 +1089,7 @@ namespace PuzzAndBidurgi
 			Index2 nextIndex = startIxy;
 			MonoDrop nextDrop = null;
 			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
-			List<MonoDrop> listJoin = new List<MonoDrop> ();
+			List<MonoDrop> listJoin = null;
 			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
 			for (int i=0; i <= lengthOfLine; i++) 
 			{
@@ -1100,8 +1098,11 @@ namespace PuzzAndBidurgi
 				nextIndex.iy = startIxy.iy + (int)(direction.y) * i;
 				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
 
-				if(0 == listJoin.Count)
+				//if(0 == listJoin.Count)
+				if(null == listJoin)
 				{
+					//-------------------------------------------
+					//라인 시작지점에서 검사
 					if(false == d_availableJoin(compareDrop, out jumpCount))
 					{
 						//Debug.Log ("avJoin => false : compareIndex:"+compareIndex+" nextIxy:"+nextIndex+" compareDrop:"+compareDrop+" nextDrop:"+nextDrop+" jumpCount:"+jumpCount); //chamto test
@@ -1113,6 +1114,7 @@ namespace PuzzAndBidurgi
 						continue;
 					}
 
+					listJoin = new List<MonoDrop>();
 					listLineTotal.Add(listJoin);
 
 					//temp code
@@ -1122,6 +1124,7 @@ namespace PuzzAndBidurgi
 
 				if(null != compareDrop)
 				{
+					//-------------------------------------------
 					//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
 					if(null != nextDrop && compareDrop.dropKind == nextDrop.dropKind)
 					{
@@ -1133,9 +1136,11 @@ namespace PuzzAndBidurgi
 						//this.SetGroupsInfo_FourDir(1, nextDrop.index2D);
 
 
+
+
 					}else
 					{
-						listJoin = new List<MonoDrop>();
+						listJoin = null;
 					}
 				}		
 

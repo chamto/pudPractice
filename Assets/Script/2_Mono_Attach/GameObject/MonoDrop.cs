@@ -274,7 +274,7 @@ public class MonoDrop : MonoBehaviour
 				curScreenSpace = new Vector3 (touchPos.x, touchPos.y, scrSpace.z);
 				curPosition = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
 				transform.position = curPosition;
-				CDefine.DebugLog("cortnMouseDrag : [" + gameObject.name + "] offset : " + offset + " touchPos : " + touchPos + " curPosition : " + curPosition + "  sqMag:" + (touchPos - prevTouchPos).sqrMagnitude); //chamto test
+				//CDefine.DebugLog("cortnMouseDrag : [" + gameObject.name + "] offset : " + offset + " touchPos : " + touchPos + " curPosition : " + curPosition + "  sqMag:" + (touchPos - prevTouchPos).sqrMagnitude); //chamto test
 			}
 
 
@@ -297,9 +297,8 @@ public class MonoDrop : MonoBehaviour
 		//CDefine.DebugLog("___________________TouchBegan "+ gameObject.name+"___________________");
 		//CDefine.DebugLog("TouchBegan : " + CInputManager.IsTouch());
 
-
-		transform.Translate(0,0,-1); //drop sprite up
 		StopAni (); //20150417 chamto - 애니메이션 코루틴을 정지시킨 후 드래그 코루틴을 활성화한다. (버그수정 1-1-2 : 동시에 하나의 대상에 대하여 위치갱신하여, 드롭이 떨리는 문제 발생)
+		this.DropSpriteUp ();
 		StartCoroutine("cortnMouseDrag");
 
 	}
@@ -322,8 +321,6 @@ public class MonoDrop : MonoBehaviour
 		//CDefine.DebugLog("TouchMoved : " + CInputManager.IsTouch());
 		//TouchDrag(); //chamto test
 
-
-
 		OnCollision(); //chamto test
 
 	}
@@ -333,7 +330,6 @@ public class MonoDrop : MonoBehaviour
 			return;
 
 		//CDefine.DebugLog("___________________TouchEnded "+ gameObject.name+"___________________");
-		transform.Translate(0,0,1); //drop sprite down
 		//m_prevCollisionDrop = null;
 		Single.DropMgr.ClearMovedPath();
 
@@ -348,7 +344,13 @@ public class MonoDrop : MonoBehaviour
 
 	}
 
-
+	void DropSpriteUp()
+	{
+		//transform.Translate(0,0,-1); //drop sprite up
+		Vector3 v3Pos = transform.position;
+		v3Pos.z = -1;
+		transform.position = v3Pos;
+	}
 	//==============: collision method :========================================================================================
 
 	//20140830 chamto - ccdTest function
