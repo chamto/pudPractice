@@ -916,8 +916,36 @@ public class GroupDrop
 {
 	public Dictionary<Index2, List<List<MonoDrop>>> refBundle = null; 
 	
-	
-	public void Add(Index2 pos, List<MonoDrop> listJoinDrop)
+
+	public bool EqualGroup(GroupDrop dstGroup)
+	{
+		if (null == dstGroup)
+						return false;
+		if (null == dstGroup.refBundle)
+						return false;
+		if (this.refBundle != dstGroup.refBundle)
+						return false;
+		return true;
+	}
+
+	public Index2 CreateUniqueGroupIdx(bool isRow, int rowIdx, int sequenceNum)
+	{
+		Index2 createIdx;
+
+		if (true == isRow) 
+		{
+			createIdx.ix = rowIdx;
+			createIdx.iy = sequenceNum;
+		} else 
+		{
+			createIdx.iy = rowIdx;
+			createIdx.ix = sequenceNum;
+		}
+
+		return createIdx;
+	}
+
+	public void Add(Index2 unique_rowNumCommaSequenceNum, List<MonoDrop> listJoinDrop)
 	{
 		if (null == refBundle) 
 		{
@@ -926,13 +954,13 @@ public class GroupDrop
 		}
 		
 		List<List<MonoDrop>> rows = null;
-		if (refBundle.TryGetValue (pos, out rows)) 
+		if (refBundle.TryGetValue (unique_rowNumCommaSequenceNum, out rows)) 
 		{
 			rows.Add (listJoinDrop);
 		} else 
 		{
 			rows = new List<List<MonoDrop>> ();
-			refBundle.Add (pos, rows);
+			refBundle.Add (unique_rowNumCommaSequenceNum, rows);
 			rows.Add (listJoinDrop);
 		}
 	}
@@ -963,12 +991,12 @@ public class GroupDrop
 		
 	}
 	
-	static public GroupDrop Create(Index2 pos, List<MonoDrop> listJoinDrop)
+	static public GroupDrop Create(Index2 unique_rowNumCommaSequenceNum, List<MonoDrop> listJoinDrop)
 	{
 		GroupDrop group = new GroupDrop ();
 		group.refBundle = new Dictionary<Index2, List<List<MonoDrop>>>(); 
 		
-		group.Add (pos, listJoinDrop);
+		group.Add (unique_rowNumCommaSequenceNum, listJoinDrop);
 		
 		return group;
 	}

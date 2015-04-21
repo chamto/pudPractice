@@ -1016,39 +1016,88 @@ namespace PuzzAndBidurgi
 
 
 		//temp code , 20150414 chamto 
-		private List<GroupDrop> m_ListJoinGroups = new List<GroupDrop>();
-		private Dictionary<Index2, List<ushort>> m_mapForGroupsInfo = new Dictionary<Index2, List<ushort>>();
+//		private List<GroupDrop> m_ListJoinGroups = new List<GroupDrop>();
+//		private Dictionary<Index2, List<ushort>> m_mapForGroupsInfo = new Dictionary<Index2, List<ushort>>();
+//		public void SetGroupInfo(ushort groupNumber , Index2 dstIndex)
+//		{
+//			List<ushort> listGroupNumber = null;
+//			if(false == m_mapForGroupsInfo.TryGetValue(dstIndex, out listGroupNumber))
+//			{
+//				listGroupNumber = new List<ushort>();
+//				listGroupNumber.Add(groupNumber);
+//				m_mapForGroupsInfo.Add(dstIndex, listGroupNumber);
+//			}else
+//			{
+//				foreach(ushort getNum in listGroupNumber)
+//				{
+//					if(getNum == groupNumber)
+//					{
+//						return;
+//					}
+//				}
+//				listGroupNumber.Add(groupNumber);
+//			}
+//		}
+//
+//		public void SetGroupsInfo_FourDir(ushort groupNumber, Index2 dstIndex)
+//		{
+//			this.SetGroupInfo (groupNumber, dstIndex);
+//			this.SetGroupInfo (groupNumber, dstIndex + Index2.Up);
+//			this.SetGroupInfo (groupNumber, dstIndex + Index2.Down);
+//			this.SetGroupInfo (groupNumber, dstIndex + Index2.Left);
+//			this.SetGroupInfo (groupNumber, dstIndex + Index2.Right);
+//		}
 
-		public void SetGroupInfo(ushort groupNumber , Index2 dstIndex)
+		public GroupDrop FindJoinGroup_InFourWay(MonoDrop standardDrop)
 		{
-			List<ushort> listGroupNumber = null;
-			if(false == m_mapForGroupsInfo.TryGetValue(dstIndex, out listGroupNumber))
+			if (null == standardDrop)
+								return null;
+
+			GroupDrop group = null;
+			group = FindJoinGroup (standardDrop, standardDrop.index2D + Index2.Up);
+			if (null != group)
+				return group;
+
+			group = FindJoinGroup (standardDrop, standardDrop.index2D + Index2.Right);
+			if (null != group)
+				return group;
+
+			group = FindJoinGroup (standardDrop, standardDrop.index2D + Index2.Down);
+			if (null != group)
+				return group;
+
+			group = FindJoinGroup (standardDrop, standardDrop.index2D + Index2.Left);
+			if (null != group)
+				return group;
+
+			return group;
+		}
+
+		public GroupDrop FindJoinGroup(MonoDrop srcDrop, Index2 dstIdx)
+		{
+			//대상위치에 드롭이 있는지 검사
+			MonoDrop dstDrop = this.mapDrop.GetMonoDropByIndex2(dstIdx);
+			if (null == srcDrop || null == dstDrop)
+						return null;
+			//드롭이 있다면 같은 드롭인지 검사
+			if (srcDrop.dropKind != dstDrop.dropKind)
+						return null;
+
+			//대상위치에 그룹이 있는지 검사
+			if (null == dstDrop.groupInfo || null == dstDrop.groupInfo.refBundle)
+						return null;
+
+			if (null != srcDrop.groupInfo) 
 			{
-				listGroupNumber = new List<ushort>();
-				listGroupNumber.Add(groupNumber);
-				m_mapForGroupsInfo.Add(dstIndex, listGroupNumber);
-			}else
-			{
-				foreach(ushort getNum in listGroupNumber)
+				//이미 같은 그룹이면 합칠 필요없음
+				if(true ==  srcDrop.groupInfo.EqualGroup(dstDrop.groupInfo))
 				{
-					if(getNum == groupNumber)
-					{
-						return;
-					}
+					return null;
 				}
-				listGroupNumber.Add(groupNumber);
 			}
-		}
 
-		public void SetGroupsInfo_FourDir(ushort groupNumber, Index2 dstIndex)
-		{
-			this.SetGroupInfo (groupNumber, dstIndex);
-			this.SetGroupInfo (groupNumber, dstIndex + Index2.Up);
-			this.SetGroupInfo (groupNumber, dstIndex + Index2.Down);
-			this.SetGroupInfo (groupNumber, dstIndex + Index2.Left);
-			this.SetGroupInfo (groupNumber, dstIndex + Index2.Right);
+			return dstDrop.groupInfo;
 		}
-
 
 		delegate bool AvailableJoin(MonoDrop start , out int jump);
 		public List<List<MonoDrop>> LineInspection(Index2 startIxy, Vector3 direction, ushort lengthOfLine, ushort minJoin)
@@ -1091,6 +1140,7 @@ namespace PuzzAndBidurgi
 			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
 			List<MonoDrop> listJoin = null;
 			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
+			GroupDrop findGroup = null;
 			for (int i=0; i <= lengthOfLine; i++) 
 			{
 
@@ -1134,9 +1184,14 @@ namespace PuzzAndBidurgi
 
 						//temp code
 						//this.SetGroupsInfo_FourDir(1, nextDrop.index2D);
-
-
-
+						findGroup = FindJoinGroup_InFourWay(nextDrop);
+						if(null != findGroup)
+						{
+							if(null == nextDrop.groupInfo)
+								nextDrop.groupInfo = findGroup;
+							//else
+								//20150421 chamto - todo : group combine code
+						}
 
 					}else
 					{
