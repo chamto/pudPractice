@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using PuzzAndBidurgi;
 
+using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
+using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
+using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
+
 public class MonoDrop : MonoBehaviour 
 {
 	//==============: mono member variables :========================================================================================
@@ -505,6 +509,8 @@ public class MonoDrop : MonoBehaviour
 		if (null == drop)
 						return;
 
+		drop.groupInfo = null; //import!!! - dismiss group
+
 		//---------------------------------- move to emptySquare in nonviewArea
 		Index2 empty = Single.DropMgr.mapDrop.FindEmptySquare (Single.DropMgr.boardInfo.GetMinNonviewArea (),
 		                                                                  Single.DropMgr.boardInfo.GetMaxNonviewArea ());
@@ -844,6 +850,18 @@ public struct Index3
 	}
 }
 
+public struct PairIndex2
+{
+	public Index2 origin;
+	public Index2 direction;
+
+	public PairIndex2(Index2 _origin, Index2 _direction)
+	{
+		origin = _origin;
+		direction = _direction;
+	}
+}
+
 //20150403 chamto - no use , must be cleared
 [System.Serializable]
 public class DropInfo
@@ -912,12 +930,23 @@ public class DropInfo
 }
 
 
+
 public class GroupDrop
 {
-	public Dictionary<Index2, List<List<MonoDrop>>> refBundle = null; 
-	
 
-	public bool EqualGroup(GroupDrop dstGroup)
+	// ***** diagram of dataStructor  **************************************
+	//
+	//bundle ------ joinsInLine<0,0> ---------- dropsInLine<0~n,0>
+	//              joinsInLine<0,1>            dropsInLine<0~n,1>
+	//              joinsInLine<0,2>                 .
+	//                   .                           .
+	//                   .
+	//
+	// **********************************************************************
+	//public Dictionary<PairIndex2, List<List<MonoDrop>>> refBundle = null; 
+	public T_Bundle refBundle = null; 
+
+	public bool EqualRefBundle(GroupDrop dstGroup)
 	{
 		if (null == dstGroup)
 						return false;
@@ -928,40 +957,54 @@ public class GroupDrop
 		return true;
 	}
 
-	public Index2 CreateUniqueGroupIdx(bool isRow, int rowIdx, int sequenceNum)
-	{
-		Index2 createIdx;
 
-		if (true == isRow) 
-		{
-			createIdx.ix = rowIdx;
-			createIdx.iy = sequenceNum;
-		} else 
-		{
-			createIdx.iy = rowIdx;
-			createIdx.ix = sequenceNum;
-		}
 
-		return createIdx;
-	}
+//	public bool IsInclude(Index2 firstIdx, List<MonoDrop> listJoinDrop)
+//	{
+//		if (null == refBundle)
+//						return false;
+//
+//		//refBundle.TryGetValue(unique_rowNumCommaSequenceNum,ou
+//
+//	}
 
-	public void Add(Index2 unique_rowNumCommaSequenceNum, List<MonoDrop> listJoinDrop)
+	//public void Add(Index2 firstIdxOfColumAndRow, List<MonoDrop> listJoinDrop)
+	public void Add(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
 	{
 		if (null == refBundle) 
 		{
 			CDefine.DebugLogError("error !!! : null == refBundle");
 			return;				
 		}
-		
-		List<List<MonoDrop>> rows = null;
-		if (refBundle.TryGetValue (unique_rowNumCommaSequenceNum, out rows)) 
+
+
+		//List<List<MonoDrop>> rows = null;
+		T_JoinsInLine refJoins = null;
+		if (refBundle.TryGetValue (key_OriginAndDir, out refJoins)) 
 		{
-			rows.Add (listJoinDrop);
+
+			if(null == refJoins)
+			{
+				refJoins = new T_JoinsInLine ();
+				refBundle.Add (key_OriginAndDir, refJoins);
+			}
+
+			//Duplicate check
+			foreach(T_DropsInLine getDrops in refJoins)
+			{
+				if(null != getDrops)
+				{
+					if(getDrops == refAddDrops)
+						return;
+				}
+			}
+
+			refJoins.Add (refAddDrops);
 		} else 
 		{
-			rows = new List<List<MonoDrop>> ();
-			refBundle.Add (unique_rowNumCommaSequenceNum, rows);
-			rows.Add (listJoinDrop);
+			refJoins = new T_JoinsInLine ();
+			refBundle.Add (key_OriginAndDir, refJoins);
+			refJoins.Add (refAddDrops);
 		}
 	}
 	
@@ -970,17 +1013,20 @@ public class GroupDrop
 	{
 		if (null == srcGroup || null == toDstGroup)
 			return;
-		
-		Index2 key;
-		List<List<MonoDrop>> rows = null;
+		if (true == srcGroup.EqualRefBundle (toDstGroup))
+			return;
+
+		PairIndex2 key;
+		//List<List<MonoDrop>> rows = null;
+		T_JoinsInLine refJoins = null;
 		for (int i=0; i< srcGroup.refBundle.Values.Count; i++) 
 		{
 			key = srcGroup.refBundle.Keys.ElementAt(i);
-			rows = srcGroup.refBundle.Values.ElementAt(i);
+			refJoins = srcGroup.refBundle.Values.ElementAt(i);
 			
-			foreach(List<MonoDrop> list in rows)
+			foreach(T_DropsInLine getDrops in refJoins)
 			{
-				toDstGroup.Add(key, list);
+				toDstGroup.Add(key, getDrops);
 			}
 		}
 		
@@ -991,12 +1037,12 @@ public class GroupDrop
 		
 	}
 	
-	static public GroupDrop Create(Index2 unique_rowNumCommaSequenceNum, List<MonoDrop> listJoinDrop)
+	static public GroupDrop Create(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
 	{
 		GroupDrop group = new GroupDrop ();
-		group.refBundle = new Dictionary<Index2, List<List<MonoDrop>>>(); 
+		group.refBundle = new T_Bundle ();
 		
-		group.Add (unique_rowNumCommaSequenceNum, listJoinDrop);
+		group.Add (key_OriginAndDir, refAddDrops);
 		
 		return group;
 	}

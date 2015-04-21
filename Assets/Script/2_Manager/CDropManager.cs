@@ -5,10 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-using T_DropList = System.Collections.Generic.List<MonoDrop> ;
-using T_JoinList = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
-
-
 namespace PuzzAndBidurgi
 {
 
@@ -1089,8 +1085,8 @@ namespace PuzzAndBidurgi
 
 			if (null != srcDrop.groupInfo) 
 			{
-				//이미 같은 그룹이면 합칠 필요없음
-				if(true ==  srcDrop.groupInfo.EqualGroup(dstDrop.groupInfo))
+				//이미 같은 그룹주소이면 합칠 필요없음
+				if(true ==  srcDrop.groupInfo.EqualRefBundle(dstDrop.groupInfo))
 				{
 					return null;
 				}
@@ -1131,16 +1127,28 @@ namespace PuzzAndBidurgi
 			};
 
 
-			direction.Normalize ();
+
 
 			int jumpCount = 0;
 			Index2 compareIndex = startIxy;
 			Index2 nextIndex = startIxy;
 			MonoDrop nextDrop = null;
 			MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
-			List<MonoDrop> listJoin = null;
-			List<List<MonoDrop>> listLineTotal = new List<List<MonoDrop>> ();
+
+			List<MonoDrop> drops = null;
+			List<List<MonoDrop>> joins = new List<List<MonoDrop>> ();
+
+			int findGroupCount = 0;
+			GroupDrop newGroup = null;
 			GroupDrop findGroup = null;
+
+
+			PairIndex2 key_pairIdx;
+			direction.Normalize ();
+			key_pairIdx.direction.ix = (int)direction.x;
+			key_pairIdx.direction.iy = (int)direction.y;
+			key_pairIdx.origin = startIxy;
+
 			for (int i=0; i <= lengthOfLine; i++) 
 			{
 
@@ -1148,8 +1156,8 @@ namespace PuzzAndBidurgi
 				nextIndex.iy = startIxy.iy + (int)(direction.y) * i;
 				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
 
-				//if(0 == listJoin.Count)
-				if(null == listJoin)
+				//if(0 == drops.Count)
+				if(null == drops)
 				{
 					//-------------------------------------------
 					//라인 시작지점에서 검사
@@ -1164,11 +1172,12 @@ namespace PuzzAndBidurgi
 						continue;
 					}
 
-					listJoin = new List<MonoDrop>();
-					listLineTotal.Add(listJoin);
 
-					//temp code
-					//nextDrop.groupInfo = GroupDrop.Create(nextIndex, listJoin);
+					drops = new List<MonoDrop>();
+					joins.Add(drops);
+					 newGroup = GroupDrop.Create(key_pairIdx,drops);
+					findGroupCount = 0;
+
 				}
 
 
@@ -1179,36 +1188,34 @@ namespace PuzzAndBidurgi
 					if(null != nextDrop && compareDrop.dropKind == nextDrop.dropKind)
 					{
 						//next add , end is not processed
-						listJoin.Add(nextDrop);
+						drops.Add(nextDrop);
+						nextDrop.groupInfo = newGroup;
 						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
 
-						//temp code
-						//this.SetGroupsInfo_FourDir(1, nextDrop.index2D);
-						findGroup = FindJoinGroup_InFourWay(nextDrop);
-						if(null != findGroup)
+
+						//한번 이상 찾았으면, 더이상 찾지 않는다
+						if(0 == findGroupCount)
 						{
-							if(null == nextDrop.groupInfo)
-								nextDrop.groupInfo = findGroup;
-							//else
-								//20150421 chamto - todo : group combine code
+							findGroup = FindJoinGroup_InFourWay(nextDrop);
+							if(null != findGroup)
+							{
+								GroupDrop.EngraftBundleData(nextDrop.groupInfo, findGroup);
+								findGroupCount++;
+							}
 						}
 
 					}else
 					{
-						listJoin = null;
+						drops = null;
 					}
 				}		
-
-
-
 
 				compareIndex = nextIndex;
 				compareDrop = nextDrop;
 
-
 			}
 
-			return listLineTotal;
+			return joins;
 		}
 
 		public List<List<MonoDrop>> FindJoinConditions(ushort minJoin)
@@ -1226,17 +1233,7 @@ namespace PuzzAndBidurgi
 				key.iy = iy;
 				key.ix = 0;
 				listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
-				if(0 != listLineTotal.Count)
-				{	
-					//CDefine.DebugLog("FindJoinConditionsX  count " + listLineTotal.Count); //chamto test
-					foreach(List<MonoDrop> lm in listLineTotal)
-					{
-						foreach(MonoDrop m in lm)
-						{
-							MonoDrop.MoveToEmptySquare(m);
-						}
-					}
-				}//endif
+
 			}//endfor
 
 			for (int ix=0; ix <= maxColumn; ix++) 
@@ -1244,27 +1241,44 @@ namespace PuzzAndBidurgi
 				key.iy = 0;
 				key.ix = ix;
 				listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
-				if(0 != listLineTotal.Count)
-				{
-					//CDefine.DebugLog("FindJoinConditionsY  count " + listLineTotal.Count); //chamto test
-					foreach(List<MonoDrop> lm in listLineTotal)
-					{
-						foreach(MonoDrop m in lm)
-						{
-							MonoDrop.MoveToEmptySquare(m);
-						}
-					}
-				}//endif
+
 			}//endfor
 
+			this.MoveAllJoinDrops ();
 
-			
-			
 			return null;
 		}
 	
 
+		//temp code
+		public void MoveAllJoinDrops()
+		{
+			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
+			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
+			int maxColumn = maxView.ix - minView.ix;
+			int maxRow = maxView.iy - minView.iy;
+			
+			
+			Index2 key = Index2.Zero;
+			MonoDrop drop = null;
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				key.iy = iy;
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					key.ix = ix;
+					drop = mapDrop.GetMonoDropByIndex2(key);
+					if(null != drop && null != drop.groupInfo)
+					{
+						MonoDrop.MoveToEmptySquare(drop);
+					}
 
+				}//endfor
+
+			}//endfor
+			
+
+		}
 
 		//------------------------------------------------------------------------
 		// collision method
