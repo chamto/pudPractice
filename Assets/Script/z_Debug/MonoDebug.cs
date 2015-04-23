@@ -33,7 +33,7 @@ public class MonoDebug : MonoBehaviour
 #if UNITY_EDITOR
 	void OnGUI()
 	{
-		if (GUI.Button (new Rect (10, 10, 100, 70), "Whole Dropping")) 
+		if (GUI.Button (new Rect (10, 10, 100, 70), "Whole DroppingView")) 
 		{
 			//Time.timeScale -= 0.1f;
 			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
@@ -44,18 +44,26 @@ public class MonoDebug : MonoBehaviour
 //			}
 
 
-			CDefine.DebugLog("WholeDroppingOnView start -----------------------------");
+			//CDefine.DebugLog("MoveNextJoinDrops start -----------------------------");
+
+
+			Single.DropMgr.MoveAllJoinDrops ();
+			//Single.DropMgr.MoveNextJoinDrops ();
+			//Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 			//Single.DropMgr.WholeDroppingOnView();
-			Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 			//Single.DropMgr.mapDrop.Debug_PrintMap();
 
 		}
 
-		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Update DebugMap")) 
+		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Whole DroppingBoard")) 
 		{
+
+			const int MIN_JOIN_NUMBER = 3;
+			//Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
+			Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 			//Time.timeScale += 0.1f;
 			//CDefine.DebugLog ("Time.timeScale : " + Time.timeScale);
-			Single.DropMgr.Update_DebugMap ();
+			//Single.DropMgr.Update_DebugMap ();
 		}
 
 		Rule_PuzzleAndDragon rule = Single.MonoMain.rules as Rule_PuzzleAndDragon; 

@@ -344,7 +344,10 @@ public class MonoDrop : MonoBehaviour
 		//MonoDrop.Remove (this);
 		const int MIN_JOIN_NUMBER = 3;
 		Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
-		Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
+		//Single.DropMgr.MoveAllJoinDrops ();
+		//Single.DropMgr.MoveNextJoinDrops ();
+		//Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
+		//Single.DropMgr.WholeDroppingOnView ();
 
 	}
 
@@ -930,13 +933,14 @@ public class DropInfo
 }
 
 
-/// <summary>
-/// Bundle with Drop
-/// </summary>
-public class BundleWithDrop
-{
 
-	// ***** diagram of dataStructor  **************************************
+
+/// <summary>
+/// 같은 조건의 드롭에 대한, 덩어리 정보
+/// </summary>
+public class BundleData
+{
+	// ***** dataStructor of T_Bundle  **************************************
 	//
 	//bundle ------ joinsInLine<0,0> dir<1,0> ---------- dropsInLine<0~n,0>
 	//              joinsInLine<0,1> dir<1,0>            dropsInLine<0~n,1>
@@ -945,10 +949,101 @@ public class BundleWithDrop
 	//                   .
 	//
 	// **********************************************************************
-	//public Dictionary<PairIndex2, List<List<MonoDrop>>> refBundle = null; 
+	//public Dictionary<PairIndex2, List<List<MonoDrop>>> lineBundle = null; 
 
-	//같은 조건의 드롭에 대한, 덩어리 정보
-	public T_Bundle refBundle = null; 
+
+	//지정된 조건의 선형으로 연속된 드롭정보를 저장
+	public T_Bundle 					lines 	= null;
+
+	//지정된 조건의 전체 드롭정보를 저장
+	public Dictionary<Index2, MonoDrop> mapFull	= null;
+
+
+	public void UpdateMap()
+	{
+		if (null == lines || null == mapFull)
+						return;
+
+		mapFull.Clear ();
+
+		//Debug.Log ("mapFull keyList ----------------------------------------------------"); //chamto test
+
+		MonoDrop addDrop = null;
+		foreach (T_JoinsInLine joins in lines.Values) 
+		{
+			if(null == joins) {  CDefine.DebugLogError("Error !! : null == joins"); return; }
+
+			foreach (T_DropsInLine drops in joins) 
+			{
+				if(null == drops) {  CDefine.DebugLogError("Error !! : null == drops"); return; }
+
+				//foreach (MonoDrop monoDrop in drops) 
+				for(int i=0;i<drops.Count;i++)
+				{
+					addDrop = drops.ElementAt(i);
+					if(null == addDrop) {  continue; }
+
+					if(true == mapFull.ContainsKey(addDrop.index2D))
+					{
+						mapFull[addDrop.index2D] = addDrop;
+					}else 
+					{
+						mapFull.Add(addDrop.index2D, addDrop);
+					}
+
+					//Debug.Log ("mapFull keyList : " +addDrop.index2D.ToString ()); //chamto test
+				}
+			}
+		}
+
+	}//end
+
+	public static void Clear(BundleData data)
+	{
+		if (null == data)
+						return;
+
+		if(null != data.lines)
+		{
+			data.lines.Clear();
+			data.lines = null;
+		}
+
+		if(null != data.mapFull)
+		{
+			data.mapFull.Clear();
+			data.mapFull = null;
+		}
+	}
+
+	public static BundleData Create()
+	{
+		BundleData bundle = new BundleData();
+		bundle.lines = new T_Bundle ();
+		bundle.mapFull = new Dictionary<Index2, MonoDrop> ();
+
+		return bundle;
+	}
+
+
+}
+
+/// <summary>
+/// Bundle with Drop
+/// </summary>
+public class BundleWithDrop
+{
+
+
+	public BundleData refBundle = null; 
+
+	public void UpdateBundleMap()
+	{
+		if (null != refBundle) 
+		{
+			refBundle.UpdateMap();
+		}
+	}
 
 	public bool EqualRefBundle(BundleWithDrop dstGroup)
 	{
@@ -962,16 +1057,6 @@ public class BundleWithDrop
 	}
 
 
-
-//	public bool IsInclude(Index2 firstIdx, List<MonoDrop> listJoinDrop)
-//	{
-//		if (null == refBundle)
-//						return false;
-//
-//		//refBundle.TryGetValue(unique_rowNumCommaSequenceNum,ou
-//
-//	}
-
 	//public void Add(Index2 firstIdxOfColumAndRow, List<MonoDrop> listJoinDrop)
 	public void Add(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
 	{
@@ -984,13 +1069,13 @@ public class BundleWithDrop
 
 		//List<List<MonoDrop>> rows = null;
 		T_JoinsInLine refJoins = null;
-		if (refBundle.TryGetValue (key_OriginAndDir, out refJoins)) 
+		if (refBundle.lines.TryGetValue (key_OriginAndDir, out refJoins)) 
 		{
 
 			if(null == refJoins)
 			{
 				refJoins = new T_JoinsInLine ();
-				refBundle.Add (key_OriginAndDir, refJoins);
+				refBundle.lines.Add (key_OriginAndDir, refJoins);
 			}
 
 			//Duplicate check
@@ -1007,7 +1092,7 @@ public class BundleWithDrop
 		} else 
 		{
 			refJoins = new T_JoinsInLine ();
-			refBundle.Add (key_OriginAndDir, refJoins);
+			refBundle.lines.Add (key_OriginAndDir, refJoins);
 			refJoins.Add (refAddDrops);
 		}
 	}
@@ -1023,19 +1108,23 @@ public class BundleWithDrop
 		PairIndex2 key;
 		//List<List<MonoDrop>> rows = null;
 		T_JoinsInLine refJoins = null;
-		for (int i=0; i< srcGroup.refBundle.Values.Count; i++) 
+		for (int i=0; i< srcGroup.refBundle.lines.Values.Count; i++) 
 		{
-			key = srcGroup.refBundle.Keys.ElementAt(i);
-			refJoins = srcGroup.refBundle.Values.ElementAt(i);
-			
+			key = srcGroup.refBundle.lines.Keys.ElementAt(i);
+			refJoins = srcGroup.refBundle.lines.Values.ElementAt(i);
+
+			if(null == refJoins) continue;
+
 			foreach(T_DropsInLine getDrops in refJoins)
 			{
+				if(null == getDrops) continue;
+
 				toDstGroup.Add(key, getDrops);
 			}
 		}
-		
-		srcGroup.refBundle.Clear ();
-		
+
+		BundleData.Clear (srcGroup.refBundle);
+
 		//Importance !! : Engraft the all refPointer
 		srcGroup.refBundle = toDstGroup.refBundle;
 		
@@ -1044,7 +1133,7 @@ public class BundleWithDrop
 	static public BundleWithDrop Create(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
 	{
 		BundleWithDrop group = new BundleWithDrop ();
-		group.refBundle = new T_Bundle ();
+		group.refBundle = BundleData.Create ();
 		
 		group.Add (key_OriginAndDir, refAddDrops);
 		

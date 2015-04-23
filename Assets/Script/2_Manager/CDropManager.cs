@@ -202,7 +202,6 @@ namespace PuzzAndBidurgi
 			return null;
 		}
 
-
 		//Inefficiency code !!
 		public Index2 FindEmptySquare(Index2 min, Index2 max)
 		{
@@ -530,8 +529,142 @@ namespace PuzzAndBidurgi
 	}
 
 
-	public class GroupInfo
+	public class GroupDrop
 	{
+		private int 				m_nextCount = 0;
+		private List<BundleData> 	m_listBundle = new List<BundleData>();
+		//Queue<BundleData> m_q = new Queue<BundleData>();
+		public Dictionary<Index2,MonoDrop> Next()
+		{
+			//Debug.Log (m_listBundle.Count + " - group count"); //chamto test
+			if (0 == m_listBundle.Count || m_nextCount >= m_listBundle.Count)
+								return null;
+
+			m_nextCount++;
+
+			return m_listBundle[m_nextCount-1].mapFull;
+		}
+
+		public void Add(BundleData data)
+		{
+			m_listBundle.Add (data);
+		}
+
+		public void InitNextCount ()
+		{
+			m_nextCount = 0;
+		}
+
+		public int GetNextCount()
+		{
+			return m_nextCount;
+		}
+
+		public int GetMaxCount()
+		{
+			return m_listBundle.Count;
+		}
+
+
+
+		public void UpdateMap()
+		{
+			List<BundleData> deathList = null;
+			int idx = 0;
+			foreach (BundleData data in m_listBundle) 
+			{
+
+				if(null != data && null != data.lines && 0 != data.lines.Count)
+				{
+					data.UpdateMap();
+				}
+
+				if(null == data || null == data.lines || 0 == data.lines.Count)
+				{
+					if(null == deathList)
+						deathList = new List<BundleData>();
+
+					deathList.Add(data);
+
+				}
+
+				idx++;
+			}
+
+			//Debug.Log("GroupDrop : UpdateMap"); //chamto test
+			if (null != deathList) 
+			{
+				foreach (BundleData deathData in deathList) 
+				{
+					//Debug.Log(deathList.Count+"   " + m_listBundle.Count); //chamto test
+					//m_listBundle.Remove(deathData);
+				}			
+			}
+
+			this.PrintListBundle2 (); //chamto test
+
+		}
+
+		public void Clear()
+		{
+			InitNextCount ();
+			m_listBundle.Clear ();
+		}
+
+		public void PrintListBundle2()
+		{
+			String buff = "";
+			foreach (BundleData data in m_listBundle) 
+			{
+				if (null == data || null == data.lines || null == data.mapFull)
+					continue;
+				
+
+				Debug.Log ("----------PrintListBundle2------------");
+				foreach (List<List<MonoDrop>> listlist in data.lines.Values) 
+				{
+					if(null == listlist) continue;
+					buff = "";
+					Debug.Log ("     -- rows , colums --");
+					foreach (List<MonoDrop> list in listlist)
+					{
+						if(null == list) continue;
+
+						foreach (MonoDrop drop in list)
+						{
+							if(null == drop) continue;
+							
+							buff = String.Concat (buff + " : " + drop.index2D);
+						}
+						buff = String.Concat (buff + " --- ");
+					}
+					Debug.Log (buff);
+
+				}
+
+			}
+			
+		}
+
+		public void PrintListBundle()
+		{
+			String buff = "";
+			foreach (BundleData data in m_listBundle) 
+			{
+				if (null == data || null == data.lines || null == data.mapFull)
+					continue;
+				
+				buff = "";
+				Debug.Log ("----------PrintListBundle------------");
+				foreach (Index2 idx in data.mapFull.Keys) 
+				{
+					buff = String.Concat (buff + " : " + idx);
+				}
+				Debug.Log (buff);
+			}
+			
+		}
+
 	}
 
 
@@ -548,6 +681,7 @@ namespace PuzzAndBidurgi
 		/// </summary>
 		private MapDrop 						m_mapDrop = new MapDrop();
 		private BoardInfo						m_boardInfo = new BoardInfo();
+		private GroupDrop						m_groupDrop = new GroupDrop ();
 
 		//private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
 		//private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
@@ -1081,6 +1215,9 @@ namespace PuzzAndBidurgi
 		{
 			//대상위치에 드롭이 있는지 검사
 			MonoDrop dstDrop = this.mapDrop.GetMonoDropByIndex2(dstIdx);
+			if(false == this.boardInfo.BelongToViewArea(dstIdx))
+				dstDrop = null;
+
 			if (null == srcDrop || null == dstDrop)
 						return null;
 			//드롭이 있다면 같은 드롭인지 검사
@@ -1089,6 +1226,7 @@ namespace PuzzAndBidurgi
 
 			//대상위치에 그룹이 있는지 검사
 			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle)
+			//if (null == dstDrop.bundleInfo)
 						return null;
 
 			if (null != srcDrop.bundleInfo) 
@@ -1123,6 +1261,9 @@ namespace PuzzAndBidurgi
 					d_next.ix += (int)direction.x;
 					d_next.iy += (int)direction.y;
 					d_nextDrop = this.mapDrop.GetMonoDropByIndex2(d_next);
+					if(false == this.boardInfo.BelongToViewArea(d_next))
+					   d_nextDrop = null;
+
 					if(null == d_nextDrop || d_start.dropKind != d_nextDrop.dropKind)
 					{
 						d_jump = i+1;
@@ -1146,7 +1287,7 @@ namespace PuzzAndBidurgi
 			List<MonoDrop> drops = null;
 			List<List<MonoDrop>> joins = new List<List<MonoDrop>> ();
 
-			int findGroupCount = 0;
+			//int findGroupCount = 0;
 			BundleWithDrop newGroup = null;
 			BundleWithDrop findGroup = null;
 
@@ -1163,6 +1304,9 @@ namespace PuzzAndBidurgi
 				nextIndex.ix = startIxy.ix + (int)(direction.x) * i;
 				nextIndex.iy = startIxy.iy + (int)(direction.y) * i;
 				nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
+				if(false == this.boardInfo.BelongToViewArea(nextIndex))
+					nextDrop = null;
+
 
 				//if(0 == drops.Count)
 				if(null == drops)
@@ -1177,6 +1321,8 @@ namespace PuzzAndBidurgi
 						compareIndex.ix = compareIndex.ix + (int)(direction.x) * jumpCount;
 						compareIndex.iy = compareIndex.iy + (int)(direction.y) * jumpCount;
 						compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
+						if(false == this.boardInfo.BelongToViewArea(compareIndex))
+							compareDrop = null;
 						continue;
 					}
 
@@ -1184,7 +1330,8 @@ namespace PuzzAndBidurgi
 					drops = new List<MonoDrop>();
 					joins.Add(drops);
 					 newGroup = BundleWithDrop.Create(key_pairIdx,drops);
-					findGroupCount = 0;
+					//findGroupCount = 0;
+					m_groupDrop.Add(newGroup.refBundle);
 
 				}
 
@@ -1202,13 +1349,13 @@ namespace PuzzAndBidurgi
 
 
 						//한번 이상 찾았으면, 더이상 찾지 않는다
-						if(0 == findGroupCount)
+						//if(0 == findGroupCount)
 						{
 							findGroup = FindJoinGroup_InFourWay(nextDrop);
 							if(null != findGroup)
 							{
 								BundleWithDrop.EngraftBundleData(nextDrop.bundleInfo, findGroup);
-								findGroupCount++;
+								//findGroupCount++;
 							}
 						}
 
@@ -1226,9 +1373,12 @@ namespace PuzzAndBidurgi
 			return joins;
 		}
 
-		public List<List<MonoDrop>> FindJoinConditions(ushort minJoin)
+		public GroupDrop FindJoinConditions(ushort minJoin)
 		{
-			List<List<MonoDrop>> listLineTotal = null;
+
+			m_groupDrop.Clear ();
+
+			//List<List<MonoDrop>> listLineTotal = null;
 			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
 			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
 			int maxColumn = maxView.ix - minView.ix;
@@ -1240,7 +1390,8 @@ namespace PuzzAndBidurgi
 			{
 				key.iy = iy;
 				key.ix = 0;
-				listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
+				//listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
+				LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
 
 			}//endfor
 
@@ -1248,15 +1399,31 @@ namespace PuzzAndBidurgi
 			{
 				key.iy = 0;
 				key.ix = ix;
-				listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
+				//listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
+				LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
 
 			}//endfor
 
-			this.MoveAllJoinDrops ();
 
-			return null;
+			m_groupDrop.UpdateMap();
+			//this.MoveAllJoinDrops ();
+
+			Udpate_DebugGroupInfo (); //chamto test
+
+			return m_groupDrop;
 		}
 	
+		public void MoveNextJoinDrops()
+		{
+			Dictionary<Index2,MonoDrop> mapBundle = m_groupDrop.Next ();
+			//Debug.Log (mapBundle + " - MoveNextJoinDrops" );  //chamto test
+			if (null == mapBundle)
+								return;
+			foreach (MonoDrop drop in mapBundle.Values) 
+			{
+				MonoDrop.MoveToEmptySquare(drop);
+			}
+		}
 
 		//temp code
 		public void MoveAllJoinDrops()
@@ -1284,9 +1451,90 @@ namespace PuzzAndBidurgi
 				}//endfor
 
 			}//endfor
-			
-
 		}
+
+		public void Udpate_DebugGroupInfo()
+		{
+			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
+			Index2 maxView = this.boardInfo.GetIndexAt_ViewRightUp ();
+			int maxColumn = maxView.ix - minView.ix;
+			int maxRow = maxView.iy - minView.iy;
+			
+			
+			Index2 key = Index2.Zero;
+			MonoDrop drop = null;
+			MonoDrop drop2 = null;
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				key.iy = iy;
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					key.ix = ix;
+
+					_debugMap.TryGetValue(key,out drop);
+					drop2 = mapDrop.GetMonoDropByIndex2(key);
+					drop.SetColor(Color.gray);
+					if(null != drop2 && null != drop2.bundleInfo)
+					{
+
+						switch(drop2.dropKind)
+						{
+							case eResKind.Red:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Blue:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Dark:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Green:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Heart:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Light:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Obstruction:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							case eResKind.Posion:
+							{
+							drop.SetColor(new Color(2f,2f,2f));
+								break;
+							}
+							default:
+							{
+								drop.SetColor(Color.gray);
+								break;
+							}
+						}
+
+						
+					}
+					
+				}//endfor
+				
+			}//endfor
+		}
+
+
 
 		//------------------------------------------------------------------------
 		// collision method
