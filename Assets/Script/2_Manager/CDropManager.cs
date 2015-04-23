@@ -4,6 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
+using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
+using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
 
 namespace PuzzAndBidurgi
 {
@@ -33,41 +36,41 @@ namespace PuzzAndBidurgi
 
 	namespace NDrop
 	{
-		public struct SDropInfo
-		{
-			public Vector2 pos;
-			public eResKind eDropKind;
-			public bool isVisible;
-		}
+//		public struct SDropInfo
+//		{
+//			public Vector2 pos;
+//			public eResKind eDropKind;
+//			public bool isVisible;
+//		}
 
 
 		/// <summary>
 		/// 각각의 드롭에 대한 이동순서 정보
 		/// </summary>
-		public class CMoveSequence
-		{
-			private float m_timeDelta;
-		}
+//		public class CMoveSequence
+//		{
+//			private float m_timeDelta;
+//		}
 
 		/// <summary>
 		/// 전체 드롭의 구역별 고유 위치값 (안보이는 드롭도 포함한다)
 		/// </summary>
-		public class CLocations
-		{
-			//--- Quadrangle shape
-			private ushort m_columns;
-			private ushort m_rows;
-
-			//--- Circle shape			!!!!!!!Design forecast
-
-			//--- AnyType shape			!!!!!!!Design forecast
-
-			private ArrayList list = new ArrayList();
-			
-			public void Init(ushort columns , ushort rows)
-			{
-			}
-		}
+//		public class CLocations
+//		{
+//			//--- Quadrangle shape
+//			private ushort m_columns;
+//			private ushort m_rows;
+//
+//			//--- Circle shape			!!!!!!!Design forecast
+//
+//			//--- AnyType shape			!!!!!!!Design forecast
+//
+//			private ArrayList list = new ArrayList();
+//			
+//			public void Init(ushort columns , ushort rows)
+//			{
+//			}
+//		}
 		
 		public class CPath
 		{
@@ -527,6 +530,11 @@ namespace PuzzAndBidurgi
 	}
 
 
+	public class GroupInfo
+	{
+	}
+
+
 	/// <summary>
 	/// C drop manager.
 	/// 드롭을 생성/제거/배치 하는 관리 객체
@@ -805,7 +813,7 @@ namespace PuzzAndBidurgi
 		}
 		public void Init()
 		{
-			const byte MAX_DROPKIND = 6;
+			const byte MAX_DROPKIND = 3;
 			int COUNT_BOARDAREA = boardInfo.boardSize.ix * boardInfo.boardSize.iy ;
 			int COUNT_VIEWAREA = (boardInfo.GetMaxViewArea ()+1).ix * (boardInfo.GetMaxViewArea ()+1).iy;
 
@@ -1044,12 +1052,12 @@ namespace PuzzAndBidurgi
 //			this.SetGroupInfo (groupNumber, dstIndex + Index2.Right);
 //		}
 
-		public GroupDrop FindJoinGroup_InFourWay(MonoDrop standardDrop)
+		public BundleWithDrop FindJoinGroup_InFourWay(MonoDrop standardDrop)
 		{
 			if (null == standardDrop)
 								return null;
 
-			GroupDrop group = null;
+			BundleWithDrop group = null;
 			group = FindJoinGroup (standardDrop, standardDrop.index2D + Index2.Up);
 			if (null != group)
 				return group;
@@ -1069,7 +1077,7 @@ namespace PuzzAndBidurgi
 			return group;
 		}
 
-		public GroupDrop FindJoinGroup(MonoDrop srcDrop, Index2 dstIdx)
+		public BundleWithDrop FindJoinGroup(MonoDrop srcDrop, Index2 dstIdx)
 		{
 			//대상위치에 드롭이 있는지 검사
 			MonoDrop dstDrop = this.mapDrop.GetMonoDropByIndex2(dstIdx);
@@ -1080,19 +1088,19 @@ namespace PuzzAndBidurgi
 						return null;
 
 			//대상위치에 그룹이 있는지 검사
-			if (null == dstDrop.groupInfo || null == dstDrop.groupInfo.refBundle)
+			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle)
 						return null;
 
-			if (null != srcDrop.groupInfo) 
+			if (null != srcDrop.bundleInfo) 
 			{
 				//이미 같은 그룹주소이면 합칠 필요없음
-				if(true ==  srcDrop.groupInfo.EqualRefBundle(dstDrop.groupInfo))
+				if(true ==  srcDrop.bundleInfo.EqualRefBundle(dstDrop.bundleInfo))
 				{
 					return null;
 				}
 			}
 
-			return dstDrop.groupInfo;
+			return dstDrop.bundleInfo;
 		}
 
 		delegate bool AvailableJoin(MonoDrop start , out int jump);
@@ -1139,8 +1147,8 @@ namespace PuzzAndBidurgi
 			List<List<MonoDrop>> joins = new List<List<MonoDrop>> ();
 
 			int findGroupCount = 0;
-			GroupDrop newGroup = null;
-			GroupDrop findGroup = null;
+			BundleWithDrop newGroup = null;
+			BundleWithDrop findGroup = null;
 
 
 			PairIndex2 key_pairIdx;
@@ -1175,7 +1183,7 @@ namespace PuzzAndBidurgi
 
 					drops = new List<MonoDrop>();
 					joins.Add(drops);
-					 newGroup = GroupDrop.Create(key_pairIdx,drops);
+					 newGroup = BundleWithDrop.Create(key_pairIdx,drops);
 					findGroupCount = 0;
 
 				}
@@ -1189,7 +1197,7 @@ namespace PuzzAndBidurgi
 					{
 						//next add , end is not processed
 						drops.Add(nextDrop);
-						nextDrop.groupInfo = newGroup;
+						nextDrop.bundleInfo = newGroup;
 						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
 
 
@@ -1199,7 +1207,7 @@ namespace PuzzAndBidurgi
 							findGroup = FindJoinGroup_InFourWay(nextDrop);
 							if(null != findGroup)
 							{
-								GroupDrop.EngraftBundleData(nextDrop.groupInfo, findGroup);
+								BundleWithDrop.EngraftBundleData(nextDrop.bundleInfo, findGroup);
 								findGroupCount++;
 							}
 						}
@@ -1268,7 +1276,7 @@ namespace PuzzAndBidurgi
 				{
 					key.ix = ix;
 					drop = mapDrop.GetMonoDropByIndex2(key);
-					if(null != drop && null != drop.groupInfo)
+					if(null != drop && null != drop.bundleInfo)
 					{
 						MonoDrop.MoveToEmptySquare(drop);
 					}

@@ -35,7 +35,7 @@ public class MonoDrop : MonoBehaviour
 	private Vector3			m_gotoLocalPosition;
 
 	//join group info
-	public GroupDrop		groupInfo = null;
+	public BundleWithDrop		bundleInfo = null;
 
 
 	//==============: property definition :========================================================================================
@@ -509,7 +509,7 @@ public class MonoDrop : MonoBehaviour
 		if (null == drop)
 						return;
 
-		drop.groupInfo = null; //import!!! - dismiss group
+		drop.bundleInfo = null; //import!!! - dismiss group
 
 		//---------------------------------- move to emptySquare in nonviewArea
 		Index2 empty = Single.DropMgr.mapDrop.FindEmptySquare (Single.DropMgr.boardInfo.GetMinNonviewArea (),
@@ -930,8 +930,10 @@ public class DropInfo
 }
 
 
-
-public class GroupDrop
+/// <summary>
+/// Bundle with Drop
+/// </summary>
+public class BundleWithDrop
 {
 
 	// ***** diagram of dataStructor  **************************************
@@ -944,9 +946,11 @@ public class GroupDrop
 	//
 	// **********************************************************************
 	//public Dictionary<PairIndex2, List<List<MonoDrop>>> refBundle = null; 
+
+	//같은 조건의 드롭에 대한, 덩어리 정보
 	public T_Bundle refBundle = null; 
 
-	public bool EqualRefBundle(GroupDrop dstGroup)
+	public bool EqualRefBundle(BundleWithDrop dstGroup)
 	{
 		if (null == dstGroup)
 						return false;
@@ -1009,7 +1013,7 @@ public class GroupDrop
 	}
 	
 	//Engraft srcGroup to dstGroup
-	static public void EngraftBundleData(GroupDrop srcGroup , GroupDrop toDstGroup)
+	static public void EngraftBundleData(BundleWithDrop srcGroup , BundleWithDrop toDstGroup)
 	{
 		if (null == srcGroup || null == toDstGroup)
 			return;
@@ -1037,9 +1041,9 @@ public class GroupDrop
 		
 	}
 	
-	static public GroupDrop Create(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
+	static public BundleWithDrop Create(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
 	{
-		GroupDrop group = new GroupDrop ();
+		BundleWithDrop group = new BundleWithDrop ();
 		group.refBundle = new T_Bundle ();
 		
 		group.Add (key_OriginAndDir, refAddDrops);
