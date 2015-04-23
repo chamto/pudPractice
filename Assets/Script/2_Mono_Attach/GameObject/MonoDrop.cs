@@ -936,10 +936,10 @@ public class GroupDrop
 
 	// ***** diagram of dataStructor  **************************************
 	//
-	//bundle ------ joinsInLine<0,0> ---------- dropsInLine<0~n,0>
-	//              joinsInLine<0,1>            dropsInLine<0~n,1>
-	//              joinsInLine<0,2>                 .
-	//                   .                           .
+	//bundle ------ joinsInLine<0,0> dir<1,0> ---------- dropsInLine<0~n,0>
+	//              joinsInLine<0,1> dir<1,0>            dropsInLine<0~n,1>
+	//              joinsInLine<0,2> dir<1,0>                .
+	//                   .                                   .
 	//                   .
 	//
 	// **********************************************************************
