@@ -180,7 +180,7 @@ public class MonoDrop : MonoBehaviour
 
 	}
 
-	public void SwapgotoLocalPosition (MonoDrop dstDrop)
+	public void SwapGotoLocalPosition (MonoDrop dstDrop)
 	{
 		if (null != dstDrop) 
 		{ 
@@ -506,13 +506,23 @@ public class MonoDrop : MonoBehaviour
 		return true;
 	}
 
+
+	static public void DismissGroup(MonoDrop drop)
+	{
+		if (null != drop.bundleInfo) 
+		{
+			drop.bundleInfo.ClearBundle();
+		}
+		drop.bundleInfo = null;
+	}
 	static public void MoveToEmptySquare(MonoDrop drop)
 	{
 
 		if (null == drop)
 						return;
 
-		drop.bundleInfo = null; //import!!! - dismiss group
+		//drop.bundleInfo = null; //import!!! - dismiss group
+		MonoDrop.DismissGroup (drop);
 
 		//---------------------------------- move to emptySquare in nonviewArea
 		Index2 empty = Single.DropMgr.mapDrop.FindEmptySquare (Single.DropMgr.boardInfo.GetMinNonviewArea (),
@@ -998,14 +1008,14 @@ public class BundleData
 
 	}//end
 
-	public static void Clear(BundleData data)
+	public static void ClearData(BundleData data)
 	{
 		if (null == data)
 						return;
 
 		if(null != data.lines)
 		{
-			data.lines.Clear();
+			//data.lines.Clear(); //다른 그룹에서 참조로 사용하므로, 사용안한다고 해제하면 안된다
 			data.lines = null;
 		}
 
@@ -1025,7 +1035,29 @@ public class BundleData
 		return bundle;
 	}
 
+	public String ToStringLines()
+	{
+		String buff = "lineCount :" + lines.Count;
 
+		foreach (List<List<MonoDrop>> listlist in lines.Values) 
+		{
+			if(null == listlist) continue;
+
+			buff = String.Concat (buff+"\nLines :");
+			foreach (List<MonoDrop> list in listlist)
+			{
+				if(null == list) continue;
+				
+				foreach (MonoDrop drop in list)
+				{
+					if(null == drop) continue;
+					
+					buff = String.Concat (buff + " : " + drop.index2D);
+				}
+			}
+		}
+		return buff;
+	}	
 }
 
 /// <summary>
@@ -1056,6 +1088,17 @@ public class BundleWithDrop
 		return true;
 	}
 
+
+	public void ClearBundle()
+	{
+		//CDefine.DebugLog ("--------------------------------ClearBundle!!!!!!!!!!!!"); //chamto test
+		if(null != this.refBundle)
+		{
+			BundleData.ClearData(this.refBundle);
+		}
+
+		this.refBundle = null;
+	}
 
 	//public void Add(Index2 firstIdxOfColumAndRow, List<MonoDrop> listJoinDrop)
 	public void Add(PairIndex2 key_OriginAndDir, T_DropsInLine refAddDrops)
@@ -1123,7 +1166,8 @@ public class BundleWithDrop
 			}
 		}
 
-		BundleData.Clear (srcGroup.refBundle);
+		//BundleData.Clear (srcGroup.refBundle);
+		srcGroup.ClearBundle ();
 
 		//Importance !! : Engraft the all refPointer
 		srcGroup.refBundle = toDstGroup.refBundle;

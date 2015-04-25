@@ -69,9 +69,10 @@ public class MonoDebug : MonoBehaviour
 		Rule_PuzzleAndDragon rule = Single.MonoMain.rules as Rule_PuzzleAndDragon; 
 		if (GUI.Button (new Rect (10, 10+70+70, 100, 70), "Custom : " + rule.stateElapsedTime + " second")) 
 		{
-			Single.MonoMain.rules.NextState();
+			//Single.MonoMain.rules.NextState();
 
-			CDefine.DebugLog ("current State : " + rule.state);
+			//CDefine.DebugLog ("current State : " + rule.state);
+			Single.DropMgr.FindJoinConditions(3); //chamto test
 		}
 	}
 #endif

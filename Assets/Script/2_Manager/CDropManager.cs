@@ -616,31 +616,32 @@ namespace PuzzAndBidurgi
 			String buff = "";
 			foreach (BundleData data in m_listBundle) 
 			{
-				if (null == data || null == data.lines || null == data.mapFull)
+				if (null == data || null == data.lines)
 					continue;
 				
 
 				Debug.Log ("----------PrintListBundle2------------");
-				foreach (List<List<MonoDrop>> listlist in data.lines.Values) 
-				{
-					if(null == listlist) continue;
-					buff = "";
-					Debug.Log ("     -- rows , colums --");
-					foreach (List<MonoDrop> list in listlist)
-					{
-						if(null == list) continue;
-
-						foreach (MonoDrop drop in list)
-						{
-							if(null == drop) continue;
-							
-							buff = String.Concat (buff + " : " + drop.index2D);
-						}
-						buff = String.Concat (buff + " --- ");
-					}
-					Debug.Log (buff);
-
-				}
+//
+//				foreach (List<List<MonoDrop>> listlist in data.lines.Values) 
+//				{
+//					if(null == listlist) continue;
+//					buff = "";
+//					Debug.Log ("     -- rows , colums --");
+//					foreach (List<MonoDrop> list in listlist)
+//					{
+//						if(null == list) continue;
+//
+//						foreach (MonoDrop drop in list)
+//						{
+//							if(null == drop) continue;
+//							
+//							buff = String.Concat (buff + " : " + drop.index2D);
+//						}
+//						buff = String.Concat (buff + " --- ");
+//					}
+//					Debug.Log (buff);
+//				}
+				Debug.Log (data.ToStringLines());
 
 			}
 			
@@ -863,7 +864,7 @@ namespace PuzzAndBidurgi
 
 
 			//3. swap localPosition of monoDrop
-			temp1.SwapgotoLocalPosition (temp2);
+			temp1.SwapGotoLocalPosition (temp2);
 
 			if (true == applyPosition) 
 			{
@@ -1050,6 +1051,8 @@ namespace PuzzAndBidurgi
 				{
 					//Debug.Log("111----------------------------------------:"+pDropInMap);
 					pDropInDebug.setDropKind = pDropInMap.dropKind;
+					pDropInDebug.SetColor(Color.gray);
+
 				}
 				if(null == pDropInMap && null != pDropInDebug)
 				{
@@ -1354,7 +1357,13 @@ namespace PuzzAndBidurgi
 							findGroup = FindJoinGroup_InFourWay(nextDrop);
 							if(null != findGroup)
 							{
-								BundleWithDrop.EngraftBundleData(nextDrop.bundleInfo, findGroup);
+								CDefine.DebugLog(nextDrop.index2D+ ": dir : " + direction +" : findJoinGroup : "+ findGroup + " refBundle : " + findGroup.refBundle);//chamto test
+								if(null == findGroup.refBundle.lines)
+								{
+									CDefine.DebugLogWarning("!!!! null == findGroup.refBundle.lines");
+								}
+								CDefine.DebugLog(findGroup.refBundle.ToStringLines());
+								BundleWithDrop.EngraftBundleData(newGroup, findGroup);
 								//findGroupCount++;
 							}
 						}
