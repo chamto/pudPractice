@@ -511,7 +511,7 @@ public class MonoDrop : MonoBehaviour
 	{
 		if (null != drop.bundleInfo) 
 		{
-			drop.bundleInfo.ClearBundle();
+			drop.bundleInfo.DissmissBundle();
 		}
 		drop.bundleInfo = null;
 	}
@@ -1008,6 +1008,18 @@ public class BundleData
 
 	}//end
 
+	public static void DismissLines(BundleData data)
+	{
+		if (null == data)
+			return;
+		
+		if(null != data.lines)
+		{
+			//data.lines.Clear(); //다른 그룹에서 참조로 사용하므로, 사용안한다고 해제하면 안된다
+			data.lines = null;
+		}
+	}
+
 	public static void ClearData(BundleData data)
 	{
 		if (null == data)
@@ -1015,7 +1027,7 @@ public class BundleData
 
 		if(null != data.lines)
 		{
-			//data.lines.Clear(); //다른 그룹에서 참조로 사용하므로, 사용안한다고 해제하면 안된다
+			data.lines.Clear(); 
 			data.lines = null;
 		}
 
@@ -1089,12 +1101,12 @@ public class BundleWithDrop
 	}
 
 
-	public void ClearBundle()
+	public void DissmissBundle()
 	{
 		//CDefine.DebugLog ("--------------------------------ClearBundle!!!!!!!!!!!!"); //chamto test
 		if(null != this.refBundle)
 		{
-			BundleData.ClearData(this.refBundle);
+			BundleData.DismissLines(this.refBundle);
 		}
 
 		this.refBundle = null;
@@ -1167,7 +1179,7 @@ public class BundleWithDrop
 		}
 
 		//BundleData.Clear (srcGroup.refBundle);
-		srcGroup.ClearBundle ();
+		srcGroup.DissmissBundle ();
 
 		//Importance !! : Engraft the all refPointer
 		srcGroup.refBundle = toDstGroup.refBundle;
