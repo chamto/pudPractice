@@ -1337,7 +1337,7 @@ namespace PuzzAndBidurgi
 						if(false == this.boardInfo.BelongToViewArea(compareIndex))
 							compareDrop = null;
 
-						CDefine.DebugLog(i+" - compareIndex : "+compareIndex); //chamto test
+						//CDefine.DebugLog(i+" - compareIndex : "+compareIndex); //chamto test
 
 						continue;
 					}
@@ -1385,6 +1385,7 @@ namespace PuzzAndBidurgi
 					}else
 					{
 						drops = null;
+						i-=1;
 					}
 				}		
 

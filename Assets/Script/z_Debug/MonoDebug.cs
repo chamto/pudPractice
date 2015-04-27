@@ -47,8 +47,8 @@ public class MonoDebug : MonoBehaviour
 			//CDefine.DebugLog("MoveNextJoinDrops start -----------------------------");
 
 
-			Single.DropMgr.MoveAllJoinDrops ();
-			//Single.DropMgr.MoveNextJoinDrops ();
+			//Single.DropMgr.MoveAllJoinDrops ();
+			Single.DropMgr.MoveNextJoinDrops ();
 			//Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 			//Single.DropMgr.WholeDroppingOnView();
 			//Single.DropMgr.mapDrop.Debug_PrintMap();
