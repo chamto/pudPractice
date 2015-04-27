@@ -1237,7 +1237,8 @@ namespace PuzzAndBidurgi
 						return null;
 
 			//대상위치에 그룹이 있는지 검사
-			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle)
+			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle 
+			    || null == dstDrop.bundleInfo.refBundle.lines) //chamto temp
 			//if (null == dstDrop.bundleInfo)
 						return null;
 
@@ -1401,6 +1402,7 @@ namespace PuzzAndBidurgi
 		{
 
 			m_groupDrop.Clear ();
+			this.DismissGroupInfoWithDrop (); //chamto test
 
 			//List<List<MonoDrop>> listLineTotal = null;
 			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
@@ -1433,8 +1435,6 @@ namespace PuzzAndBidurgi
 			//this.MoveAllJoinDrops ();
 
 			Udpate_DebugGroupInfo (); //chamto test
-
-			this.DismissGroupInfoWithDrop (); //chamto test
 
 
 			return m_groupDrop;
