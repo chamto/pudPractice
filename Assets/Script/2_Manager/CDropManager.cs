@@ -1450,16 +1450,18 @@ namespace PuzzAndBidurgi
 			return m_groupDrop;
 		}
 	
-		public void MoveNextJoinDrops()
+		public Dictionary<Index2,MonoDrop> MoveNextJoinDrops()
 		{
 			Dictionary<Index2,MonoDrop> mapBundle = m_groupDrop.Next ();
 			//Debug.Log (mapBundle + " - MoveNextJoinDrops" );  //chamto test
 			if (null == mapBundle)
-								return;
+								return null;
 			foreach (MonoDrop drop in mapBundle.Values) 
 			{
 				MonoDrop.MoveToEmptySquare(drop);
 			}
+
+			return mapBundle;
 		}
 
 

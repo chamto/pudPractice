@@ -343,12 +343,16 @@ public class MonoDrop : MonoBehaviour
 
 		//20150403 chamto test
 		//MonoDrop.Remove (this);
-		const int MIN_JOIN_NUMBER = 3;
-		Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
+		//const int MIN_JOIN_NUMBER = 3;
+		//Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
 		//Single.DropMgr.MoveAllJoinDrops ();
 		//Single.DropMgr.MoveNextJoinDrops ();
 		//Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 		//Single.DropMgr.WholeDroppingOnView ();
+
+
+		this.StopCoroutine ("cortnMovingComboAni");
+		StartCoroutine ("cortnMovingComboAni");
 
 	}
 
@@ -359,6 +363,39 @@ public class MonoDrop : MonoBehaviour
 		v3Pos.z = -1;
 		transform.position = v3Pos;
 	}
+
+
+	IEnumerator cortnMovingComboAni()
+	{
+
+		Single.InputMgr.permitEvent_DropTouch = false;
+
+		const int MIN_JOIN_NUMBER = 3;
+
+		GroupDrop groupDrop = Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
+
+
+		while (0 != groupDrop.GetMaxCount()) 
+		{
+			if(groupDrop.GetNextCount() == groupDrop.GetMaxCount())
+			{
+				yield return new WaitForSeconds(0.7f);
+				Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
+				Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
+			}
+
+			yield return new WaitForSeconds(0.7f);
+
+			Single.DropMgr.MoveNextJoinDrops ();
+
+		}
+
+
+		yield return new WaitForSeconds(1.2f);
+		Single.InputMgr.permitEvent_DropTouch = true;
+
+	}
+
 	//==============: collision method :========================================================================================
 
 	//20140830 chamto - ccdTest function
@@ -539,7 +576,8 @@ public class MonoDrop : MonoBehaviour
 			drop.aniSpeed = 5;
 			drop.MovingAni(drop.gotoLocalPosition);
 			drop.GetBoxCollider2D().enabled = false;
-			drop.setDropKind = Single.DropMgr.GetRandDrop(9);
+			//drop.setDropKind = Single.DropMgr.GetRandDrop(9);
+			drop.setDropKind = Single.DropMgr.GetRandDrop(4);
 		}
 
 #if UNITY_EDITOR

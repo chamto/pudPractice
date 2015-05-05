@@ -69,7 +69,7 @@ public class Rule_PuzzleAndDragon  :  BaseRules
 		{
 			case eState.Step00_Waiting:
 			{
-				Single.InputMgr.permitEvent_DropTouch = true;
+				//Single.InputMgr.permitEvent_DropTouch = true;  //chamto temp
 
 			}
 			break;
