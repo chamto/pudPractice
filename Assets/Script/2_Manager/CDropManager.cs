@@ -607,11 +607,11 @@ namespace PuzzAndBidurgi
 				foreach (BundleData deathData in deathList) 
 				{
 					//Debug.Log(deathList.Count+"   " + m_listBundle.Count); //chamto test
-					//m_listBundle.Remove(deathData);
+					m_listRefData.Remove(deathData);
 				}			
 			}
 
-			this.PrintListBundle2 (); //chamto test
+			this.PrintListBundle_mapFull (); //chamto test
 
 		}
 
@@ -641,7 +641,7 @@ namespace PuzzAndBidurgi
 			m_listRefDrop.Clear ();
 		}
 
-		public void PrintListBundle2()
+		public void PrintListBundle_lines()
 		{
 
 			foreach (BundleData data in m_listRefData) 
@@ -656,7 +656,7 @@ namespace PuzzAndBidurgi
 			
 		}
 
-		public void PrintListBundle()
+		public void PrintListBundle_mapFull()
 		{
 			String buff = "";
 			foreach (BundleData data in m_listRefData) 
@@ -665,7 +665,7 @@ namespace PuzzAndBidurgi
 					continue;
 				
 				buff = "";
-				Debug.Log ("----------PrintListBundle------------");
+				Debug.Log ("----------PrintListBundle------------"+m_listRefData.Count);
 				foreach (Index2 idx in data.mapFull.Keys) 
 				{
 					buff = String.Concat (buff + " : " + idx);
@@ -1236,11 +1236,19 @@ namespace PuzzAndBidurgi
 			if (srcDrop.dropKind != dstDrop.dropKind)
 						return null;
 
+
+			if(null != dstDrop.bundleInfo && null != dstDrop.bundleInfo.refBundle 
+			   && null == dstDrop.bundleInfo.refBundle.lines)
+				CDefine.DebugLogWarning("--------------------problem !! ------FindJoinGroup : srcIdx:"+srcDrop.index2D+" dstIdx:" + dstIdx); //chamto test
+
 			//대상위치에 그룹이 있는지 검사
-			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle 
-			    || null == dstDrop.bundleInfo.refBundle.lines) //chamto temp
 			//if (null == dstDrop.bundleInfo)
-						return null;
+			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle //)
+			    || null == dstDrop.bundleInfo.refBundle.lines)  //chamto temp
+			{ 
+			 		
+				return null;
+			}
 
 			if (null != srcDrop.bundleInfo) 
 			{
@@ -1311,7 +1319,7 @@ namespace PuzzAndBidurgi
 			key_pairIdx.direction.iy = (int)direction.y;
 			key_pairIdx.origin = startIxy;
 
-			CDefine.DebugLog ("----------LineInspection : dir : " + direction + "----------"); //chamto test
+			//CDefine.DebugLog ("----------LineInspection : dir : " + direction + "----------"); //chamto test
 			for (int i=0; i <= lengthOfLine; i++) 
 			{
 
@@ -1372,12 +1380,12 @@ namespace PuzzAndBidurgi
 							findGroup = FindJoinGroup_InFourWay(nextDrop);
 							if(null != findGroup)
 							{
-								CDefine.DebugLog(nextDrop.index2D+ ": dir : " + direction +" : findJoinGroup : "+ findGroup + " refBundle : " + findGroup.refBundle);//chamto test
+								//CDefine.DebugLog(nextDrop.index2D+ ": dir : " + direction +" : findJoinGroup : "+ findGroup + " refBundle : " + findGroup.refBundle);//chamto test
 								if(null == findGroup.refBundle.lines)
 								{
 									CDefine.DebugLogWarning("!!!! null == findGroup.refBundle.lines");
 								}
-								CDefine.DebugLog(findGroup.refBundle.ToStringLines());
+								//CDefine.DebugLog(findGroup.refBundle.ToStringLines());
 								BundleWithDrop.EngraftBundleData(refDrop, findGroup);
 								//findGroupCount++;
 							}
@@ -1402,7 +1410,7 @@ namespace PuzzAndBidurgi
 		{
 
 			m_groupDrop.Clear ();
-			this.DismissGroupInfoWithDrop (); //chamto test
+			//this.DismissGroupInfoWithDrop (); //chamto test
 
 			//List<List<MonoDrop>> listLineTotal = null;
 			Index2 minView = this.boardInfo.GetIndexAt_ViewLeftBottom ();
@@ -1418,7 +1426,7 @@ namespace PuzzAndBidurgi
 				key.ix = 0;
 				//listLineTotal = LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
 				LineInspection(key, Vector3.right, (ushort)maxColumn, minJoin);
-
+				
 			}//endfor
 
 			for (int ix=0; ix <= maxColumn; ix++) 
@@ -1427,13 +1435,14 @@ namespace PuzzAndBidurgi
 				key.ix = ix;
 				//listLineTotal = LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
 				LineInspection(key, Vector3.up, (ushort)maxRow, minJoin);
-
+				
 			}//endfor
 
 
 			m_groupDrop.UpdateMap();
 			//this.MoveAllJoinDrops ();
 
+			//m_groupDrop.DismissRefDrop (); //chamto test
 			Udpate_DebugGroupInfo (); //chamto test
 
 
@@ -1530,7 +1539,8 @@ namespace PuzzAndBidurgi
 					_debugMap.TryGetValue(key,out drop);
 					drop2 = mapDrop.GetMonoDropByIndex2(key);
 					drop.SetColor(Color.gray);
-					if(null != drop2 && null != drop2.bundleInfo)
+
+					if(null != drop2 && null != drop2.bundleInfo && null != drop2.bundleInfo.refBundle)
 					{
 
 						switch(drop2.dropKind)
@@ -1583,7 +1593,12 @@ namespace PuzzAndBidurgi
 						}
 
 						
-					}
+					}//endif
+
+					if(null != drop2 && null != drop2.bundleInfo && null != drop2.bundleInfo.refBundle && null == drop2.bundleInfo.refBundle.lines)
+					{
+						drop.SetColor(new Color(1,0,0,0.7f));
+					}	
 					
 				}//endfor
 				
