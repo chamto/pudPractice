@@ -75,7 +75,7 @@ public class Rule_PuzzleAndDragon  :  BaseRules
 			break;
 			case eState.Step01_DropMove:
 			{
-				Single.InputMgr.permitEvent_DropTouch = true;
+				//Single.InputMgr.permitEvent_DropTouch = true;
 				
 				m_stateElapsedTime += Time.deltaTime;
 

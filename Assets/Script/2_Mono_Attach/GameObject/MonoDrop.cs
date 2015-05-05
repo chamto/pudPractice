@@ -350,7 +350,7 @@ public class MonoDrop : MonoBehaviour
 		//Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 		//Single.DropMgr.WholeDroppingOnView ();
 
-
+		this.StopCoroutine("cortnMouseDrag");
 		this.StopCoroutine ("cortnMovingComboAni");
 		StartCoroutine ("cortnMovingComboAni");
 
