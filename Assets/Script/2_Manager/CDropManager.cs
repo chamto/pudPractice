@@ -1354,7 +1354,8 @@ namespace PuzzAndBidurgi
 
 					drops = new List<MonoDrop>();
 					joins.Add(drops);
-					 refDrop = BundleWithDrop.Create(key_pairIdx,drops);
+					refDrop = BundleWithDrop.Create(key_pairIdx,drops);
+					refDrop.refBundle.AddRefInfo(refDrop);
 					m_groupDrop.AddRefData(refDrop.refBundle);
 					m_groupDrop.AddRefDrop(refDrop);
 					//findGroupCount = 0;

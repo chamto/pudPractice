@@ -7,6 +7,7 @@ using System.Linq;
 using PuzzAndBidurgi;
 
 using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
+//using T_JoinsInLine = System.Collections.Generic.Dictionary<BundleWithDrop,System.Collections.Generic.List<MonoDrop>> ;
 using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
 using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
 
@@ -968,6 +969,41 @@ public class BundleData
 	//지정된 조건의 전체 드롭정보를 저장
 	public Dictionary<Index2, MonoDrop> mapFull	= null;
 
+	public List<BundleWithDrop>			listRefDrop = null;
+
+
+	public void AddRefInfo(BundleWithDrop refInfo)
+	{
+		if (null == refInfo || null == listRefDrop)
+						return;
+
+		if (true == listRefDrop.Contains (refInfo))
+						return;
+
+		listRefDrop.Add (refInfo);
+	}
+
+	public void CopyRefInfoList(List<BundleWithDrop> src_refInfoList)
+	{
+		if (null == listRefDrop || null == src_refInfoList)
+						return;
+
+		foreach (BundleWithDrop getRef in src_refInfoList) 
+		{
+			AddRefInfo(getRef);
+		}
+
+	}
+
+	public void UpdateRefInfoList_ToThis()
+	{
+		foreach (BundleWithDrop getRef in listRefDrop) 
+		{
+			if(null == getRef || null == getRef.refBundle) continue;
+			
+			getRef.refBundle = this;
+		}
+	}
 
 	public void UpdateMap()
 	{
@@ -1036,6 +1072,12 @@ public class BundleData
 			data.mapFull.Clear();
 			data.mapFull = null;
 		}
+
+		if(null != data.listRefDrop)
+		{
+			data.listRefDrop.Clear();
+			data.listRefDrop = null;
+		}
 	}
 
 	public static BundleData Create()
@@ -1043,6 +1085,7 @@ public class BundleData
 		BundleData bundle = new BundleData();
 		bundle.lines = new T_Bundle ();
 		bundle.mapFull = new Dictionary<Index2, MonoDrop> ();
+		bundle.listRefDrop = new List<BundleWithDrop> ();
 
 		return bundle;
 	}
@@ -1109,7 +1152,7 @@ public class BundleWithDrop
 			BundleData.DismissLines(this.refBundle);
 		}
 
-		this.refBundle = null;
+		//this.refBundle = null; //chamto temp
 	}
 
 	//public void Add(Index2 firstIdxOfColumAndRow, List<MonoDrop> listJoinDrop)
@@ -1120,7 +1163,6 @@ public class BundleWithDrop
 			CDefine.DebugLogError("error !!! : null == refBundle");
 			return;				
 		}
-
 
 		//List<List<MonoDrop>> rows = null;
 		T_JoinsInLine refJoins = null;
@@ -1157,6 +1199,9 @@ public class BundleWithDrop
 	{
 		if (null == srcGroup || null == toDstGroup)
 			return;
+
+		//CDefine.DebugLog ("----Engraft : \n-->src : " + srcGroup.refBundle.ToStringLines() + " \n-->dst : " + toDstGroup.refBundle.ToStringLines()); //chamto test
+
 		if (true == srcGroup.EqualRefBundle (toDstGroup))
 			return;
 
@@ -1178,11 +1223,15 @@ public class BundleWithDrop
 			}
 		}
 
+		toDstGroup.refBundle.CopyRefInfoList (srcGroup.refBundle.listRefDrop);
+
 		//BundleData.Clear (srcGroup.refBundle);
 		srcGroup.DissmissBundle ();
+		//BundleData.DismissLines(this.refBundle);
 
 		//Importance !! : Engraft the all refPointer
-		srcGroup.refBundle = toDstGroup.refBundle;
+		//srcGroup.refBundle = toDstGroup.refBundle;
+		toDstGroup.refBundle.UpdateRefInfoList_ToThis ();
 		
 	}
 	
