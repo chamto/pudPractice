@@ -242,19 +242,13 @@ public class MonoDrop : MonoBehaviour
 	//==============: Touch method :========================================================================================
 
 	//drag test code .. afterwards completing
-	void test_TouchDrag()
+	void test_TouchDrag(Vector3 offset)
 	{
 		Vector2 touchPos = Input_Unity.GetTouchPos();
-		Vector3 scrSpace = Camera.main.WorldToScreenPoint (transform.position);
-//		Vector3 offset = transform.position - Camera.main.ScreenToWorldPoint (new Vector3 (touchPos.x, touchPos.y, scrSpace.z));
 
-			
-		Vector3 curScreenSpace = new Vector3 (touchPos.x, touchPos.y, scrSpace.z);
-//		Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
-//			transform.position = curPosition;
-
-
-		transform.position = Camera.main.ScreenToWorldPoint(curScreenSpace);
+		Vector3 curScreenSpace = new Vector3 (touchPos.x, touchPos.y, 0);
+		transform.position = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
+		//transform.position = Camera.main.ScreenToWorldPoint (curScreenSpace);
 	}
 
 	//cortn : coroutine
@@ -264,6 +258,10 @@ public class MonoDrop : MonoBehaviour
 		Vector3 scrSpace = Camera.main.WorldToScreenPoint (transform.position);
 		Vector3 offset = transform.position - Camera.main.ScreenToWorldPoint (new Vector3 (touchPos.x, touchPos.y, scrSpace.z));
 		//CDefine.DebugLog(offset + "---"); //chamto test
+
+
+		//if (Math.Abs(offset.x) > 1.15f/4f || Math.Abs(offset.y) > 1.15f/4f) 
+						//yield break;
 
 		Vector3 curScreenSpace;
 		Vector3 curPosition;
@@ -278,6 +276,7 @@ public class MonoDrop : MonoBehaviour
 			{
 				curScreenSpace = new Vector3 (touchPos.x, touchPos.y, scrSpace.z);
 				curPosition = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
+
 				transform.position = curPosition;
 				//CDefine.DebugLog("cortnMouseDrag : [" + gameObject.name + "] offset : " + offset + " touchPos : " + touchPos + " curPosition : " + curPosition + "  sqMag:" + (touchPos - prevTouchPos).sqrMagnitude); //chamto test
 			}
@@ -288,7 +287,7 @@ public class MonoDrop : MonoBehaviour
 
 		}
 
-		TouchEnded(); //after process
+		//TouchEnded(); //after process
 		//CDefine.DebugLog("cortnMouseDrag end"); //chamto test
 
 
@@ -299,14 +298,22 @@ public class MonoDrop : MonoBehaviour
 		if (false == Single.InputMgr.permitEvent_DropTouch)
 						return;
 
+		//if(true == Single.DropMgr.groupDrop.ContainsDrop_FromMap (this)) return;
+
 		//CDefine.DebugLog("___________________TouchBegan "+ gameObject.name+"___________________");
 		//CDefine.DebugLog("TouchBegan : " + CInputManager.IsTouch());
 
 		StopAni (); //20150417 chamto - 애니메이션 코루틴을 정지시킨 후 드래그 코루틴을 활성화한다. (버그수정 1-1-2 : 동시에 하나의 대상에 대하여 위치갱신하여, 드롭이 떨리는 문제 발생)
 		this.DropSpriteUp ();
-		StartCoroutine("cortnMouseDrag");
+		//StartCoroutine("cortnMouseDrag");
+
+		//------------------------------------------------
+		Vector2 touchPos = Input_Unity.GetTouchPos();
+		_offset = transform.position - Camera.main.ScreenToWorldPoint (new Vector3 (touchPos.x, touchPos.y, 0));
 
 	}
+
+	Vector3 _offset = Vector3.zero; //chamto temp
 	void TouchMoved() 
 	{
 		if (false == Single.InputMgr.permitEvent_DropTouch)
@@ -325,6 +332,8 @@ public class MonoDrop : MonoBehaviour
 		//CDefine.DebugLog("___________________TouchMoved "+gameObject.name+"___________________");
 		//CDefine.DebugLog("TouchMoved : " + CInputManager.IsTouch());
 		//TouchDrag(); //chamto test
+
+		test_TouchDrag (_offset); //chamto temp
 
 		OnCollision(); //chamto test
 
@@ -350,7 +359,7 @@ public class MonoDrop : MonoBehaviour
 		//Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 		//Single.DropMgr.WholeDroppingOnView ();
 
-		this.StopCoroutine("cortnMouseDrag");
+		this.StopCoroutine("cortnMouseDrag"); 
 		this.StopCoroutine ("cortnMovingComboAni");
 		StartCoroutine ("cortnMovingComboAni");
 
@@ -577,7 +586,7 @@ public class MonoDrop : MonoBehaviour
 			drop.MovingAni(drop.gotoLocalPosition);
 			drop.GetBoxCollider2D().enabled = false;
 			//drop.setDropKind = Single.DropMgr.GetRandDrop(9);
-			drop.setDropKind = Single.DropMgr.GetRandDrop(4);
+			drop.setDropKind = Single.DropMgr.GetRandDrop(5);
 		}
 
 #if UNITY_EDITOR
@@ -1009,6 +1018,17 @@ public class BundleData
 
 	public List<BundleWithDrop>			listRefDrop = null;
 
+	public bool ContainsDrop_FromMap(Index2 dropIdx)
+	{
+		if (null == mapFull)
+						return false;
+
+		MonoDrop drop = null;
+		mapFull.TryGetValue (dropIdx, out drop);
+		if (null == drop)
+						return false;
+		return true;
+	}
 
 	public void AddRefInfo(BundleWithDrop refInfo)
 	{

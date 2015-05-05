@@ -539,6 +539,22 @@ namespace PuzzAndBidurgi
 		private List<BundleWithDrop>	m_listRefDrop = new List<BundleWithDrop> ();
 		private int 					m_nextCount = 0;
 		//Queue<BundleData> m_q = new Queue<BundleData>();
+
+
+		public bool ContainsDrop_FromMap(MonoDrop drop)
+		{
+			if (null == drop)
+								return false;
+
+			foreach (BundleData data in m_listRefData) 
+			{
+				if(null == data) continue;
+				if(true == data.ContainsDrop_FromMap(drop.index2D)) return true;
+			}
+
+			return false;
+		}
+
 		public Dictionary<Index2,MonoDrop> Next()
 		{
 			//Debug.Log (m_listBundle.Count + " - group count"); //chamto test
@@ -712,6 +728,13 @@ namespace PuzzAndBidurgi
 			get 
 			{
 				return m_boardInfo;
+			}
+		}
+		public GroupDrop					groupDrop 
+		{
+			get 
+			{
+				return m_groupDrop;
 			}
 		}
 		public Index2						VIEW_SIZE
@@ -957,7 +980,7 @@ namespace PuzzAndBidurgi
 		}
 		public void Init()
 		{
-			const byte MAX_DROPKIND = 3;
+			const byte MAX_DROPKIND = 5;
 			int COUNT_BOARDAREA = boardInfo.boardSize.ix * boardInfo.boardSize.iy ;
 			int COUNT_VIEWAREA = (boardInfo.GetMaxViewArea ()+1).ix * (boardInfo.GetMaxViewArea ()+1).iy;
 
