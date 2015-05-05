@@ -58,7 +58,7 @@ public class MonoDebug : MonoBehaviour
 		if (GUI.Button (new Rect (10, 10+70, 100, 70), "Whole DroppingBoard")) 
 		{
 
-			const int MIN_JOIN_NUMBER = 3;
+			//const int MIN_JOIN_NUMBER = 3;
 			//Single.DropMgr.FindJoinConditions (MIN_JOIN_NUMBER);
 			Single.DropMgr.WholeDropping (Single.DropMgr.boardInfo.GetMinBoardArea(), Single.DropMgr.boardInfo.GetMaxBoardArea());
 			//Time.timeScale += 0.1f;

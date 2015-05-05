@@ -11,8 +11,10 @@ public class TestRandom : MonoBehaviour
 	System.Random rndDrop = new System.Random();
 	int rand = 0;
 
+#if UNITY_EDITOR
 	int tryNumber = 0;
 	int trySuccess = 0;
+#endif
 
 	// Use this for initialization
 	void Start () 

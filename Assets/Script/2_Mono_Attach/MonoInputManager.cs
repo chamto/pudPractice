@@ -104,17 +104,17 @@ public class MonoInputManager : MonoBehaviour
 	// Update is called once per frame
 	void doNotUse_Update () 
 	{
-		if(false)
-		//if(Input.mousePresent)
-		{
-			CDefine.DebugLog("Update Mouse Input!! -----"); //chamto test
-
-			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-			
-			ProcessInput(
-				RayCast2D(ray),RayCast3D(ray));
-		}
+		//if(false)
+		////if(Input.mousePresent)
+//		{
+//			CDefine.DebugLog("Update Mouse Input!! -----"); //chamto test
+//
+//			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+//
+//			
+//			ProcessInput(
+//				RayCast2D(ray),RayCast3D(ray));
+//		}
 		if(Input.touchCount > 0 )
 		{
 			CDefine.DebugLog("Update Touch Input!! -----"); //chamto test

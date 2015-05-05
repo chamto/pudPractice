@@ -81,10 +81,10 @@ namespace PuzzAndBidurgi
 			{
 				//chamto test
 				//CDefine.DebugLog("=-=-=-=-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-=");
-				foreach(KeyValuePair<float,MonoDrop>  kv in m_dtnrMovedPath)
-				{
+				//foreach(KeyValuePair<float,MonoDrop>  kv in m_dtnrMovedPath)
+				//{
 					//CDefine.DebugLog(kv.Key + "  " + kv.Value.name);
-				}
+				//}
 				
 				m_dtnrMovedPath.Clear();
 			}
@@ -336,7 +336,7 @@ namespace PuzzAndBidurgi
 
 		private Index2 		m_viewSize;
 		private Index2 		m_viewPosition;
-		private eStandard 	m_eViewStandard;
+		//private eStandard 	m_eViewStandard;
 
 		public float squareWidth
 		{
@@ -376,7 +376,7 @@ namespace PuzzAndBidurgi
 			m_viewSize = new Index2 (6, 5);
 
 			m_viewPosition = new Index2 (0, 0);
-			m_eViewStandard = eStandard.eLeftBottom;
+			//m_eViewStandard = eStandard.eLeftBottom;
 		}
 
 
@@ -1444,7 +1444,10 @@ namespace PuzzAndBidurgi
 			//this.MoveAllJoinDrops ();
 
 			//m_groupDrop.DismissRefDrop (); //chamto test
+
+#if UNITY_EDITOR
 			Udpate_DebugGroupInfo (); //chamto test
+#endif
 
 
 			return m_groupDrop;
