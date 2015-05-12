@@ -2,7 +2,10 @@
 using System.Collections;
 using PuzzAndBidurgi;
 
-public class MonoStage : MonoBehaviour {
+public class MonoStage : MonoBehaviour 
+{
+
+
 
 
 	void Awake()
