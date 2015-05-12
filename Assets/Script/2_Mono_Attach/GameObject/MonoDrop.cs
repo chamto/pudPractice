@@ -258,10 +258,12 @@ public class MonoDrop : MonoBehaviour
 		Vector3 scrSpace = Camera.main.WorldToScreenPoint (transform.position);
 		Vector3 offset = transform.position - Camera.main.ScreenToWorldPoint (new Vector3 (touchPos.x, touchPos.y, scrSpace.z));
 		//CDefine.DebugLog(offset + "---"); //chamto test
+//		if (Math.Abs (offset.x) > 1.15f / 2f) 
+//						offset.x = 0;
+//		if (Math.Abs (offset.y) > 1.15f / 2f) 
+//			offset.y = 0;
 
 
-		//if (Math.Abs(offset.x) > 1.15f/4f || Math.Abs(offset.y) > 1.15f/4f) 
-						//yield break;
 
 		Vector3 curScreenSpace;
 		Vector3 curPosition;

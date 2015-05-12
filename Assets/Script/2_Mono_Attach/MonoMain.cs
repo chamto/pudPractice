@@ -23,8 +23,8 @@ public class MonoMain : MonoBehaviour
 	void Awake()
 	{
 		CSingleton<CResoureManager>.Instance.Init();
-		CSingleton<CDropManager>.Instance.Init();
-
+		//CSingleton<CDropManager>.Instance.Init();
+		MonoStage.Create ("0_Stage_Practics");
 		m_rules = Rule_PuzzleAndDragon.Factory ();
 
 	}

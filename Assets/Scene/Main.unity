@@ -431,6 +431,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_textMesh_Index2: {fileID: 0}
   m_textMesh_LocalIdx: {fileID: 0}
+  aniSpeed: 30
   m_eKind: 0
 --- !u!1 &825200395
 GameObject:
@@ -772,6 +773,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1859684921}
   m_RootOrder: 0
+--- !u!1 &1316576864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 1316576865}
+  m_Layer: 0
+  m_Name: UIMapRoot_Prev
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1316576865
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1316576864}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.30000019, y: -5.19999981, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1859684921}
+  m_RootOrder: 8
 --- !u!1 &1660156825
 GameObject:
   m_ObjectHideFlags: 0
@@ -932,6 +960,7 @@ Transform:
   - {fileID: 677249949}
   - {fileID: 825200396}
   - {fileID: 932901352}
+  - {fileID: 1316576865}
   m_Father: {fileID: 0}
   m_RootOrder: 4
 --- !u!114 &1859684922
