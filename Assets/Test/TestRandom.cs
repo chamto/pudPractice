@@ -36,9 +36,9 @@ public class TestRandom : MonoBehaviour
 		if (null != cube1) 
 		{
 			if(1 == rand)
-				cube1.gameObject.renderer.material.color = Color.blue;
+				cube1.gameObject.GetComponent<Renderer>().material.color = Color.blue;
 			else
-				cube1.gameObject.renderer.material.color = Color.white;
+				cube1.gameObject.GetComponent<Renderer>().material.color = Color.white;
 		}
 
 		if (1 != rand)
@@ -52,10 +52,10 @@ public class TestRandom : MonoBehaviour
 			if(4 <= accumulation)
 			{
 				Debug.LogWarning ("-----------accumulation-"+accumulation+"-!-------------");
-				cube2.gameObject.renderer.material.color = Color.red;
+				cube2.gameObject.GetComponent<Renderer>().material.color = Color.red;
 			}
 			else
-				cube2.gameObject.renderer.material.color = Color.white;
+				cube2.gameObject.GetComponent<Renderer>().material.color = Color.white;
 		}
 
 	}

@@ -131,12 +131,12 @@ public class MonoDrop : MonoBehaviour
 	{
 		
 		ML.AABBox aabb = new ML.AABBox ();
-		aabb.mMinima.x = this.collider.bounds.min.x;
-		aabb.mMinima.y = this.collider.bounds.min.y;
-		aabb.mMinima.z = this.collider.bounds.min.z;
-		aabb.mMaxima.x = this.collider.bounds.max.x;
-		aabb.mMaxima.y = this.collider.bounds.max.y;
-		aabb.mMaxima.z = this.collider.bounds.max.z;
+		aabb.mMinima.x = this.GetComponent<Collider>().bounds.min.x;
+		aabb.mMinima.y = this.GetComponent<Collider>().bounds.min.y;
+		aabb.mMinima.z = this.GetComponent<Collider>().bounds.min.z;
+		aabb.mMaxima.x = this.GetComponent<Collider>().bounds.max.x;
+		aabb.mMaxima.y = this.GetComponent<Collider>().bounds.max.y;
+		aabb.mMaxima.z = this.GetComponent<Collider>().bounds.max.z;
 		
 		return aabb;
 	}
