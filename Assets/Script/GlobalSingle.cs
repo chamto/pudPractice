@@ -19,11 +19,11 @@ public class Single
 		}
 	}
 
-	public static GameObject UIRoot
+	public static GameObject OBJRoot
 	{
 		get
 		{
-			return CSingletonMono<MonoMain>.Instance.m_objUIRoot;
+			return CSingletonMono<MonoMain>.Instance.m_objRoot;
 		}
 	}
 

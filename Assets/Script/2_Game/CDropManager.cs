@@ -763,10 +763,10 @@ namespace PuzzAndBidurgi
 			//Correction value
 			//PairInt parameter is array index(0 start , 1 is not ).
 			//Index2 startPos = PairInt.Start_C5_R0;
-			Vector3 putPos_left_up = m_boardInfo.GetPositionAt_ViewLeftUp () + Single.UIRoot.transform.position;
-			Vector3 putPos_right_up = m_boardInfo.GetPositionAt_ViewRightUp () + Single.UIRoot.transform.position;
-			Vector3 putPos_left_bottom = m_boardInfo.GetPositionAt_ViewLeftBottom () + Single.UIRoot.transform.position;
-			Vector3 putPos_right_bottom = m_boardInfo.GetPositionAt_ViewRightBottom () + Single.UIRoot.transform.position;
+			Vector3 putPos_left_up = m_boardInfo.GetPositionAt_ViewLeftUp () + Single.OBJRoot.transform.position;
+			Vector3 putPos_right_up = m_boardInfo.GetPositionAt_ViewRightUp () + Single.OBJRoot.transform.position;
+			Vector3 putPos_left_bottom = m_boardInfo.GetPositionAt_ViewLeftBottom () + Single.OBJRoot.transform.position;
+			Vector3 putPos_right_bottom = m_boardInfo.GetPositionAt_ViewRightBottom () + Single.OBJRoot.transform.position;
 
 			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
 			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
@@ -784,7 +784,7 @@ namespace PuzzAndBidurgi
 			//-------------------------------------------------------------------------
 #endif
 
-			Bounds bob = m_boardInfo.GetBoundaryOfView (Single.UIRoot.transform.position);
+			Bounds bob = m_boardInfo.GetBoundaryOfView (Single.OBJRoot.transform.position);
 			ML.LineSegment3 result = new ML.LineSegment3();
 			result.origin = srcDrop.gotoWorldPosition;
 			result.last = lineSeg3.last;
@@ -996,7 +996,7 @@ namespace PuzzAndBidurgi
 				pos.y = ixy.iy * m_boardInfo.squareHeight;
 
 
-				pDrop = MonoDrop.Create(Single.UIRoot.transform, 
+				pDrop = MonoDrop.Create(Single.OBJRoot.transform, 
 				                        GetRandDrop(MAX_DROPKIND),
 				                        pos);
 				pDrop.SetIndex(ixy);

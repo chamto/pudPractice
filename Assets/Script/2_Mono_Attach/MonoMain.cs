@@ -6,7 +6,7 @@ public class MonoMain : MonoBehaviour
 {
 	
 	//==============: member variables :==============
-	public GameObject m_objUIRoot = null;
+	public GameObject m_objRoot = null;
 
 	private BaseRules m_rules = null;
 	//==============: member Property :==============
