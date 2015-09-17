@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class MonoInputManager : MonoBehaviour 
@@ -28,6 +30,7 @@ public class MonoInputManager : MonoBehaviour
 
 	void Awake()
 	{
+
 		Input.simulateMouseWithTouches = false;	
 		Input.multiTouchEnabled = false;
 
@@ -275,6 +278,17 @@ public class MonoInputManager : MonoBehaviour
 
 		//test process speed 
 		Ray ray = Camera.main.ScreenPointToRay(touchPos);
+
+		//20150917 chamto TODO - have to input code : first uisystem test , second raycast test
+		//Debug.Log ("  -- currentSelectedGameObject : " + EventSystem.current.currentSelectedGameObject); //chamto test
+
+		//1. uisystem input event test
+		if (null != EventSystem.current && null != EventSystem.current.currentSelectedGameObject) 
+		{
+			return null;
+		}
+
+		//2. game input event test
 		RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
 		
 		if(hit){
