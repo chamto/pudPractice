@@ -11,688 +11,6 @@ using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collec
 namespace PuzzAndBidurgi
 {
 
-	//deprecate
-//	public enum eDropKind : ushort
-//	{
-//		
-//		//기본 드랍 5종
-//		Red = 0,
-//		Green,
-//		Blue,
-//		Light,
-//		Dart,
-//		
-//		//회복드랍
-//		Heart,
-//		
-//		//방해드롭
-//		Obstruction,
-//		Posion,
-//		
-//		
-//		Max,
-//	}
-
-
-	namespace NDrop
-	{
-//		public struct SDropInfo
-//		{
-//			public Vector2 pos;
-//			public eResKind eDropKind;
-//			public bool isVisible;
-//		}
-
-
-		/// <summary>
-		/// 각각의 드롭에 대한 이동순서 정보
-		/// </summary>
-//		public class CMoveSequence
-//		{
-//			private float m_timeDelta;
-//		}
-
-		/// <summary>
-		/// 전체 드롭의 구역별 고유 위치값 (안보이는 드롭도 포함한다)
-		/// </summary>
-//		public class CLocations
-//		{
-//			//--- Quadrangle shape
-//			private ushort m_columns;
-//			private ushort m_rows;
-//
-//			//--- Circle shape			!!!!!!!Design forecast
-//
-//			//--- AnyType shape			!!!!!!!Design forecast
-//
-//			private ArrayList list = new ArrayList();
-//			
-//			public void Init(ushort columns , ushort rows)
-//			{
-//			}
-//		}
-		
-		public class CPath
-		{
-			private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
-			
-			
-			public void ClearMovedPath()
-			{
-				//chamto test
-				//CDefine.DebugLog("=-=-=-=-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-=");
-				//foreach(KeyValuePair<float,MonoDrop>  kv in m_dtnrMovedPath)
-				//{
-					//CDefine.DebugLog(kv.Key + "  " + kv.Value.name);
-				//}
-				
-				m_dtnrMovedPath.Clear();
-			}
-			public void AddMovedPath(MonoDrop drop)
-			{
-				if(null == drop) return;
-				
-				int prevAddedDropIdx = m_dtnrMovedPath.Count-1;
-				if(0 <= prevAddedDropIdx)
-				{
-					//same object required
-					if(drop == m_dtnrMovedPath.ElementAt(prevAddedDropIdx).Value) return;
-				}
-				
-				
-				CDefine.DebugLog("AddMovedPath : " + Time.fixedTime + " " + Time.time);
-				m_dtnrMovedPath.Add(Time.time , drop);
-			}
-			public MonoDrop NextMovedPath()
-			{
-				if(0 == m_dtnrMovedPath.Count) return null;
-				
-				float timeKey = m_dtnrMovedPath.Keys.ElementAt(0);
-				MonoDrop getDrop = m_dtnrMovedPath[timeKey];
-				m_dtnrMovedPath.Remove(timeKey);
-				
-				return getDrop;
-			}
-		}//class CPath
-	}//namespace NDrop
-
-
-	public class MapDrop
-	{
-		//인덱스를 조회하기 위한 인덱스맵을 조직한다
-		private Dictionary<Index2,MonoDrop> _mapIndex2 = new Dictionary<Index2,MonoDrop>();
-
-		private Dictionary<int,MonoDrop> 	_mapId = new Dictionary<int, MonoDrop> ();
-
-
-		public Dictionary<int,MonoDrop> DtnrId
-		{
-			get
-			{
-				return _mapId;
-			}
-		}
-
-
-		//--------------------------------------------------
-		//idMap 자료구조와 indexMap 자료구조는 1대1 대응하지 않는다.
-		//예) 특정 드롭이 등록되지 않은 위치로 갈때 indexMap에 추가되게 된다. 
-		//   이때 idMap은 드롭이 추가된것이 아니기 때문에 변동이 없다.
-		private void notuse_UpdateValue(MonoDrop valueDrop , Index2 prevIndex)
-		{
-			if (null == valueDrop) 
-			{
-				CDefine.DebugLog("Error !!: null == valueDrop");
-				return;
-			}
-
-
-			MonoDrop getValue = null;
-			if (_mapId.TryGetValue (valueDrop.id, out getValue) && getValue == valueDrop) 
-			{
-
-				//Add index2Coord in mapIndex2 if index2 is not register
-				if (false == _mapIndex2.TryGetValue (valueDrop.index2D, out getValue)) 
-				{
-					_mapIndex2.Add(valueDrop.index2D, valueDrop);
-				}
-
-				//MonoDrop prevPlacedDrop = _mapIndex2[valueDrop.index2D];
-				_mapIndex2[valueDrop.index2D] = valueDrop;
-			}
-		}
-
-		public bool SetValue(Index2 keyIndex , MonoDrop valueDrop)
-		{
-			if (null != valueDrop && valueDrop.index2D != keyIndex) 
-			{
-				CDefine.DebugLog("Warring !!! : valueDrop.index2D != keyIndex : " + valueDrop.index2D + " " + keyIndex);
-				return false;
-			}
-
-			MonoDrop getValue = null;
-			if (false == _mapIndex2.TryGetValue (keyIndex, out getValue)) 
-			{
-				_mapIndex2.Add(keyIndex, valueDrop);
-			}
-
-			_mapIndex2[keyIndex] = valueDrop;
-			return true;
-		}
-
-
-
-		public MonoDrop GetMonoDropByUID(int keyUID) 
-		{
-			MonoDrop getValue = null;
-			if(_mapId.TryGetValue(keyUID,out getValue))
-				return getValue;
-
-			return null;
-		}
-
-
-
-		public MonoDrop GetMonoDropByIndex2(Index2 ixy)
-		{
-			MonoDrop getValue = null;
-			if (_mapIndex2.TryGetValue (ixy, out getValue))
-				return getValue;
-
-			return null;
-		}
-
-		//Inefficiency code !!
-		public Index2 FindEmptySquare(Index2 min, Index2 max)
-		{
-			//Debug.Log ("FindEmptySquare :" + min + " max:" + max);
-			int maxColumn = max.ix - min.ix;
-			int maxRow = max.iy - min.iy;
-
-			Index2 key = new Index2(0,0);
-			for (int iy=0; iy <= maxRow; iy++) 
-			{
-				key.iy = iy + min.iy;
-				
-				for (int ix=0; ix <= maxColumn; ix++) 
-				{
-					key.ix = ix + min.ix;
-					if(null == this.GetMonoDropByIndex2(key))
-					{
-						return key;
-					}
-				}
-			}
-
-			return Index2.None;
-		}
-
-		public List<Index2> FindEmptySquares(Index2 min, Index2 max)
-		{
-			List<Index2> listEmptySquares = new List<Index2> ();
-			
-			int maxColumn = max.ix - min.ix;
-			int maxRow = max.iy - min.iy;
-			
-			
-			Index2 key = new Index2(0,0);
-			for (int iy=0; iy <= maxRow; iy++) 
-			{
-				key.iy = iy + min.iy;
-				for (int ix=0; ix <= maxColumn; ix++) 
-				{
-					key.ix = ix + min.ix;
-					if(null == this.GetMonoDropByIndex2(key))
-					{
-						listEmptySquares.Add(key);	
-					}
-				}
-			}
-
-			return listEmptySquares;
-		}
-
-	
-		//==============: override method:========================================================================================
-		public bool Add(int key, MonoDrop value)
-		{
-			if (null == value) 
-			{
-				Debug.LogError("Add : null == value");
-				return false;
-			}
-
-			//-----------------------
-			//add this
-			if (_mapId.ContainsKey (key)) 
-			{
-				_mapId [key] = value;
-
-			} else 
-			{
-				_mapId.Add (key, value);
-			}
-
-			//-----------------------
-			//add mapIndex2 
-			if (_mapIndex2.ContainsKey (value.index2D)) 
-			{
-				_mapIndex2[value.index2D] = value;
-			}else
-			{
-				//CDefine.DebugLog("value.index2D : " + value.index2D); //chamto test
-				_mapIndex2.Add (value.index2D, value);
-			}
-
-			return true;
-		}
-
-		public bool Remove(int key)
-		{
-			MonoDrop getValue = null;
-			if (_mapId.TryGetValue (key, out getValue)) 
-			{
-				_mapIndex2.Remove(getValue.index2D);
-			}
-
-			return _mapId.Remove (key);
-		}
-
-		public void Debug_PrintMap()
-		{
-
-			
-			CDefine.DebugLog ("_mapId------------------------------------------------- : " + _mapId.Count);
-			for (int i=0; i<_mapId.Count; i++) 
-			{
-				CDefine.DebugLog (_mapId.Keys.ToList()[i].ToString() + "  drop: " + _mapId.Values.ToList()[i]);
-
-			}
-
-			CDefine.DebugLog ("_mapIndex2--------------------------------------------- : " + _mapIndex2.Count);
-			for (int i=0; i<_mapIndex2.Count; i++) 
-			{
-				CDefine.DebugLog (_mapIndex2.Keys.ToList()[i].ToString() + "  drop: " + _mapIndex2.Values.ToList()[i]);
-			}
-
-		}
-
-
-
-	}
-
-
-	public  class BoardInfo
-	{
-		public enum eStandard
-		{
-			eLeftBottom = 0,
-			eLeftUp = 1,
-			eCenter = 2,
-		}
-
-		private Vector2 	m_squareLength;
-		private Index2 		m_boardSize;
-
-		private Index2 		m_viewSize;
-		private Index2 		m_viewPosition;
-		//private eStandard 	m_eViewStandard;
-
-		public float squareWidth
-		{
-			get
-			{
-				return m_squareLength.x;
-			}
-		}
-		public float squareHeight
-		{
-			get
-			{
-				return m_squareLength.y;
-			}
-		}
-		public Index2 boardSize
-		{
-			get
-			{
-				return m_boardSize;
-			}
-		}
-		public Index2 viewSize
-		{
-			get
-			{
-				return m_viewSize;
-			}
-		}
-
-	
-
-		public BoardInfo()
-		{
-			m_squareLength = new Vector2 (1.15f, 1.15f);
-			m_boardSize = new Index2 (6, 10 + 5);
-			m_viewSize = new Index2 (6, 5);
-
-			m_viewPosition = new Index2 (0, 0);
-			//m_eViewStandard = eStandard.eLeftBottom;
-		}
-
-
-		//min, max nonviewArea
-		public Index2 GetMinNonviewArea()
-		{
-			Index2 value = this.GetMaxViewArea ();
-			value.iy += 1;
-			value.ix = 0;
-			return  value;
-		}
-		public Index2 GetMaxNonviewArea()
-		{
-			return this.GetMaxBoardArea ();
-		}
-
-		//min, max viewArea
-		public Index2 GetMinViewArea()
-		{
-			return this.GetIndexAt_ViewLeftBottom ();
-		}
-		public Index2 GetMaxViewArea()
-		{
-			return this.GetIndexAt_ViewRightUp ();
-		}
-
-		//min, max boardArea
-		public Index2 GetMinBoardArea()
-		{
-			return Index2.Zero;
-		}
-		public Index2 GetMaxBoardArea()
-		{
-			return new Index2 (m_boardSize.ix-1, m_boardSize.iy-1);
-		}
-
-
-		public  Vector3 GetPositionAt_ViewLeftUp()
-		{
-			return this.GetIndex2DToPosition (this.GetIndexAt_ViewLeftUp ());
-		}
-		public  Vector3 GetPositionAt_ViewRightUp()
-		{
-			return this.GetIndex2DToPosition (this.GetIndexAt_ViewRightUp ());
-		}
-		public  Vector3 GetPositionAt_ViewLeftBottom()
-		{
-			return this.GetIndex2DToPosition (this.GetIndexAt_ViewLeftBottom ());
-		}
-		public  Vector3 GetPositionAt_ViewRightBottom()
-		{
-			return this.GetIndex2DToPosition (this.GetIndexAt_ViewRightBottom ());
-		}
-
-
-		public  Index2 GetIndexAt_ViewLeftUp()
-		{
-			return new Index2 (m_viewPosition.ix, m_viewPosition.iy + m_viewSize.iy -1);
-		}
-		public  Index2 GetIndexAt_ViewRightUp()
-		{
-			return new Index2 (m_viewPosition.ix + m_viewSize.ix -1, m_viewPosition.iy + m_viewSize.iy -1);
-		}
-		public  Index2 GetIndexAt_ViewLeftBottom()
-		{
-			return new Index2 (m_viewPosition.ix, m_viewPosition.iy);
-		}
-		public  Index2 GetIndexAt_ViewRightBottom()
-		{
-			return new Index2 (m_viewPosition.ix + m_viewSize.ix -1, m_viewPosition.iy);
-		}
-
-
-
-		public Index2 GetPositionToIndex2D(Vector3 pos)
-		{
-			return BoardInfo.GetPositionToIndex2D(pos, this.squareWidth, this.squareHeight);
-		}
-
-		static public Index2 GetPositionToIndex2D(Vector3 pos , float in_squareWidth , float in_squareHeight)
-		{
-			Index2 ixy;
-			ixy.ix = (int)((pos.x + (in_squareWidth * 0.5f)) / in_squareWidth);
-			ixy.iy = (int)((pos.y + (in_squareHeight * 0.5f)) / in_squareHeight);
-			
-			return ixy;
-		}
-
-		//return localPosition  
-		public Vector3 GetIndex2DToPosition(Index2 ixy)
-		{
-			return BoardInfo.GetIndex2DToPosition(ixy, this.squareWidth, this.squareHeight);
-		}
-
-		static public Vector3 GetIndex2DToPosition(Index2 ixy , float in_squareWidth , float in_squareHeight)
-		{
-			Vector3 posOfPut;
-			posOfPut.x = in_squareWidth * ixy.ix;
-			posOfPut.y = in_squareHeight * ixy.iy;
-			posOfPut.z = 0;
-			
-			return posOfPut;
-		}
-
-		public Bounds GetBoundaryOfView(Vector3 UIRootPos)
-		{
-			Vector3 center, size;
-			size.x = this.squareWidth * m_viewSize.ix;
-			size.y = this.squareHeight * m_viewSize.iy;
-			//size.x = ConstDrop.UI_Width * ConstBoard.Max_Row;
-			//size.y = ConstDrop.UI_Height * ConstBoard.Max_Column;
-			size.z = 0;
-			
-			center.x = UIRootPos.x + (size.x * 0.5f) - (this.squareWidth * 0.5f) + (this.squareWidth * m_viewPosition.ix);
-			center.y = UIRootPos.y + (size.y * 0.5f) - (this.squareHeight * 0.5f) + (this.squareHeight * m_viewPosition.iy);
-			//center.x = Single.UIRoot.transform.position.x + (size.x * 0.5f) - (ConstDrop.UI_Width * 0.5f);
-			//center.y = Single.UIRoot.transform.position.y - (size.y * 0.5f) + (ConstDrop.UI_Height * 0.5f);// - size.y;
-			center.z = 0;
-
-#if UNITY_EDITOR
-			//-------------------------------------------------------------------------
-			//20140906 chamto test - debugCode
-			//-------------------------------------------------------------------------
-			Single.MonoDebug.boundary.transform.position = center;
-			Single.MonoDebug.boundary.transform.localScale = size;
-			//-------------------------------------------------------------------------
-#endif
-			
-			return new Bounds (center, size);
-		}
-
-
-
-		public bool BelongToArea(Index2 min, Index2 max, Index2 ixy)
-		{
-			if ((min.ix <= ixy.ix && ixy.ix <= max.ix) && (min.iy <= ixy.iy && ixy.iy <= max.iy))
-				return true;
-			
-			return false;
-		}
-
-		public bool BelongToViewArea(Index2 ixy)
-		{
-			Index2 min = this.GetIndexAt_ViewLeftBottom ();
-			Index2 max = this.GetIndexAt_ViewRightUp ();
-			return BelongToArea (min, max, ixy);
-		}
-
-
-	}
-
-
-	public class GroupDrop
-	{
-		//-------------------------------------
-		//  BundleWithDrop ---- BundleData
-		//  BundleWithDrop ----| 
-		//  BundleWithDrop ----|
-		private List<BundleData> 		m_listRefData = new List<BundleData>();
-		private List<BundleWithDrop>	m_listRefDrop = new List<BundleWithDrop> ();
-		private int 					m_nextCount = 0;
-		//Queue<BundleData> m_q = new Queue<BundleData>();
-
-
-		public bool ContainsDrop_FromMap(MonoDrop drop)
-		{
-			if (null == drop)
-								return false;
-
-			foreach (BundleData data in m_listRefData) 
-			{
-				if(null == data) continue;
-				if(true == data.ContainsDrop_FromMap(drop.index2D)) return true;
-			}
-
-			return false;
-		}
-
-		public Dictionary<Index2,MonoDrop> Next()
-		{
-			//Debug.Log (m_listBundle.Count + " - group count"); //chamto test
-			if (0 == m_listRefData.Count || m_nextCount >= m_listRefData.Count)
-								return null;
-
-			m_nextCount++;
-
-			return m_listRefData[m_nextCount-1].mapFull;
-		}
-
-		public void AddRefData(BundleData data)
-		{
-			m_listRefData.Add (data);
-		}
-
-		public void AddRefDrop(BundleWithDrop refDrop)
-		{
-			m_listRefDrop.Add (refDrop);
-		}
-
-		public void InitNextCount ()
-		{
-			m_nextCount = 0;
-		}
-
-		public int GetNextCount()
-		{
-			return m_nextCount;
-		}
-
-		public int GetMaxCount()
-		{
-			return m_listRefData.Count;
-		}
-
-
-
-		public void UpdateMap()
-		{
-			List<BundleData> deathList = null;
-			int idx = 0;
-			foreach (BundleData data in m_listRefData) 
-			{
-
-				if(null != data && null != data.lines && 0 != data.lines.Count)
-				{
-					data.UpdateMap();
-				}
-
-				if(null == data || null == data.lines || 0 == data.lines.Count)
-				{
-					if(null == deathList)
-						deathList = new List<BundleData>();
-
-					deathList.Add(data);
-
-				}
-
-				idx++;
-			}
-
-			//Debug.Log("GroupDrop : UpdateMap"); //chamto test
-			if (null != deathList) 
-			{
-				foreach (BundleData deathData in deathList) 
-				{
-					//Debug.Log(deathList.Count+"   " + m_listBundle.Count); //chamto test
-					m_listRefData.Remove(deathData);
-				}			
-			}
-
-			this.PrintListBundle_mapFull (); //chamto test
-
-		}
-
-		public void DismissRefDrop()
-		{
-			foreach (BundleWithDrop refDrop in m_listRefDrop) 
-			{
-				if(null == refDrop) continue;
-
-				refDrop.refBundle = null;
-			}
-		}
-
-		public void Clear()
-		{
-			InitNextCount ();
-
-			foreach (BundleData data in m_listRefData) 
-			{
-				if(null == data) continue;
-
-				BundleData.ClearData(data);
-			}
-			m_listRefData.Clear ();
-
-			DismissRefDrop ();
-			m_listRefDrop.Clear ();
-		}
-
-		public void PrintListBundle_lines()
-		{
-
-			foreach (BundleData data in m_listRefData) 
-			{
-				if (null == data || null == data.lines)
-					continue;
-
-				Debug.Log ("----------PrintListBundle------------"+m_listRefData.Count);
-				Debug.Log (data.ToStringLines());
-
-			}
-			
-		}
-
-		public void PrintListBundle_mapFull()
-		{
-			String buff = "";
-			foreach (BundleData data in m_listRefData) 
-			{
-				if (null == data || null == data.lines || null == data.mapFull)
-					continue;
-				
-				buff = "";
-				Debug.Log ("----------PrintListBundle------------"+m_listRefData.Count);
-				foreach (Index2 idx in data.mapFull.Keys) 
-				{
-					buff = String.Concat (buff + " : " + idx);
-				}
-				Debug.Log (buff);
-			}
-			
-		}
-
-	}
-
 
 	/// <summary>
 	/// C drop manager.
@@ -1260,29 +578,29 @@ namespace PuzzAndBidurgi
 						return null;
 
 
-			if(null != dstDrop.bundleInfo && null != dstDrop.bundleInfo.refBundle 
-			   && null == dstDrop.bundleInfo.refBundle.lines)
+			if(null != dstDrop.m_bundleInfo && null != dstDrop.m_bundleInfo.refBundle 
+			   && null == dstDrop.m_bundleInfo.refBundle.lines)
 				CDefine.DebugLogWarning("--------------------problem !! ------FindJoinGroup : srcIdx:"+srcDrop.index2D+" dstIdx:" + dstIdx); //chamto test
 
 			//대상위치에 그룹이 있는지 검사
 			//if (null == dstDrop.bundleInfo)
-			if (null == dstDrop.bundleInfo || null == dstDrop.bundleInfo.refBundle //)
-			    || null == dstDrop.bundleInfo.refBundle.lines)  //chamto temp
+			if (null == dstDrop.m_bundleInfo || null == dstDrop.m_bundleInfo.refBundle //)
+			    || null == dstDrop.m_bundleInfo.refBundle.lines)  //chamto temp
 			{ 
 			 		
 				return null;
 			}
 
-			if (null != srcDrop.bundleInfo) 
+			if (null != srcDrop.m_bundleInfo) 
 			{
 				//이미 같은 그룹주소이면 합칠 필요없음
-				if(true ==  srcDrop.bundleInfo.EqualRefBundle(dstDrop.bundleInfo))
+				if(true ==  srcDrop.m_bundleInfo.EqualRefBundle(dstDrop.m_bundleInfo))
 				{
 					return null;
 				}
 			}
 
-			return dstDrop.bundleInfo;
+			return dstDrop.m_bundleInfo;
 		}
 
 		delegate bool AvailableJoin(MonoDrop start , out int jump);
@@ -1394,7 +712,7 @@ namespace PuzzAndBidurgi
 					{
 						//next add , end is not processed
 						drops.Add(nextDrop);
-						nextDrop.bundleInfo = refDrop;
+						nextDrop.m_bundleInfo = refDrop;
 						//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
 
 
@@ -1509,9 +827,9 @@ namespace PuzzAndBidurgi
 				{
 					key.ix = ix;
 					drop = mapDrop.GetMonoDropByIndex2(key);
-					if(null != drop && null != drop.bundleInfo)
+					if(null != drop && null != drop.m_bundleInfo)
 					{
-						drop.bundleInfo = null;
+						drop.m_bundleInfo = null;
 					}
 					
 				}//endfor
@@ -1537,7 +855,7 @@ namespace PuzzAndBidurgi
 				{
 					key.ix = ix;
 					drop = mapDrop.GetMonoDropByIndex2(key);
-					if(null != drop && null != drop.bundleInfo)
+					if(null != drop && null != drop.m_bundleInfo)
 					{
 						MonoDrop.MoveToEmptySquare(drop);
 					}
@@ -1569,7 +887,7 @@ namespace PuzzAndBidurgi
 					drop2 = mapDrop.GetMonoDropByIndex2(key);
 					drop.SetColor(Color.gray);
 
-					if(null != drop2 && null != drop2.bundleInfo && null != drop2.bundleInfo.refBundle)
+					if(null != drop2 && null != drop2.m_bundleInfo && null != drop2.m_bundleInfo.refBundle)
 					{
 
 						switch(drop2.dropKind)
@@ -1624,7 +942,7 @@ namespace PuzzAndBidurgi
 						
 					}//endif
 
-					if(null != drop2 && null != drop2.bundleInfo && null != drop2.bundleInfo.refBundle && null == drop2.bundleInfo.refBundle.lines)
+					if(null != drop2 && null != drop2.m_bundleInfo && null != drop2.m_bundleInfo.refBundle && null == drop2.m_bundleInfo.refBundle.lines)
 					{
 						drop.SetColor(new Color(1,0,0,0.7f));
 					}	

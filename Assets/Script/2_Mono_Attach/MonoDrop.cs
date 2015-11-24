@@ -22,7 +22,7 @@ public class MonoDrop : MonoBehaviour
 	//spr : sprite , rdr : renderer
 	private SpriteRenderer 	m_sprRdr = null;
 	private BoxCollider2D	m_boxCollider2D = null;
-	public  float 			aniSpeed = 30f;
+	public  float 			m_aniSpeed = 30f;
 
 	//==============: member variables :========================================================================================
 
@@ -36,7 +36,7 @@ public class MonoDrop : MonoBehaviour
 	private Vector3			m_gotoLocalPosition;
 
 	//join group info
-	public BundleWithDrop		bundleInfo = null;
+	public BundleWithDrop		m_bundleInfo = null;
 
 
 	//==============: property definition :========================================================================================
@@ -207,7 +207,7 @@ public class MonoDrop : MonoBehaviour
 		this.UpdateGotoLocalPosition ();
 
 		//this.ApplygotoLocalPosition ();
-		this.aniSpeed = 3f;
+		this.m_aniSpeed = 3f;
 		this.MovingAni (this.gotoLocalPosition);
 	}
 
@@ -446,7 +446,7 @@ public class MonoDrop : MonoBehaviour
 
 				//3.animation target drop
 				//rolling drop
-				dstDrop.aniSpeed = 30;
+				dstDrop.m_aniSpeed = 30;
 				dstDrop.MovingAni(dstDrop.gotoLocalPosition);
 				
 				
@@ -523,7 +523,7 @@ public class MonoDrop : MonoBehaviour
 		while(Math.Abs(diff.sqrMagnitude) > float.Epsilon )
 		{
 			diff = dstLocalPos - transform.localPosition;
-			transform.localPosition += diff * Time.deltaTime * aniSpeed;
+			transform.localPosition += diff * Time.deltaTime * m_aniSpeed;
 			//Debug.Log("loop.. :"+ this+ " dstLocalPos :"+dstLocalPos + "  target:"+transform.localPosition + "  diff:"+diff.sqrMagnitude ); //chamto test
 			yield return null;
 		}
@@ -558,11 +558,11 @@ public class MonoDrop : MonoBehaviour
 
 	static public void DismissGroup(MonoDrop drop)
 	{
-		if (null != drop.bundleInfo) 
+		if (null != drop.m_bundleInfo) 
 		{
-			drop.bundleInfo.DissmissBundle();
+			drop.m_bundleInfo.DissmissBundle();
 		}
-		drop.bundleInfo = null;
+		drop.m_bundleInfo = null;
 	}
 	static public void MoveToEmptySquare(MonoDrop drop)
 	{
@@ -584,7 +584,7 @@ public class MonoDrop : MonoBehaviour
 			drop.SetColor(Color.red);
 
 			//drop.ApplyGotoLocalPosition();
-			drop.aniSpeed = 5;
+			drop.m_aniSpeed = 5;
 			drop.MovingAni(drop.gotoLocalPosition);
 			drop.GetBoxCollider2D().enabled = false;
 			//drop.setDropKind = Single.DropMgr.GetRandDrop(9);
