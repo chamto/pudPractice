@@ -138,7 +138,8 @@ namespace PuzzAndBidurgi
 			return listEmptySquares;
 		}
 	
-		//==============: override method:========================================================================================
+		//==============: method:========================================================================================
+
 		public bool Add(int key, MonoDrop value)
 		{
 			if (null == value) 
@@ -183,6 +184,9 @@ namespace PuzzAndBidurgi
 			return _mapId.Remove (key);
 		}
 
+
+		//==============: debug method:========================================================================================
+
 		public void Debug_PrintMap()
 		{
 			
@@ -202,10 +206,5 @@ namespace PuzzAndBidurgi
 		}
 
 	}
-
-	/// <summary>
-	/// C drop manager.
-	/// 드롭을 생성/제거/배치 하는 관리 객체
-	/// </summary>
-	//end class
+	
 }//end namespace

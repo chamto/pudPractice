@@ -27,9 +27,6 @@ namespace PuzzAndBidurgi
 		private BoardInfo						m_boardInfo = new BoardInfo();
 		private GroupDrop						m_groupDrop = new GroupDrop ();
 
-		//private Dictionary<int,MonoDrop> 		m_dtnrDrop = new Dictionary<int,MonoDrop>();
-		//private Dictionary<float,MonoDrop> 	m_dtnrMovedPath = new Dictionary<float,MonoDrop>();
-		private NDrop.CPath m_dropPath = new NDrop.CPath();
 		System.Random 		m_random = new System.Random();
 
 
@@ -66,108 +63,17 @@ namespace PuzzAndBidurgi
 
 
 
+	
 		//------------------------------------------------------------------------
-		// currection method
+		// drop method
 		//------------------------------------------------------------------------
-
-
-
-
-		public ML.LineSegment3 CorrectionLineSegment(MonoDrop srcDrop , ML.LineSegment3 lineSeg3)
-		{
-			if (null == srcDrop)
-				return lineSeg3;
-
-			//Correction value
-			//PairInt parameter is array index(0 start , 1 is not ).
-			//Index2 startPos = PairInt.Start_C5_R0;
-			Vector3 putPos_left_up = m_boardInfo.GetPositionAt_ViewLeftUp () + Single.OBJRoot.transform.position;
-			Vector3 putPos_right_up = m_boardInfo.GetPositionAt_ViewRightUp () + Single.OBJRoot.transform.position;
-			Vector3 putPos_left_bottom = m_boardInfo.GetPositionAt_ViewLeftBottom () + Single.OBJRoot.transform.position;
-			Vector3 putPos_right_bottom = m_boardInfo.GetPositionAt_ViewRightBottom () + Single.OBJRoot.transform.position;
-
-			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
-			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
-			//Vector3 putPos_left_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, 0));
-			//Vector3 putPos_right_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, (int)ConstBoard.Max_Row-1));
-
-#if UNITY_EDITOR
-			//-------------------------------------------------------------------------
-			//20140906 chamto test
-			//-------------------------------------------------------------------------
-			Single.MonoDebug.cube_LeftUp.transform.position = putPos_left_up;
-			Single.MonoDebug.cube_RightUp.transform.position = putPos_right_up;
-			Single.MonoDebug.cube_LeftBottom.transform.position = putPos_left_bottom;
-			Single.MonoDebug.cube_RightBottom.transform.position = putPos_right_bottom;
-			//-------------------------------------------------------------------------
-#endif
-
-			Bounds bob = m_boardInfo.GetBoundaryOfView (Single.OBJRoot.transform.position);
-			ML.LineSegment3 result = new ML.LineSegment3();
-			result.origin = srcDrop.gotoWorldPosition;
-			result.last = lineSeg3.last;
-
-
-
-			//CDefine.DebugLog ("Bounds " + bob + bob.min + bob.max);
-			if (lineSeg3.last.y >= bob.max.y) 
-			{	//------------- correction up -------------
-				//CDefine.DebugLog("----correction up");
-				result.last_y = putPos_left_up.y;
-				if(lineSeg3.last.x <= bob.min.x)
-				{	//correction left-up
-					result.last = putPos_left_up;
-					//CDefine.DebugLog("----correction left up" + putPos_left_up);
-				}
-				if(lineSeg3.last.x >= bob.max.x)
-				{	//correction right-up
-					result.last = putPos_right_up;
-					//CDefine.DebugLog("----correction right up");
-				}
-
-			}else
-				if (lineSeg3.last.y <= bob.min.y) 
-			{	////------------- correction bottom -------------
-				//CDefine.DebugLog("----correction bottom");
-				result.last_y = putPos_left_bottom.y;
-				if(lineSeg3.last.x <= bob.min.x)
-				{	//correction left-bottom
-					result.last = putPos_left_bottom;
-					//CDefine.DebugLog("----correction left bottom"+putPos_left_bottom);
-				}
-				if(lineSeg3.last.x >= bob.max.x)
-				{	//correction right-bottom
-					result.last = putPos_right_bottom;
-					//CDefine.DebugLog("----correction right bottom");
-				}
-
-			}else
-				if(lineSeg3.last.x <= bob.min.x)
-			{	////------------- correction left -------------
-				result.last_x = putPos_left_up.x;
-				//CDefine.DebugLog("----correction left");
-			}else
-				if(lineSeg3.last.x >= bob.max.x)
-			{	////------------- correction right -------------
-				result.last_x = putPos_right_up.x;
-				//CDefine.DebugLog("----correction right");
-			}else 
-			{
-				////------------- correction is not required
-				//CDefine.DebugLog("----correction is not required");
-				return lineSeg3;
-			}
-
-			//CDefine.DebugLog ("Correction LineSegement : " + result);
-			return result;
-		}
 
 
 		public bool ValidSwapMonoDrop (MonoDrop drop1, MonoDrop drop2)
 		{
 			if (null == drop1 || null == drop2)
-								return false;
-
+				return false;
+			
 			//피타고라스 정리  [가로*가로 + 세로*세로 = 빗변*빗변] 를 이용하여 직각삼각형의 빗변을 구함
 			//구할려는 삼각형의 가로,세로길이가 같기 때문에 식을 다음과 같이 정리
 			//빗변*빗변 = 가로*가로*2
@@ -175,14 +81,10 @@ namespace PuzzAndBidurgi
 			//빗변*빗변 = 가로*가로*2 + 가중치
 			//float dist = m_board.squareWidth * m_board.squareWidth * 2 + 0.15f;
 			float dist = (m_boardInfo.squareWidth * m_boardInfo.squareWidth + m_boardInfo.squareHeight * m_boardInfo.squareHeight) + 0.15f;
-
+			
 			return (dist > GetSqrDistance (drop1.gotoWorldPosition, drop2.gotoWorldPosition));
 		}
-
-
-		//------------------------------------------------------------------------
-		// drop method
-		//------------------------------------------------------------------------
+		
 
 		//public bool SwapMonoDropInBoard(int keyOfPos1 , int keyOfPos2 , bool applyPosition)
 		public bool SwapMonoDropInBoard(int id1 , int id2 , bool applyPosition)
@@ -228,51 +130,6 @@ namespace PuzzAndBidurgi
 			temp2.UpdateTextMesh ();
 
 			return true;
-		}
-
-
-		//------------------------------------------------------------------------
-		// path method
-		//------------------------------------------------------------------------
-
-		public void ClearMovedPath()
-		{
-			m_dropPath.ClearMovedPath();
-			//chamto test
-//			CDefine.DebugLog("=-=-=-=-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-==-=-=-=");
-//			foreach(KeyValuePair<float,MonoDrop>  kv in m_dtnrMovedPath)
-//			{
-//				CDefine.DebugLog(kv.Key + "  " + kv.Value.name);
-//			}
-//
-//			m_dtnrMovedPath.Clear();
-		}
-		public void AddMovedPath(MonoDrop drop)
-		{
-			m_dropPath.AddMovedPath(drop);
-//			if(null == drop) return;
-//
-//			int prevAddedDropIdx = m_dtnrMovedPath.Count-1;
-//			if(0 <= prevAddedDropIdx)
-//			{
-//				//same object required
-//				if(drop == m_dtnrMovedPath.ElementAt(prevAddedDropIdx).Value) return;
-//			}
-//
-//
-//			CDefine.DebugLog("AddMovedPath : " + Time.fixedTime + " " + Time.time);
-//			m_dtnrMovedPath.Add(Time.time , drop);
-		}
-		public MonoDrop NextMovedPath()
-		{
-			return m_dropPath.NextMovedPath();
-//			if(0 == m_dtnrMovedPath.Count) return null;
-//
-//			float timeKey = m_dtnrMovedPath.Keys.ElementAt(0);
-//			MonoDrop getDrop = m_dtnrMovedPath[timeKey];
-//			m_dtnrMovedPath.Remove(timeKey);
-//
-//			return getDrop;
 		}
 
 
@@ -954,6 +811,103 @@ namespace PuzzAndBidurgi
 
 
 
+
+		
+		//------------------------------------------------------------------------
+		// currection method
+		//------------------------------------------------------------------------
+		
+		public ML.LineSegment3 CorrectionLineSegment(MonoDrop srcDrop , ML.LineSegment3 lineSeg3)
+		{
+			if (null == srcDrop)
+				return lineSeg3;
+			
+			//Correction value
+			//PairInt parameter is array index(0 start , 1 is not ).
+			//Index2 startPos = PairInt.Start_C5_R0;
+			Vector3 putPos_left_up = m_boardInfo.GetPositionAt_ViewLeftUp () + Single.OBJRoot.transform.position;
+			Vector3 putPos_right_up = m_boardInfo.GetPositionAt_ViewRightUp () + Single.OBJRoot.transform.position;
+			Vector3 putPos_left_bottom = m_boardInfo.GetPositionAt_ViewLeftBottom () + Single.OBJRoot.transform.position;
+			Vector3 putPos_right_bottom = m_boardInfo.GetPositionAt_ViewRightBottom () + Single.OBJRoot.transform.position;
+			
+			//Vector3 putPos_left_up = GetPositionOfPutDrop (new PairInt (0, 0));
+			//Vector3 putPos_right_up = GetPositionOfPutDrop (new PairInt (0, (int)ConstBoard.Max_Row-1));
+			//Vector3 putPos_left_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, 0));
+			//Vector3 putPos_right_bottom = GetPositionOfPutDrop (new PairInt ((int)ConstBoard.Max_Column-1, (int)ConstBoard.Max_Row-1));
+			
+			#if UNITY_EDITOR
+			//-------------------------------------------------------------------------
+			//20140906 chamto test
+			//-------------------------------------------------------------------------
+			Single.MonoDebug.cube_LeftUp.transform.position = putPos_left_up;
+			Single.MonoDebug.cube_RightUp.transform.position = putPos_right_up;
+			Single.MonoDebug.cube_LeftBottom.transform.position = putPos_left_bottom;
+			Single.MonoDebug.cube_RightBottom.transform.position = putPos_right_bottom;
+			//-------------------------------------------------------------------------
+			#endif
+			
+			Bounds bob = m_boardInfo.GetBoundaryOfView (Single.OBJRoot.transform.position);
+			ML.LineSegment3 result = new ML.LineSegment3();
+			result.origin = srcDrop.gotoWorldPosition;
+			result.last = lineSeg3.last;
+			
+			
+			
+			//CDefine.DebugLog ("Bounds " + bob + bob.min + bob.max);
+			if (lineSeg3.last.y >= bob.max.y) 
+			{	//------------- correction up -------------
+				//CDefine.DebugLog("----correction up");
+				result.last_y = putPos_left_up.y;
+				if(lineSeg3.last.x <= bob.min.x)
+				{	//correction left-up
+					result.last = putPos_left_up;
+					//CDefine.DebugLog("----correction left up" + putPos_left_up);
+				}
+				if(lineSeg3.last.x >= bob.max.x)
+				{	//correction right-up
+					result.last = putPos_right_up;
+					//CDefine.DebugLog("----correction right up");
+				}
+				
+			}else
+				if (lineSeg3.last.y <= bob.min.y) 
+			{	////------------- correction bottom -------------
+				//CDefine.DebugLog("----correction bottom");
+				result.last_y = putPos_left_bottom.y;
+				if(lineSeg3.last.x <= bob.min.x)
+				{	//correction left-bottom
+					result.last = putPos_left_bottom;
+					//CDefine.DebugLog("----correction left bottom"+putPos_left_bottom);
+				}
+				if(lineSeg3.last.x >= bob.max.x)
+				{	//correction right-bottom
+					result.last = putPos_right_bottom;
+					//CDefine.DebugLog("----correction right bottom");
+				}
+				
+			}else
+				if(lineSeg3.last.x <= bob.min.x)
+			{	////------------- correction left -------------
+				result.last_x = putPos_left_up.x;
+				//CDefine.DebugLog("----correction left");
+			}else
+				if(lineSeg3.last.x >= bob.max.x)
+			{	////------------- correction right -------------
+				result.last_x = putPos_right_up.x;
+				//CDefine.DebugLog("----correction right");
+			}else 
+			{
+				////------------- correction is not required
+				//CDefine.DebugLog("----correction is not required");
+				return lineSeg3;
+			}
+			
+			//CDefine.DebugLog ("Correction LineSegement : " + result);
+			return result;
+		}
+		
+
+
 		//------------------------------------------------------------------------
 		// collision method
 		//------------------------------------------------------------------------
@@ -978,7 +932,8 @@ namespace PuzzAndBidurgi
 		/// <returns>The shortest distance.</returns>
 		/// <param name="standardDrop">Standard drop.</param>
 		/// <param name="minDistance">최소거리의 최소값을 지정. 최소값이 5라면, 최소거리는 적어도 5보다 같거나 커야한다.</param>
-		public MonoDrop GetShortestDistance(MonoDrop standardDrop, float minDistance)
+		//public MonoDrop GetShortestDistance(MonoDrop standardDrop, float minDistance)
+		public MonoDrop FindDropShortestDistance(MonoDrop standardDrop, float minDistance)
 		{
 			if(null == standardDrop || 0 >= minDistance) return null;
 			if(0 == m_mapDrop.DtnrId.Count) return null;
@@ -1001,7 +956,6 @@ namespace PuzzAndBidurgi
 
 			return list[0];
 		}
-
 
 
 		//new multi CCD collision functuon - 20140619 chamto

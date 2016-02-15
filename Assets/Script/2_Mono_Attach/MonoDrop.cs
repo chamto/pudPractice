@@ -347,7 +347,6 @@ public class MonoDrop : MonoBehaviour
 
 		//CDefine.DebugLog("___________________TouchEnded "+ gameObject.name+"___________________");
 		//m_prevCollisionDrop = null;
-		Single.DropMgr.ClearMovedPath();
 
 		//선택된 객체의 이동 종료처리
 		StopAni();
