@@ -4,12 +4,295 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
-using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
-using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
 
 namespace PuzzAndBidurgi
 {
+	using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
+	using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
+	using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
+
+	using UID_INT32 = System.Int32;
+	static public class CONST_VALUE
+	{
+		public const UID_INT32 UID_NULL = -1;
+	}
+
+
+	public class DropList<T>
+	{
+		private Dictionary<UID_INT32, T> 	_mapId = new Dictionary<UID_INT32, T> ();
+
+		public bool Add(int key, T value)
+		{
+			if (null == value)  
+			{
+				Debug.LogError("Add : null == value");
+				return false;
+			}
+
+
+			if (true == _mapId.ContainsKey (key)) 
+			{
+				Debug.LogError("Add : true == _mapId.ContainsKey  " + key); 
+				return false;
+				
+			} 
+
+			_mapId.Add (key, value);
+
+			return true;
+		}
+		
+		public bool Remove(int key)
+		{
+			
+			return _mapId.Remove (key);
+		}
+
+		public T GetValue(int keyUID) 
+		{
+			T getValue;
+			//if(_mapId.TryGetValue(keyUID,out getValue))
+			//	return getValue;
+			_mapId.TryGetValue(keyUID,out getValue);
+
+			return getValue;
+		}
+
+		//==============: debug method:========================================================================================
+		
+		public void Debug_PrintMap()
+		{
+			
+			CDefine.DebugLog ("_mapId------------------------------------------------- : " + _mapId.Count);
+			for (int i=0; i<_mapId.Count; i++) 
+			{
+				CDefine.DebugLog (_mapId.Keys.ToList()[i].ToString() + "  drop: " + _mapId.Values.ToList()[i]);
+				
+			}
+		}
+	}
+
+	//model - "controller" - view
+	public class DropController
+	{
+
+		private int m_sequenceId = 0;
+
+		private DropList<MonoDrop> _dropList = new DropList<MonoDrop> ();
+		private MapSet			   _mapSet = new MapSet();
+
+
+		private MonoDrop createMonoDrop(Transform parent , eResKind eDrop , Vector3 localPos)
+		{
+			GameObject newObj = CResoureManager.CreatePrefab(SResDefine.pfDROPINFO);
+			if(null == newObj) 
+			{
+				CDefine.DebugLogError(string.Format("Failed to create Prefab : " + SResDefine.pfDROPINFO));
+				return null;
+			}
+			MonoDrop drop = newObj.GetComponent<MonoDrop>();
+			if(null == drop) 
+			{
+				CDefine.DebugLogError(string.Format("MonoDrop is null"));
+				return null;
+			}
+			
+			
+			//-------------------------------------------------
+			
+
+			drop.id = m_sequenceId++;
+
+			drop.index2D = Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos);
+			drop.setDropKind = eDrop;
+			
+			//Specify the parent object
+			drop.transform.parent = parent;
+			drop.name = "drop" + drop.id;
+			
+			//[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
+			drop.transform.localPosition = localPos;
+			
+			
+			//todo modify that localposition
+			drop.gotoLocalPosition = localPos;
+
+			drop.SetColor(Color.gray);
+			//drop.SetColor(Color.blue);
+			//drop.GetBoxCollider2D().enabled = false; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
+			
+			//20150331 chamto test
+			//drop.testIndex2.ix = drop.index2D.ix;
+			//drop.testIndex2.iy = drop.index2D.iy;
+			drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
+			//Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (drop.gotoLocalPosition);
+			//drop.m_textMesh_LocalIdx = MonoDrop.Add3DText (drop.transform, localIdx.ToString(), Color.red, new Vector3(-0.5f,-0.3f,-2f));
+			
+			
+			return drop;
+		}
+
+
+		public void AddDrop(eResKind eDrop , Vector3 localPos)
+		{
+			MonoDrop pDrop = null;
+			pDrop = this.createMonoDrop(Single.OBJRoot.transform, 
+			                        eDrop,
+			                        localPos);
+
+			_dropList.Add (pDrop.id, pDrop);
+
+		}
+
+		public bool RemoveDrop(MonoDrop drop)
+		{
+			if (null == drop)
+				return false;
+
+			_dropList.Remove (drop.id);
+
+			MonoBehaviour.Destroy(drop.gameObject);
+
+			return true;
+		}
+
+		//Inefficiency code !!
+		public Index2 FindEmptySquare(Index2 min, Index2 max)
+		{
+			//Debug.Log ("FindEmptySquare :" + min + " max:" + max);
+			int maxColumn = max.ix - min.ix;
+			int maxRow = max.iy - min.iy;
+
+			UID_INT32 getValue;
+			Index2 idx = new Index2(0,0);
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				idx.iy = iy + min.iy;
+				
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					idx.ix = ix + min.ix;
+					if(false == this._mapSet.TryGetValue(idx,out getValue))
+					{
+						return idx;
+					}
+				}
+			}
+			
+			return Index2.None;
+		}
+		
+		public List<Index2> FindEmptySquares(Index2 min, Index2 max)
+		{
+			List<Index2> listEmptySquares = new List<Index2> ();
+			
+			int maxColumn = max.ix - min.ix;
+			int maxRow = max.iy - min.iy;
+
+			UID_INT32 getValue;
+			Index2 idx = new Index2(0,0);
+			for (int iy=0; iy <= maxRow; iy++) 
+			{
+				idx.iy = iy + min.iy;
+				for (int ix=0; ix <= maxColumn; ix++) 
+				{
+					idx.ix = ix + min.ix;
+					if(false == this._mapSet.TryGetValue(idx,out getValue))
+					{
+						listEmptySquares.Add(idx);	
+					}
+				}
+			}
+			
+			return listEmptySquares;
+		}
+
+	}
+
+
+
+	public enum eMapKind
+	{
+		eGRID_MAP = 0,
+		eHEX_MAP = 1,
+	}
+	
+	public struct Hex3
+	{}
+
+	//"model" - controller - view
+	public class MapSet
+	{
+
+		//격자형 지도 인덱스
+		private Dictionary<Index3,UID_INT32> _map = new Dictionary<Index3,UID_INT32>();
+
+		//육각형 지도 인덱스
+		//private Dictionary<Hex3,UID_INT32> 	_hexMap = new Dictionary<Hex3,UID_INT32>();
+
+		public bool SetValue(Index3 key_index , UID_INT32 value_UId)
+		{
+
+			UID_INT32 getValue = CONST_VALUE.UID_NULL;
+			if (false == _map.TryGetValue (key_index, out getValue)) 
+			{
+				_map.Add(key_index, value_UId);
+			}
+			
+			_map[key_index] = value_UId;
+			return true;
+		}
+
+		public bool TryGetValue(Index3 key_index , out UID_INT32 getValue)
+		{
+			if (true == _map.TryGetValue (key_index, out getValue)) 
+			{
+				if(CONST_VALUE.UID_NULL != _map[key_index])
+				{
+					getValue =  _map[key_index];
+					return true;
+				}
+				
+			}
+
+			getValue = CONST_VALUE.UID_NULL;
+			return false;
+		}
+
+		public void Clear(Index3 key_index)
+		{
+			UID_INT32 getValue = CONST_VALUE.UID_NULL;
+			if(true == this.TryGetValue(key_index , out getValue))
+			{
+				this.SetValue (key_index, CONST_VALUE.UID_NULL);
+			}
+
+		}
+
+		public void ClearAll()
+		{
+			foreach (Index3 key_index in _map.Keys) 
+			{
+				this.SetValue (key_index, CONST_VALUE.UID_NULL);
+			}
+		}
+
+		
+		//==============: debug method:========================================================================================
+		
+		public void Debug_PrintMap()
+		{
+			CDefine.DebugLog ("_map--------------------------------------------- : " + _map.Count);
+			for (int i=0; i<_map.Count; i++) 
+			{
+				CDefine.DebugLog (_map.Keys.ToList()[i].ToString() + "  UID: " + _map.Values.ToList()[i]);
+			}
+			
+		}
+
+	}
+
 
 	public class MapDrop
 	{

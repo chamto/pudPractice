@@ -4,12 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
-using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
-using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
 
 namespace PuzzAndBidurgi
 {
+
+	using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
+	using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
+	using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
+
 
 	public class GroupDrop
 	{
@@ -172,9 +174,4 @@ namespace PuzzAndBidurgi
 
 	}
 
-	/// <summary>
-	/// C drop manager.
-	/// 드롭을 생성/제거/배치 하는 관리 객체
-	/// </summary>
-	//end class
 }//end namespace
