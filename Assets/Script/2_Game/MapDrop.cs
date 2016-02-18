@@ -11,18 +11,19 @@ namespace PuzzAndBidurgi
 	using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
 	using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
 
-	using UID_INT32 = System.Int32;
+
+
 	static public class CONST_VALUE
 	{
-		public const UID_INT32 UID_NULL = -1;
+		public const Int32 UID_NULL = -1;
 	}
 
 
 	public class DropList<T>
 	{
-		private Dictionary<UID_INT32, T> 	_mapId = new Dictionary<UID_INT32, T> ();
+		private Dictionary<Int32, T> 	_mapId = new Dictionary<Int32, T> ();
 
-		public bool Add(int key, T value)
+		public bool Add(Int32 key, T value)
 		{
 			if (null == value)  
 			{
@@ -164,7 +165,7 @@ namespace PuzzAndBidurgi
 			int maxColumn = max.ix - min.ix;
 			int maxRow = max.iy - min.iy;
 
-			UID_INT32 getValue;
+			Int32 getValue;
 			Index2 idx = new Index2(0,0);
 			for (int iy=0; iy <= maxRow; iy++) 
 			{
@@ -190,7 +191,7 @@ namespace PuzzAndBidurgi
 			int maxColumn = max.ix - min.ix;
 			int maxRow = max.iy - min.iy;
 
-			UID_INT32 getValue;
+			Int32 getValue;
 			Index2 idx = new Index2(0,0);
 			for (int iy=0; iy <= maxRow; iy++) 
 			{
@@ -226,15 +227,15 @@ namespace PuzzAndBidurgi
 	{
 
 		//격자형 지도 인덱스
-		private Dictionary<Index3,UID_INT32> _map = new Dictionary<Index3,UID_INT32>();
+		private Dictionary<Index3,Int32> _map = new Dictionary<Index3,Int32>();
 
 		//육각형 지도 인덱스
-		//private Dictionary<Hex3,UID_INT32> 	_hexMap = new Dictionary<Hex3,UID_INT32>();
+		//private Dictionary<Hex3,Int32> 	_hexMap = new Dictionary<Hex3,Int32>();
 
-		public bool SetValue(Index3 key_index , UID_INT32 value_UId)
+		public bool SetValue(Index3 key_index , Int32 value_UId)
 		{
 
-			UID_INT32 getValue = CONST_VALUE.UID_NULL;
+			Int32 getValue = CONST_VALUE.UID_NULL;
 			if (false == _map.TryGetValue (key_index, out getValue)) 
 			{
 				_map.Add(key_index, value_UId);
@@ -244,7 +245,7 @@ namespace PuzzAndBidurgi
 			return true;
 		}
 
-		public bool TryGetValue(Index3 key_index , out UID_INT32 getValue)
+		public bool TryGetValue(Index3 key_index , out Int32 getValue)
 		{
 			if (true == _map.TryGetValue (key_index, out getValue)) 
 			{
@@ -262,7 +263,7 @@ namespace PuzzAndBidurgi
 
 		public void Clear(Index3 key_index)
 		{
-			UID_INT32 getValue = CONST_VALUE.UID_NULL;
+			Int32 getValue = CONST_VALUE.UID_NULL;
 			if(true == this.TryGetValue(key_index , out getValue))
 			{
 				this.SetValue (key_index, CONST_VALUE.UID_NULL);

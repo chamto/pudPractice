@@ -6,15 +6,17 @@ using System.Collections.Generic;
 using System.Linq;
 using PuzzAndBidurgi;
 
-
-public struct PairIndex2
+namespace PuzzAndBidurgi
 {
-	public Index2 origin;
-	public Index2 direction;
-
-	public PairIndex2(Index2 _origin, Index2 _direction)
+	public struct PairIndex2
 	{
-		origin = _origin;
-		direction = _direction;
+		public Index2 origin;
+		public Index2 direction;
+
+		public PairIndex2(Index2 _origin, Index2 _direction)
+		{
+			origin = _origin;
+			direction = _direction;
+		}
 	}
 }

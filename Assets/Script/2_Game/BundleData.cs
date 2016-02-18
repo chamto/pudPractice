@@ -9,10 +9,96 @@ using PuzzAndBidurgi;
 
 namespace PuzzAndBidurgi
 {
+
+
 	using T_DropsInLine = System.Collections.Generic.List<MonoDrop> ;
 	//using T_JoinsInLine = System.Collections.Generic.Dictionary<BundleWithDrop,System.Collections.Generic.List<MonoDrop>> ;
 	using T_JoinsInLine = System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>> ;
 	using T_Bundle = System.Collections.Generic.Dictionary<PairIndex2, System.Collections.Generic.List<System.Collections.Generic.List<MonoDrop>>> ;
+
+	//Dictionary<PairIndex2, List< List<MonoDrop>>>
+
+	namespace DropInspection
+	{
+
+		public struct PairIndex2
+		{
+			public Index2 origin;
+			public Index2 direction;
+			
+			public PairIndex2(Index2 _origin, Index2 _direction)
+			{
+				origin = _origin;
+				direction = _direction;
+			}
+		}
+
+
+
+
+		public class GroupNumber
+		{}
+
+
+		public enum eDropKind
+		{
+			None = 0,
+			Red,
+			Green,
+			Blue,
+			Light,
+			Dark,
+			Heart,
+			Obstruction,
+			Posion,
+			Posion2,
+			Max,
+		}
+
+		//Piece in Line (Line is column or row in board)
+		public class Piece
+		{
+			//드롭의 종류
+			public eDropKind kind;
+
+			//활성조건을 만족하는 드롭의 시작, 끝 위치
+			public Index2 start;
+			public Index2 end;
+
+			//강화된 드롭의 개수
+			public char count_reinforcement;
+
+		}
+
+		//Lines : Piece + Piece + .....
+		public class Lines : List<Piece>
+		{
+
+		}
+
+
+		/// <summary>
+		/// Bundle : Lines1 + Lines2 + Lines3 ...
+		/// 
+		/// 활성조건을 만족하는 한덩어리의 드롭들
+		/// 
+		/// 번들에는 활성조건을 만족하는 같은 종류의 드롭이 한덩어리만 들어가야 한다.
+		/// </summary>
+		public class Bundle
+		{
+			// ---> row
+			public List<Lines> row = new List<Lines> ();
+
+			// ^ column
+			public List<Lines> column = new List<Lines> ();
+
+			//row + column
+			public List<Index2> rowColumn = new List<Index2> ();
+		}
+	}
+
+
+
 
 
 	/// <summary>
