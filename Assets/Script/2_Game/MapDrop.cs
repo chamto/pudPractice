@@ -78,13 +78,16 @@ namespace PuzzAndBidurgi
 	public class DropController
 	{
 
-		private int m_sequenceId = 0;
+		//private int m_sequenceId = 0;
 
-		private DropList<MonoDrop> _dropList = new DropList<MonoDrop> ();
-		private MapSet			   _mapSet = new MapSet();
+		//model - controller - “view” : 출력UI드롭
+		private DropList<MonoDrop> _monoDropList = new DropList<MonoDrop> ();
+
+		//"model" - controller - view : 드롭정보를 가지고 있는 데이타
+		private DropMap			   _dropMap = new DropMap();
 
 
-		private MonoDrop createMonoDrop(Transform parent , eResKind eDrop , Vector3 localPos)
+		public MonoDrop CreateMonoDrop(Transform parent , DropInfo dropInfo , Vector3 localPos)
 		{
 			GameObject newObj = CResoureManager.CreatePrefab(SResDefine.pfDROPINFO);
 			if(null == newObj) 
@@ -92,8 +95,8 @@ namespace PuzzAndBidurgi
 				CDefine.DebugLogError(string.Format("Failed to create Prefab : " + SResDefine.pfDROPINFO));
 				return null;
 			}
-			MonoDrop drop = newObj.GetComponent<MonoDrop>();
-			if(null == drop) 
+			MonoDrop monoDrop = newObj.GetComponent<MonoDrop>();
+			if(null == monoDrop) 
 			{
 				CDefine.DebugLogError(string.Format("MonoDrop is null"));
 				return null;
@@ -103,46 +106,46 @@ namespace PuzzAndBidurgi
 			//-------------------------------------------------
 			
 
-			drop.id = m_sequenceId++;
+			monoDrop.id = dropInfo.id;
+			//monoDrop.setDropKind = dropInfo.kind;  //20160221 chamto - fix me : eKind 를 eResKind 로 변환하여 넘겨야 한다. 변환함수 추가하기
 
-			drop.index2D = Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos);
-			drop.setDropKind = eDrop;
+			monoDrop.index2D = Single.DropMgr.boardInfo.GetPositionToIndex2D (localPos);
 			
 			//Specify the parent object
-			drop.transform.parent = parent;
-			drop.name = "drop" + drop.id;
+			monoDrop.transform.parent = parent;
+			monoDrop.name = "drop" + monoDrop.id.ToString("x5");
 			
 			//[주의!!] 부모에 대한 상대좌표를 지정해야 하기 때문에 localposition 을 써야 한다.  
-			drop.transform.localPosition = localPos;
+			monoDrop.transform.localPosition = localPos;
 			
 			
 			//todo modify that localposition
-			drop.gotoLocalPosition = localPos;
+			monoDrop.gotoLocalPosition = localPos;
 
-			drop.SetColor(Color.gray);
+			monoDrop.SetColor(Color.gray);
 			//drop.SetColor(Color.blue);
 			//drop.GetBoxCollider2D().enabled = false; //20150212 chamto - 터치입력을 못받게 충돌체를 비활성 시켜 놓는다.
 			
 			//20150331 chamto test
 			//drop.testIndex2.ix = drop.index2D.ix;
 			//drop.testIndex2.iy = drop.index2D.iy;
-			drop.m_textMesh_Index2 = MonoDrop.Add3DText (drop.transform, drop.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
+			monoDrop.m_textMesh_Index2 = MonoDrop.Add3DText (monoDrop.transform, monoDrop.index2D.ToString (), Color.white, new Vector3(-0.5f,0,-2f));
 			//Index2 localIdx = Single.DropMgr.Board.GetPositionToIndex2D (drop.gotoLocalPosition);
 			//drop.m_textMesh_LocalIdx = MonoDrop.Add3DText (drop.transform, localIdx.ToString(), Color.red, new Vector3(-0.5f,-0.3f,-2f));
 			
 			
-			return drop;
+			return monoDrop;
 		}
 
 
-		public void AddDrop(eResKind eDrop , Vector3 localPos)
+		public void AddDrop(DropInfo dropInfo , Vector3 localPos)
 		{
 			MonoDrop pDrop = null;
-			pDrop = this.createMonoDrop(Single.OBJRoot.transform, 
-			                        eDrop,
+			pDrop = this.CreateMonoDrop(Single.OBJRoot.transform, 
+			                        dropInfo,
 			                        localPos);
 
-			_dropList.Add (pDrop.id, pDrop);
+			_monoDropList.Add (dropInfo.id, pDrop);
 
 		}
 
@@ -151,7 +154,7 @@ namespace PuzzAndBidurgi
 			if (null == drop)
 				return false;
 
-			_dropList.Remove (drop.id);
+			_monoDropList.Remove (drop.id);
 
 			MonoBehaviour.Destroy(drop.gameObject);
 
@@ -165,7 +168,7 @@ namespace PuzzAndBidurgi
 			int maxColumn = max.ix - min.ix;
 			int maxRow = max.iy - min.iy;
 
-			Int32 getValue;
+			DropInfo getValue;
 			Index2 idx = new Index2(0,0);
 			for (int iy=0; iy <= maxRow; iy++) 
 			{
@@ -174,7 +177,7 @@ namespace PuzzAndBidurgi
 				for (int ix=0; ix <= maxColumn; ix++) 
 				{
 					idx.ix = ix + min.ix;
-					if(false == this._mapSet.TryGetValue(idx,out getValue))
+					if(false == this._dropMap.TryGetValue(idx,out getValue))
 					{
 						return idx;
 					}
@@ -191,7 +194,7 @@ namespace PuzzAndBidurgi
 			int maxColumn = max.ix - min.ix;
 			int maxRow = max.iy - min.iy;
 
-			Int32 getValue;
+			DropInfo getValue;
 			Index2 idx = new Index2(0,0);
 			for (int iy=0; iy <= maxRow; iy++) 
 			{
@@ -199,7 +202,7 @@ namespace PuzzAndBidurgi
 				for (int ix=0; ix <= maxColumn; ix++) 
 				{
 					idx.ix = ix + min.ix;
-					if(false == this._mapSet.TryGetValue(idx,out getValue))
+					if(false == this._dropMap.TryGetValue(idx,out getValue))
 					{
 						listEmptySquares.Add(idx);	
 					}
@@ -222,34 +225,89 @@ namespace PuzzAndBidurgi
 	public struct Hex3
 	{}
 
+
 	//"model" - controller - view
-	public class MapSet
+	public class DropMap
 	{
 
+		private UInt16 _sequenceId = 0;
+
+		System.Random 		_random = new System.Random();
+
 		//격자형 지도 인덱스
-		private Dictionary<Index3,Int32> _map = new Dictionary<Index3,Int32>();
+		private Dictionary<Index2,DropInfo> _map = new Dictionary<Index2,DropInfo>();
 
 		//육각형 지도 인덱스
 		//private Dictionary<Hex3,Int32> 	_hexMap = new Dictionary<Hex3,Int32>();
 
-		public bool SetValue(Index3 key_index , Int32 value_UId)
+
+		//20160221 chamto - fix me : 지정한 드롭목록에서 드롭별 확률에 맞게 반환되게 수정되어야 한다.
+		public DropInfo.eKind GetRandDrop(byte max_kind)
+		{
+			
+			return (DropInfo.eKind)_random.Next (1, max_kind);
+		}
+
+
+		public void CreateDropMap(UInt16 width, UInt16 height, Index2 startPos)
 		{
 
-			Int32 getValue = CONST_VALUE.UID_NULL;
-			if (false == _map.TryGetValue (key_index, out getValue)) 
+			UInt16 MAP_SIZE = (UInt16)(width * height);
+
+			DropInfo.eKind defaultKind = DropInfo.eKind.Heart;
+			Index2 ixy = startPos;
+			DropInfo dropInfo = null;
+			for(UInt16 i=0 ; i < MAP_SIZE ; i++)
 			{
-				_map.Add(key_index, value_UId);
+				ixy.ix = (int)(i% width); 
+				ixy.iy = (int)(i/ height); 
+
+				dropInfo = this.createDropInfo(defaultKind);
+				this.AddValue(ixy, dropInfo);
+
+			}
+		
+		}
+
+		private DropInfo createDropInfo(DropInfo.eKind ekind)
+		{
+			DropInfo drop = new DropInfo ();
+			drop.id = _sequenceId++;
+			drop.kind = ekind;
+
+			return drop;
+		}
+
+		public bool AddValue(Index3 key_index , DropInfo value)
+		{
+			DropInfo getValue = null;
+			if (true == _map.TryGetValue (key_index, out getValue)) 
+			{
+				return false;
 			}
 			
-			_map[key_index] = value_UId;
+			_map.Add(key_index, value);
 			return true;
 		}
 
-		public bool TryGetValue(Index3 key_index , out Int32 getValue)
+		public bool SetValue(Index3 key_index , DropInfo value)
+		{
+			
+			DropInfo getValue = null;
+			if (false == _map.TryGetValue (key_index, out getValue)) 
+			{
+				return false;
+			}
+			
+			_map[key_index] = value;
+			return true;
+		}
+
+		public bool TryGetValue(Index2 key_index , out DropInfo getValue)
 		{
 			if (true == _map.TryGetValue (key_index, out getValue)) 
 			{
-				if(CONST_VALUE.UID_NULL != _map[key_index])
+				if(null != _map[key_index])
 				{
 					getValue =  _map[key_index];
 					return true;
@@ -257,25 +315,37 @@ namespace PuzzAndBidurgi
 				
 			}
 
-			getValue = CONST_VALUE.UID_NULL;
+			getValue = null;
 			return false;
 		}
 
-		public void Clear(Index3 key_index)
+		public void Init()
 		{
-			Int32 getValue = CONST_VALUE.UID_NULL;
+			//_map.Select (
+			//	drop => {if(null != drop.Value) drop.Value.Init();}
+			//);
+
+			foreach (DropInfo value in _map.Values) 
+			{
+				if(null != value) value.Init();
+			}
+		}
+
+		public void Clear(Index2 key_index)
+		{
+			DropInfo getValue = null;
 			if(true == this.TryGetValue(key_index , out getValue))
 			{
-				this.SetValue (key_index, CONST_VALUE.UID_NULL);
+				this.SetValue (key_index, null);
 			}
 
 		}
 
 		public void ClearAll()
 		{
-			foreach (Index3 key_index in _map.Keys) 
+			foreach (Index2 key_index in _map.Keys) 
 			{
-				this.SetValue (key_index, CONST_VALUE.UID_NULL);
+				this.SetValue (key_index, null);
 			}
 		}
 

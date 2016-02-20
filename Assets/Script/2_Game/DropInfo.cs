@@ -7,66 +7,47 @@ using System.Linq;
 using PuzzAndBidurgi;
 
 
-
-//20150403 chamto - no use , must be cleared
-[System.Serializable]
-public class DropInfo
+namespace PuzzAndBidurgi
 {
 
-	//==============: member Constant :========================================================================================
-	//public const float WIDTH_DROP = 1.15f;
-	//public const float HEIGHT_DROP = 1.15f;
-
-	//==============: member variables :========================================================================================
-	private int 	m_id;
-	private	Index2	m_index2D;
-
-	//==============: property definition :========================================================================================
-	//[HideInInspector] [SerializeField]
-	//[ExposeProperty]
-	public int id
+	[System.Serializable]
+	public class DropInfo
 	{
-		get
+		public enum eKind
 		{
-			return m_id;
+			None = 0,
+			Red,
+			Green,
+			Blue,
+			Light,
+			Dark,
+			Heart,
+			Obstruction,
+			Posion,
+			Posion2,
+			Max,
 		}
-		set 
+
+		//==============: member variables :========================================================================================
+		public const UInt16 NULL_ID_UINT16 = UInt16.MaxValue;
+
+		public UInt16 id = NULL_ID_UINT16;
+
+		//드롭의 종류
+		public eKind kind = eKind.None;
+
+		//강화드롭 상태인지를 나타냄
+		public bool  reinforcement = false;
+
+		public void Init()
 		{
-			m_id = value;
+			id = NULL_ID_UINT16;
+			kind = eKind.None;
+			reinforcement = false;
 		}
+
 	}
-
-	public Index2 index2D
-	{
-		get
-		{
-			return m_index2D;
-		}
-		set
-		{
-			m_index2D = value;
-		}
-	}
-
-	//==============: get,set method :========================================================================================
-
-	//==============: factory method :========================================================================================
-
-	static public DropInfo Create()
-	{
-		DropInfo newObj = new DropInfo ();
-		newObj.Init ();
-
-		return newObj;
-	}
-
-	//==============: member method :========================================================================================
-	public void Init()
-	{
-		m_id = 0;
-		m_index2D.ix = 0;
-		m_index2D.iy = 0;
-	}
-
 }
+
+
 
