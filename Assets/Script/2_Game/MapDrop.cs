@@ -226,13 +226,156 @@ namespace PuzzAndBidurgi
 	{}
 
 
+	public class RandomTable<T>
+	{
+
+		//변동확률 항목 지정값
+		private const float	    TRANS_PERSENT_VALUE = 100.0f; 
+
+		//최대 정수퍼센트지값
+		private const Int32  	MAX_IP_VALUE = 1000000;
+
+		//fpToip : 실수 퍼센트지를 정수퍼센트지로 변환
+		private const float  	FPERSENT_TO_IPERSENT = (float)MAX_IP_VALUE / 100.0f;
+
+		private System.Random 	_random = new System.Random();
+
+		/// <summary>
+		/// The _table.
+		/// 1.항목 , 2.전체에서 항목이 나올 확률
+		/// </summary>
+		private Dictionary<T, float> 	_tableFp = new Dictionary<T, float>();
+		private Dictionary<T, UInt32> 	_tableIp = new Dictionary<T, UInt32>();
+
+		////변동확률 목록
+		private List<T> 				_tpvList = new List<T> ();
+
+
+		public void Clear()
+		{
+			_tableFp.Clear ();
+			_tableIp.Clear ();
+			_tpvList.Clear ();
+		}
+
+		public void Add(T key, float value)
+		{
+			//최대 100%
+			if (100.0f <= value) 
+			{
+				value = 100.0f;
+				_tpvList.Add(key); //변동확률 값은 따로 기억해 둔다.
+			}
+
+			_tableFp.Add (key, value);
+		}
+
+
+		private void calcFp1ToFp2()
+		{
+			//100 - (0.2 + 0.2 + 0.6) => 99
+			//평균변동확률 구하기 : 99 / 2(변동확률 항목수) = 49.5
+
+			float sum = 0;
+			float avgTpv = 0;
+			foreach (KeyValuePair<T,float> keyValue in _tableFp) 
+			{
+				sum += keyValue.Value;
+			}
+
+			foreach (T value in _tpvList) 
+			{
+				sum -= _tableFp[value];
+			}
+
+			avgTpv = sum / _tpvList.Count;
+
+			foreach (T value in _tpvList) 
+			{
+				_tableFp[value] = avgTpv;
+			}
+
+		}
+
+		private void calcFp2ToIp()
+		{
+			//최대 정수퍼센트지값 : max 1000 
+			//fp100 * fpToip10 = ip1000
+			//ip1000 / fp100 = fpToip10
+
+			foreach (KeyValuePair<T,float> keyValue in _tableFp) 
+			{
+				_tableIp.Add(keyValue.Key, (UInt32)(keyValue.Value * FPERSENT_TO_IPERSENT));
+			}
+
+		}
+
+		private void calcIpToIpRange()
+		{
+			//확률구간이 적용된 ip로 바꾸기
+			//현재ip + 다음ip = 다음ipRange 
+
+			UInt32 prevValue = 0;
+			foreach (KeyValuePair<T,UInt32> kv in _tableIp) 
+			{
+				_tableIp[kv.Key] += prevValue;
+				prevValue = kv.Value;
+			}
+
+		}
+
+		public void CalcTable()
+		{
+			//fp : 실수퍼센트지 , ip : 정수퍼센트지
+			//fpToip : 실수 퍼센트지를 정수퍼센트지로 변환
+			
+			//1 -- 		calcFp1ToFp2        --
+			//fp 1차값 : 0.2 100 0.2 100 0.6 : count 5
+			//확률이 100인 항목은 계산에서 제외한다. 항목이 100이면 변동확률을 사용
+			//100 - (0.2 + 0.2 + 0.6) => 99
+			//변동확률 구하기 : 99 / 2(변동확률 항목수) = 49.5
+			//fp 2차값 : 0.2 49.5 0.2 49.5 0.6
+			
+			//2 -- 		calcFp2ToIp        --
+			//최대 정수퍼센트지값 : max 1000 
+			//fp100 * fpToip10 = ip1000
+			//ip1000 / fp100 = fpToip10
+			//ip     2   495 2 495  6
+			
+			//3 -- 		calcIpToIpRange        --
+			//확률구간이 적용된 ip로 바꾸기
+			//현재ip + 다음ip = 다음ipRange 
+			//ipRange  2   497 499 994 1000
+
+			this.calcFp1ToFp2 ();
+			this.calcFp2ToIp ();
+			this.calcIpToIpRange ();
+		}
+
+
+//		public void GetRandValue(out T rValue) 
+//		{
+//
+//			Int32 rand = _random.Next (1, MAX_IP_VALUE);
+//
+//			foreach (KeyValuePair<T,UInt32> kv in _tableIp) 
+//			{
+//				if( kv.Value <= rand || rand <= kv.Value)
+//				{
+//					rValue = kv.Key;
+//				}
+//			}
+//
+//		}
+	}
+
 	//"model" - controller - view
 	public class DropMap
 	{
 
 		private UInt16 _sequenceId = 0;
 
-		System.Random 		_random = new System.Random();
+		private System.Random 		_random = new System.Random();
 
 		//격자형 지도 인덱스
 		private Dictionary<Index2,DropInfo> _map = new Dictionary<Index2,DropInfo>();
