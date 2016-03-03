@@ -314,7 +314,8 @@ namespace PuzzAndBidurgi
 			float avgTpv = 0;
 			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
 			{
-				if (Mathf.Abs(FLAG_TRANS_PERCENT_VALUE - keyValue.Value)  <= float.Epsilon  ) 
+				//if (Mathf.Abs(FLAG_TRANS_PERCENT_VALUE - keyValue.Value)  <= float.Epsilon  ) 
+				if(FLAG_TRANS_PERCENT_VALUE <= keyValue.Value)
 				{
 					_tpvList.Add(keyValue.Key); //변동백분율 값은 따로 기억해 둔다.
 				}else
@@ -324,12 +325,23 @@ namespace PuzzAndBidurgi
 				}
 			}
 
-			avgTpv =(100f - sum) / _tpvList.Count;
+			if (0 == _tpvList.Count)
+				avgTpv = (100f - sum);
+			else
+				avgTpv =(100f - sum) / _tpvList.Count;
+
 			_tpvAvg = avgTpv;
 
 			foreach (T key in _tpvList) 
 			{
 				_outTableFp[key] = _tpvAvg;
+			}
+
+			float test = sum + (avgTpv * _tpvList.Count);
+			//CDefine.DebugLog (test); //chamto test
+			if (Mathf.Abs (100f - test) >= float.Epsilon) 
+			{
+				CDefine.DebugLogError("invalid totalSumValue of _outTableFp. clost to 100Percent: " + test);			
 			}
 
 		}
@@ -355,6 +367,12 @@ namespace PuzzAndBidurgi
 				rangeValue += prevValue;
 				_inTableIp.Add(keyValue.Key, rangeValue);
 				prevValue = rangeValue;
+			}
+
+			//백분율을 넘어서는 확률 구간이 있으면 안된다. 
+			if (MAX_IP_VALUE < rangeValue) 
+			{
+				CDefine.DebugLogError("invalid range value. close to MAX_IP_VALUE: " + rangeValue);
 			}
 
 		}
