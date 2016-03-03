@@ -225,18 +225,27 @@ namespace PuzzAndBidurgi
 	public struct Hex3
 	{}
 
+	public struct PercentItem
+	{
+		public int dropKind;
+
+		public override string ToString()
+		{
+			return dropKind.ToString();
+		}
+	}
 
 	public class RandomTable<T> where T : struct
 	{
 
 		//변동백분율 항목 표시값
-		private const float	    FLAG_TRANS_PERSENT_VALUE = 100.0f; 
+		private const float	    FLAG_TRANS_PERCENT_VALUE = 100.0f; 
 
 		//최대 정수퍼센트지값
 		private const Int32  	MAX_IP_VALUE = 1000000;
 
 		//fpToip : 실수 퍼센트지를 정수퍼센트지로 변환
-		private const float  	FPERSENT_TO_IPERSENT = (float)MAX_IP_VALUE / 100.0f;
+		private const float  	FPERCENT_TO_IPERCENT = (float)MAX_IP_VALUE / 100.0f;
 
 		private System.Random 	_random = new System.Random();
 
@@ -305,17 +314,23 @@ namespace PuzzAndBidurgi
 			float avgTpv = 0;
 			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
 			{
-				if (Mathf.Abs(FLAG_TRANS_PERSENT_VALUE - keyValue.Value)  <= float.Epsilon  ) 
+				if (Mathf.Abs(FLAG_TRANS_PERCENT_VALUE - keyValue.Value)  <= float.Epsilon  ) 
 				{
 					_tpvList.Add(keyValue.Key); //변동백분율 값은 따로 기억해 둔다.
 				}else
 				{
 					sum += keyValue.Value;
+					//CDefine.DebugLog(sum); //chamto test
 				}
 			}
 
-			avgTpv = sum / _tpvList.Count;
+			avgTpv =(100f - sum) / _tpvList.Count;
 			_tpvAvg = avgTpv;
+
+			foreach (T key in _tpvList) 
+			{
+				_outTableFp[key] = _tpvAvg;
+			}
 
 		}
 
@@ -327,25 +342,19 @@ namespace PuzzAndBidurgi
 			//ip1000 / fp100 = fpToip10
 			//ip     2   495 2 495  6
 
-			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
-			{
-				_inTableIp.Add(keyValue.Key, (UInt32)(keyValue.Value * FPERSENT_TO_IPERSENT));
-			}
-
-		}
-
-		private void calcIpToIpRange()
-		{
 			//3 -- 		calcIpToIpRange        --
 			//확률구간이 적용된 ip로 바꾸기
 			//현재ip + 다음ip = 다음ipRange 
 			//ipRange  2   497 499 994 1000
 
+			UInt32 rangeValue = 0;
 			UInt32 prevValue = 0;
-			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
+			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
 			{
-				_inTableIp[kv.Key] += prevValue;
-				prevValue = kv.Value;
+				rangeValue = (UInt32)(keyValue.Value * FPERCENT_TO_IPERCENT);
+				rangeValue += prevValue;
+				_inTableIp.Add(keyValue.Key, rangeValue);
+				prevValue = rangeValue;
 			}
 
 		}
@@ -376,22 +385,25 @@ namespace PuzzAndBidurgi
 			this.clearInnerTable ();
 			this.calcFp1ToFp2 ();
 			this.calcFp2ToIp ();
-			this.calcIpToIpRange ();
 		}
 
 
 		public T GetRandValue()
 		{
-			T rValue = new T();
+			T rValue = default(T);
 
-			Int32 rand = _random.Next (1, MAX_IP_VALUE);
+			Int32 rand = _random.Next (0, MAX_IP_VALUE+1);
+			//CDefine.DebugLog ("rand :" + rand); //chamto test
 
+			UInt32 prevValue = 0;
 			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
 			{
-				if( kv.Value <= rand || rand <= kv.Value)
+				if( prevValue <= rand && rand < kv.Value)
 				{
 					rValue = kv.Key;
 				}
+
+				prevValue = kv.Value;
 			}
 
 			return rValue;
@@ -401,20 +413,23 @@ namespace PuzzAndBidurgi
 		{
 			UInt32 sumIp = 0;
 			float sumFp = 0; 
-			string temp = "";
+			string strFpTable = "";
+			string strIpTable = "";
 			foreach (KeyValuePair<T,float> kv in _outTableFp) 
 			{
 				sumFp += kv.Value;
+				strFpTable += kv.Key + ", " + kv.Value + " | ";
 			}
 			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
 			{
 				sumIp += kv.Value;
-				temp += kv.Key + " " + kv.Value + " | ";
+				strIpTable += kv.Key + " " + kv.Value + " | ";
 			}
-			temp += "count:" + _inTableIp.Count;
-			CDefine.DebugLog(temp);	
-			CDefine.DebugLog ("IPSum : " + sumIp + "  FPSum : " + sumFp);
-
+			CDefine.DebugLog(strFpTable);	
+			strIpTable += "count:" + _inTableIp.Count;
+			CDefine.DebugLog(strIpTable);	
+			CDefine.DebugLog ("IPSum : " + sumIp + "  FPSum : " + sumFp );
+			CDefine.DebugLog("avgTpv : " + _tpvAvg + "  tpvCount : " + _tpvList.Count);
 
 		}
 	}
