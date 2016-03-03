@@ -226,11 +226,11 @@ namespace PuzzAndBidurgi
 	{}
 
 
-	public class RandomTable<T>
+	public class RandomTable<T> where T : struct
 	{
 
-		//변동확률 항목 지정값
-		private const float	    TRANS_PERSENT_VALUE = 100.0f; 
+		//변동백분율 항목 표시값
+		private const float	    FLAG_TRANS_PERSENT_VALUE = 100.0f; 
 
 		//최대 정수퍼센트지값
 		private const Int32  	MAX_IP_VALUE = 1000000;
@@ -240,85 +240,111 @@ namespace PuzzAndBidurgi
 
 		private System.Random 	_random = new System.Random();
 
-		/// <summary>
-		/// The _table.
-		/// 1.항목 , 2.전체에서 항목이 나올 확률
-		/// </summary>
-		private Dictionary<T, float> 	_tableFp = new Dictionary<T, float>();
-		private Dictionary<T, UInt32> 	_tableIp = new Dictionary<T, UInt32>();
 
-		////변동확률 목록
+		//원본 실수값  <항목 , 전체에서 항목이 나올 확률>
+		//외부에서 보는 값 , 가공되지 않은 값
+		private Dictionary<T, float> 	_outTableFp = new Dictionary<T, float>();
+
+		//실수값을 정수값으로 변환
+		//내부에서 확률구간검사용으로 사용되는 값 , 가공된 값
+		private Dictionary<T, UInt32> 	_inTableIp = new Dictionary<T, UInt32>();
+
+		//변동백분율 목록 : translating persentage value
 		private List<T> 				_tpvList = new List<T> ();
+		private float 					_tpvAvg = 0;
 
 
-		public void Clear()
+		public void ClearOuterTable()
 		{
-			_tableFp.Clear ();
-			_tableIp.Clear ();
+			_outTableFp.Clear ();
+
+			this.clearInnerTable ();
+		}
+
+		private void clearInnerTable()
+		{
+			_inTableIp.Clear ();
+
 			_tpvList.Clear ();
+			_tpvAvg = 0;
+		}
+
+		public bool Update (T key, float value)
+		{
+			float getValue = 0;
+			if (true == _outTableFp.TryGetValue (key, out getValue)) 
+			{
+				_outTableFp[key] = value;
+				return true;
+			}
+
+			return false;
+		}
+
+		public void Remove(T key)
+		{
+			_outTableFp.Remove (key);
 		}
 
 		public void Add(T key, float value)
 		{
-			//최대 100%
-			if (100.0f <= value) 
-			{
-				value = 100.0f;
-				_tpvList.Add(key); //변동확률 값은 따로 기억해 둔다.
-			}
-
-			_tableFp.Add (key, value);
+			_outTableFp.Add (key, value);
 		}
 
 
 		private void calcFp1ToFp2()
 		{
+			//1 -- 		calcFp1ToFp2        --
+			//fp 1차값 : 0.2 100 0.2 100 0.6 : count 5
+			//확률이 100인 항목은 계산에서 제외한다. 항목이 100이면 변동확률을 사용
 			//100 - (0.2 + 0.2 + 0.6) => 99
-			//평균변동확률 구하기 : 99 / 2(변동확률 항목수) = 49.5
+			//변동확률 구하기 : 99 / 2(변동확률 항목수) = 49.5
+			//fp 2차값 : 0.2 49.5 0.2 49.5 0.6
 
 			float sum = 0;
 			float avgTpv = 0;
-			foreach (KeyValuePair<T,float> keyValue in _tableFp) 
+			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
 			{
-				sum += keyValue.Value;
-			}
-
-			foreach (T value in _tpvList) 
-			{
-				sum -= _tableFp[value];
+				if (Mathf.Abs(FLAG_TRANS_PERSENT_VALUE - keyValue.Value)  <= float.Epsilon  ) 
+				{
+					_tpvList.Add(keyValue.Key); //변동백분율 값은 따로 기억해 둔다.
+				}else
+				{
+					sum += keyValue.Value;
+				}
 			}
 
 			avgTpv = sum / _tpvList.Count;
-
-			foreach (T value in _tpvList) 
-			{
-				_tableFp[value] = avgTpv;
-			}
+			_tpvAvg = avgTpv;
 
 		}
 
 		private void calcFp2ToIp()
 		{
+			//2 -- 		calcFp2ToIp        --
 			//최대 정수퍼센트지값 : max 1000 
 			//fp100 * fpToip10 = ip1000
 			//ip1000 / fp100 = fpToip10
+			//ip     2   495 2 495  6
 
-			foreach (KeyValuePair<T,float> keyValue in _tableFp) 
+			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
 			{
-				_tableIp.Add(keyValue.Key, (UInt32)(keyValue.Value * FPERSENT_TO_IPERSENT));
+				_inTableIp.Add(keyValue.Key, (UInt32)(keyValue.Value * FPERSENT_TO_IPERSENT));
 			}
 
 		}
 
 		private void calcIpToIpRange()
 		{
+			//3 -- 		calcIpToIpRange        --
 			//확률구간이 적용된 ip로 바꾸기
 			//현재ip + 다음ip = 다음ipRange 
+			//ipRange  2   497 499 994 1000
 
 			UInt32 prevValue = 0;
-			foreach (KeyValuePair<T,UInt32> kv in _tableIp) 
+			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
 			{
-				_tableIp[kv.Key] += prevValue;
+				_inTableIp[kv.Key] += prevValue;
 				prevValue = kv.Value;
 			}
 
@@ -347,26 +373,50 @@ namespace PuzzAndBidurgi
 			//현재ip + 다음ip = 다음ipRange 
 			//ipRange  2   497 499 994 1000
 
+			this.clearInnerTable ();
 			this.calcFp1ToFp2 ();
 			this.calcFp2ToIp ();
 			this.calcIpToIpRange ();
 		}
 
 
-//		public void GetRandValue(out T rValue) 
-//		{
-//
-//			Int32 rand = _random.Next (1, MAX_IP_VALUE);
-//
-//			foreach (KeyValuePair<T,UInt32> kv in _tableIp) 
-//			{
-//				if( kv.Value <= rand || rand <= kv.Value)
-//				{
-//					rValue = kv.Key;
-//				}
-//			}
-//
-//		}
+		public T GetRandValue()
+		{
+			T rValue = new T();
+
+			Int32 rand = _random.Next (1, MAX_IP_VALUE);
+
+			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
+			{
+				if( kv.Value <= rand || rand <= kv.Value)
+				{
+					rValue = kv.Key;
+				}
+			}
+
+			return rValue;
+		}
+
+		public void Test()
+		{
+			UInt32 sumIp = 0;
+			float sumFp = 0; 
+			string temp = "";
+			foreach (KeyValuePair<T,float> kv in _outTableFp) 
+			{
+				sumFp += kv.Value;
+			}
+			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
+			{
+				sumIp += kv.Value;
+				temp += kv.Key + " " + kv.Value + " | ";
+			}
+			temp += "count:" + _inTableIp.Count;
+			CDefine.DebugLog(temp);	
+			CDefine.DebugLog ("IPSum : " + sumIp + "  FPSum : " + sumFp);
+
+
+		}
 	}
 
 	//"model" - controller - view

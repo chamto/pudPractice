@@ -82,11 +82,12 @@ namespace PuzzAndBidurgi
 			public List<Index2> rowColumn = new List<Index2> ();
 		}
 
+		/*
 		public class FittingList
 		{
 			public List<Bundle> bundles = new List<Bundle> ();
 
-			/*
+
 			private bool availableJoin(MonoDrop start , out int jump)
 			{
 				if(null == d_start)
@@ -116,7 +117,7 @@ namespace PuzzAndBidurgi
 				return true;
 			}
 
-//20160221 chamto - waiting job : DropMap의 드롭생성 처리를 만든후 , 연관해서 작성해야 한다. 
+//20160221 chamto - first job : DropMap의 드롭생성 처리를 만든후 , 연관해서 작성해야 한다. 
 			public Lines LineInspect(Index2 start, Index2 direction, UInt16 length, UInt16 minJoin)
 			{
 
@@ -227,8 +228,8 @@ namespace PuzzAndBidurgi
 				
 				return joins;
 			}
-			*/
-		}
+
+		}*/
 	}
 
 
