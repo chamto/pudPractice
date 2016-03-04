@@ -354,7 +354,6 @@ namespace PuzzAndBidurgi
 			//ip1000 / fp100 = fpToip10
 			//ip     2   495 2 495  6
 
-			//3 -- 		calcIpToIpRange        --
 			//확률구간이 적용된 ip로 바꾸기
 			//현재ip + 다음ip = 다음ipRange 
 			//ipRange  2   497 499 994 1000
@@ -394,8 +393,7 @@ namespace PuzzAndBidurgi
 			//fp100 * fpToip10 = ip1000
 			//ip1000 / fp100 = fpToip10
 			//ip     2   495 2 495  6
-			
-			//3 -- 		calcIpToIpRange        --
+
 			//확률구간이 적용된 ip로 바꾸기
 			//현재ip + 다음ip = 다음ipRange 
 			//ipRange  2   497 499 994 1000
