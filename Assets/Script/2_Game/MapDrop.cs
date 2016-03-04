@@ -239,7 +239,7 @@ namespace PuzzAndBidurgi
 	{
 
 		//변동백분율 항목 표시값
-		private const float	    FLAG_TRANS_PERCENT_VALUE = 100.0f; 
+		//private const float	    FLAG_TRANS_PERCENT_VALUE = 100.0f; 
 
 		//최대 정수퍼센트지값
 		private const Int32  	MAX_IP_VALUE = 1000000;
@@ -258,14 +258,23 @@ namespace PuzzAndBidurgi
 		//내부에서 확률구간검사용으로 사용되는 값 , 가공된 값
 		private Dictionary<T, UInt32> 	_inTableIp = new Dictionary<T, UInt32>();
 
-		//변동백분율 목록 : translating persentage value
+		//변동백분율 목록 : translating percentage value
+		//변동백분율값이 어떤것인지 확인하는 용도임 
 		private List<T> 				_tpvList = new List<T> ();
-		private float 					_tpvAvg = 0;
 
 
-		public void ClearOuterTable()
+		private bool 					_needCalcTable = true;
+
+
+		public Int32 GetTableCount()
+		{
+			return _outTableFp.Count;
+		}
+
+		public void ClearTable()
 		{
 			_outTableFp.Clear ();
+			_tpvList.Clear ();
 
 			this.clearInnerTable ();
 		}
@@ -274,30 +283,67 @@ namespace PuzzAndBidurgi
 		{
 			_inTableIp.Clear ();
 
-			_tpvList.Clear ();
-			_tpvAvg = 0;
+			_needCalcTable = true;
 		}
 
-		public bool Update (T key, float value)
+		public bool Update(T key, float value)
 		{
 			float getValue = 0;
 			if (true == _outTableFp.TryGetValue (key, out getValue)) 
 			{
 				_outTableFp[key] = value;
+				_needCalcTable = true;
+
 				return true;
 			}
 
 			return false;
 		}
 
+
+		public void ActiveTpv(T key, bool isTpv)
+		{
+			float outValue = 0;
+			if (true == _outTableFp.TryGetValue(key,out outValue))
+			{
+				if(true == isTpv)
+				{
+					_tpvList.Add(key);
+					_needCalcTable = true;
+				}
+			}
+
+			if(false == isTpv)
+			{
+				_tpvList.Remove(key);
+				_needCalcTable = true;
+			}
+		}
+
 		public void Remove(T key)
 		{
 			_outTableFp.Remove (key);
+			_needCalcTable = true;
+
+			this.ActiveTpv (key, false);
+
 		}
 
 		public void Add(T key, float value)
 		{
 			_outTableFp.Add (key, value);
+			_needCalcTable = true;
+		}
+
+		//isTpv : 처음 값을 넣을때 변동백분율값인지 표시해서 넣어준다.
+		public void Add(T key, float value, bool isTpv)
+		{
+			this.Add (key, value);
+
+			if (true == isTpv) 
+			{
+				this.ActiveTpv(key, isTpv);
+			}
 		}
 
 
@@ -314,34 +360,30 @@ namespace PuzzAndBidurgi
 			float avgTpv = 0;
 			foreach (KeyValuePair<T,float> keyValue in _outTableFp) 
 			{
-				//if (Mathf.Abs(FLAG_TRANS_PERCENT_VALUE - keyValue.Value)  <= float.Epsilon  ) 
-				if(FLAG_TRANS_PERCENT_VALUE <= keyValue.Value)
-				{
-					_tpvList.Add(keyValue.Key); //변동백분율 값은 따로 기억해 둔다.
-				}else
-				{
-					sum += keyValue.Value;
-					//CDefine.DebugLog(sum); //chamto test
-				}
+				sum += keyValue.Value;
 			}
+			foreach (T key in _tpvList) 
+			{
+				sum -= _outTableFp[key];
+			}
+
 
 			if (0 == _tpvList.Count)
 				avgTpv = (100f - sum);
 			else
 				avgTpv =(100f - sum) / _tpvList.Count;
 
-			_tpvAvg = avgTpv;
 
 			foreach (T key in _tpvList) 
 			{
-				_outTableFp[key] = _tpvAvg;
+				_outTableFp[key] = avgTpv;
 			}
 
 			float test = sum + (avgTpv * _tpvList.Count);
 			//CDefine.DebugLog (test); //chamto test
 			if (Mathf.Abs (100f - test) >= float.Epsilon) 
 			{
-				CDefine.DebugLogError("invalid totalSumValue of _outTableFp. clost to 100Percent: " + test);			
+				CDefine.DebugLogError("invalid totalSumValue of _outTableFp. must be clost to 100Percent: " + test);			
 			}
 
 		}
@@ -371,7 +413,7 @@ namespace PuzzAndBidurgi
 			//백분율을 넘어서는 확률 구간이 있으면 안된다. 
 			if (MAX_IP_VALUE < rangeValue) 
 			{
-				CDefine.DebugLogError("invalid range value. close to MAX_IP_VALUE: " + rangeValue);
+				CDefine.DebugLogError("invalid range value. must be close to MAX_IP_VALUE: " + rangeValue);
 			}
 
 		}
@@ -401,11 +443,18 @@ namespace PuzzAndBidurgi
 			this.clearInnerTable ();
 			this.calcFp1ToFp2 ();
 			this.calcFp2ToIp ();
+
+			_needCalcTable = false;
 		}
 
 
 		public T GetRandValue()
 		{
+			if (true == _needCalcTable) 
+			{
+				CDefine.DebugLogWarning("CalcTable function must be called");
+			}
+
 			T rValue = default(T);
 
 			Int32 rand = _random.Next (0, MAX_IP_VALUE+1);
@@ -425,7 +474,7 @@ namespace PuzzAndBidurgi
 			return rValue;
 		}
 
-		public void Test()
+		public void PrintValue()
 		{
 			UInt32 sumIp = 0;
 			float sumFp = 0; 
@@ -434,18 +483,93 @@ namespace PuzzAndBidurgi
 			foreach (KeyValuePair<T,float> kv in _outTableFp) 
 			{
 				sumFp += kv.Value;
-				strFpTable += kv.Key + ", " + kv.Value + " | ";
+				strFpTable += "[" + kv.Key + "] " + kv.Value + " | ";
 			}
 			foreach (KeyValuePair<T,UInt32> kv in _inTableIp) 
 			{
 				sumIp += kv.Value;
-				strIpTable += kv.Key + " " + kv.Value + " | ";
+				strIpTable += "[" + kv.Key + "] " + kv.Value + " | ";
 			}
 			CDefine.DebugLog(strFpTable);	
 			strIpTable += "count:" + _inTableIp.Count;
 			CDefine.DebugLog(strIpTable);	
-			CDefine.DebugLog ("IPSum : " + sumIp + "  FPSum : " + sumFp );
-			CDefine.DebugLog("avgTpv : " + _tpvAvg + "  tpvCount : " + _tpvList.Count);
+			CDefine.DebugLog ("IPSum : " + sumIp + "  FPSum : " + sumFp + "  tpvCount : " + _tpvList.Count);
+
+
+		}
+
+		public static void PrintProbabilityDistribution(RandomTable<PercentItem> randTable, UInt16 tryCount)
+		{
+			if (null == randTable)
+								return;
+
+			PercentItem item;
+			ArrayList disb = new ArrayList();
+			for (int i=0; i< randTable.GetTableCount(); i++) 
+			{
+				disb.Add(0);
+			}
+
+			for (UInt16 i=0; i<tryCount; i++) 
+			{
+				item  = randTable.GetRandValue();
+				disb[item.dropKind] = (int)disb[item.dropKind] + 1;
+				//temp += this.GetRandValue() + "  |";
+			}
+			
+			string temp = "distribution : ";
+			for (int i=0; i< disb.Count; i++) 
+			{
+				temp += "[" + i + "] " + disb[i] + " | ";
+			}
+			CDefine.DebugLog (temp);
+
+		}
+
+		public static void Test()
+		{
+			PercentItem item;
+			RandomTable<PercentItem> randTable = new RandomTable<PercentItem> ();
+			item.dropKind = 0;
+			randTable.Add (item, 0.2f);
+			
+			item.dropKind = 1;
+			randTable.Add (item, 20f);
+			
+			item.dropKind = 2;
+			randTable.Add (item, 100f, true);
+			
+			item.dropKind = 3;
+			randTable.Add (item, 100f, true);
+			
+			item.dropKind = 4;
+			randTable.Add (item, 15f);
+			
+			randTable.CalcTable ();
+			randTable.PrintValue();
+			RandomTable<PercentItem>.PrintProbabilityDistribution (randTable, 1000);
+			RandomTable<PercentItem>.PrintProbabilityDistribution (randTable, 1000);
+
+			CDefine.DebugLog ("");
+			/*
+			item.dropKind = 1;
+			randTable.Update (item, 50f);
+			item.dropKind = 2;
+			randTable.Update (item, 0.8f);
+			randTable.ActiveTpv (item, false);
+			item.dropKind = 5;
+			randTable.Add (item, 0, true);
+			item.dropKind = 6;
+			randTable.Add (item, 0, true);
+			item.dropKind = 7;
+			randTable.Add (item, 0, true);
+			item.dropKind = 8;
+			randTable.Add (item, 0, true);
+			randTable.CalcTable ();
+			randTable.PrintValue();
+			RandomTable<PercentItem>.PrintProbabilityDistribution (randTable, 1000);
+			*/
+
 
 		}
 	}

@@ -212,42 +212,7 @@ namespace PuzzAndBidurgi
 #endif
 		
 			/*
-			PercentItem item;
-			RandomTable<PercentItem> randTable = new RandomTable<PercentItem> ();
-			item.dropKind = 0;
-			randTable.Add (item, 0.2f);
-
-			item.dropKind = 1;
-			randTable.Add (item, 20f);
-
-			item.dropKind = 2;
-			randTable.Add (item, 100f);
-
-			item.dropKind = 3;
-			randTable.Add (item, 100f);
-
-			item.dropKind = 4;
-			randTable.Add (item, 15f);
-
-			randTable.CalcTable ();
-			randTable.Test ();
-
-
-
-			int[] distribution = new int[5];
-			for (int i=0; i<1000; i++) 
-			{
-				item  = randTable.GetRandValue();
-				distribution[item.dropKind]++;
-				//temp += this.GetRandValue() + "  |";
-			}
-
-			string temp = "distribution : ";
-			for (int i=0; i< distribution.Length; i++) 
-			{
-				temp += i + ", " + distribution[i] + " | ";
-			}
-			CDefine.DebugLog (temp);
+			RandomTable<PercentItem>.Test ();
 			//*/
 
 
