@@ -1,11 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TestClosestPoints : MonoBehaviour {
-
-	private ML.Line3 _line1;
-	private ML.Line3 _line2;
-
+public class TestClosestPoints : MonoBehaviour 
+{
 
 	public GameObject _line1Start = null;
 	public GameObject _line1End = null;
@@ -25,32 +22,24 @@ public class TestClosestPoints : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		_line1.origin = Vector3.zero;
-		_line1.direction = Vector3.one;
-
-		_line2.origin = Vector3.zero;
-		_line2.direction = Vector3.one;
 
 		_clPoint1 = ML.Vector3.Zero;
 		_clPoint2 = ML.Vector3.Zero;
-		//ML.Vector3 cp_line1, cp_line2;
-		//ML.Line3.ClosestPoints (out cp_line1, out cp_line2, _line1, _line2);
-		//Debug.Log (cp_line1 + "  ------  " + cp_line2);
 
 	}
 
-	public void UpdateLineSegment()
+	public void UpdateDistanceSquared()
 	{
 		float s_c=0, t_c=0;
 		ML.LineSegment3 ls1, ls2;
 		ls1.origin = _line1Start.transform.position;
 		ls1.direction = _line1End.transform.position - _line1Start.transform.position;
-		ls1.direction = _line1.direction.Normalize ();
+		ls1.direction = ls1.direction.Normalize ();
 		ls1.last = _line1End.transform.position;
 
 		ls2.origin = _line2Start.transform.position;
 		ls2.direction = _line2End.transform.position - _line2Start.transform.position;
-		ls2.direction = _line2.direction.Normalize ();
+		ls2.direction = ls2.direction.Normalize ();
 		ls2.last = _line2End.transform.position;
 
 		//두 선분의 최소 거리를 구한다.
@@ -74,7 +63,48 @@ public class TestClosestPoints : MonoBehaviour {
 		                                           5);
 	}
 	
-	// Update is called once per frame
+	public void UpdateClosestPoints_LineSegment3()
+	{
+
+		ML.LineSegment3 ls1, ls2;
+		ls1.origin = _line1Start.transform.position;
+		ls1.direction = _line1End.transform.position - _line1Start.transform.position;
+		ls1.direction = ls1.direction.Normalize ();
+		ls1.last = _line1End.transform.position;
+		
+		ls2.origin = _line2Start.transform.position;
+		ls2.direction = _line2End.transform.position - _line2Start.transform.position;
+		ls2.direction = ls2.direction.Normalize ();
+		ls2.last = _line2End.transform.position;
+		
+
+		ML.LineSegment3.ClosestPoints (out _clPoint1, out _clPoint2, ls1, ls2);
+		
+		
+		_lr_closestPoints.SetPosition (0, _clPoint1);
+		_lr_closestPoints.SetPosition (1, _clPoint2);
+		
+		_cpStart.transform.position = _clPoint1;
+		_cpEnd.transform.position = _clPoint2;
+	}
+
+	public void UpdateClosestPoints_Line3()
+	{
+		
+		ML.Line3 _line1, _line2;
+		_line1.origin = _line1Start.transform.position;
+		_line1.direction = _line1End.transform.position - _line1Start.transform.position;
+		_line2.origin = _line2Start.transform.position;
+		_line2.direction = _line2End.transform.position - _line2Start.transform.position;
+		ML.Line3.ClosestPoints (out _clPoint1, out _clPoint2, _line1, _line2);
+
+
+		_lr_closestPoints.SetPosition (0, _clPoint1);
+		_lr_closestPoints.SetPosition (1, _clPoint2);
+
+		_cpStart.transform.position = _clPoint1;
+		_cpEnd.transform.position = _clPoint2;
+	}
 
 	void Update () 
 	{
@@ -83,22 +113,14 @@ public class TestClosestPoints : MonoBehaviour {
 		_lr_line2.SetPosition (0, _line2Start.transform.position);
 		_lr_line2.SetPosition (1, _line2End.transform.position);
 
-		_line1.origin = _line1Start.transform.position;
-		_line1.direction = _line1End.transform.position - _line1Start.transform.position;
-		//_line1.direction = _line1.direction.Normalize ();
-		_line2.origin = _line2Start.transform.position;
-		_line2.direction = _line2End.transform.position - _line2Start.transform.position;
-		//_line2.direction = _line2.direction.Normalize ();
+		//비교1 : 두선분의 가장 가까운 점을 구한다.
+		//UpdateClosestPoints_LineSegment3 ();
 
-		ML.Line3.ClosestPoints (out _clPoint1, out _clPoint2, _line1, _line2);
+		//비교2 : 두직선의 가장 가까운 점을 구한다.
+		UpdateClosestPoints_Line3 ();
 
-		_lr_closestPoints.SetPosition (0, _clPoint1);
-		_lr_closestPoints.SetPosition (1, _clPoint2);
 
-		_cpStart.transform.position = _clPoint1;
-		_cpEnd.transform.position = _clPoint2;
-
-		UpdateLineSegment ();
+		UpdateDistanceSquared ();
 	}
 }
 
