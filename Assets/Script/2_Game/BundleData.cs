@@ -52,6 +52,46 @@ namespace PuzzAndBidurgi
 			public Index2 start;
 			public Index2 end;
 
+			static public ML.LineSegment3 ToLine(Piece p)
+			{
+				ML.LineSegment3 a;
+				a.origin = new ML.Vector3 (p.start.ix, p.start.iy, 0);
+				a.direction = new ML.Vector3 (p.end.ix - p.start.ix, p.end.iy - p.start.iy, 0);
+				a.last = new ML.Vector3 (p.end.ix, p.end.iy, 0);
+
+				return a;
+			}
+
+			//*
+			public bool IsJoin(Piece p)
+			{
+				ML.Vector3 pt1, pt2;
+				Index2 idx1, idx2, diff;
+
+				ML.LineSegment3.ClosestPoints(out pt1, out pt2, Piece.ToLine (this), Piece.ToLine (p));
+
+				idx1 = Index2.Vector3ToIndex2 (pt1, Single.DropMgr.boardInfo.squareWidth, Single.DropMgr.boardInfo.squareHeight);
+				idx2 = Index2.Vector3ToIndex2 (pt2, Single.DropMgr.boardInfo.squareWidth, Single.DropMgr.boardInfo.squareHeight);
+
+				diff = idx1 - idx2;
+				diff.ix = Math.Abs (diff.ix);
+				diff.iy = Math.Abs (diff.iy);
+
+				//특정 축에 대하여 점의차가 0이면 두 선분은  특정 축에 겹쳐있다.
+				//특정 축에 대하여 점의차가 1이면 두 선분은  특정 축에 붙어있다.
+				if (diff.ix == 0 && diff.iy <= 1  ) 
+				{
+					return true;
+				}
+				if (diff.ix <= 1 && diff.iy == 0  ) 
+				{
+					return true;
+				}
+
+				return false;
+			}
+			//*/
+
 		}
 
 		//Lines : Piece + Piece + .....
@@ -80,14 +120,17 @@ namespace PuzzAndBidurgi
 
 			//row + column
 			public List<Index2> rowColumn = new List<Index2> ();
+
+
+
 		}
 
-		/*
+
 		public class FittingList
 		{
 			public List<Bundle> bundles = new List<Bundle> ();
 
-
+			/*
 			private bool availableJoin(MonoDrop start , out int jump)
 			{
 				if(null == d_start)
@@ -228,8 +271,9 @@ namespace PuzzAndBidurgi
 				
 				return joins;
 			}
+			 //*/
 
-		}*/
+		}
 	}
 
 

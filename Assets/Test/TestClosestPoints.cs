@@ -69,12 +69,12 @@ public class TestClosestPoints : MonoBehaviour
 		ML.LineSegment3 ls1, ls2;
 		ls1.origin = _line1Start.transform.position;
 		ls1.direction = _line1End.transform.position - _line1Start.transform.position;
-		ls1.direction = ls1.direction.Normalize ();
+		//ls1.direction = ls1.direction.Normalize (); //정규화 안해도 된다.
 		ls1.last = _line1End.transform.position;
 		
 		ls2.origin = _line2Start.transform.position;
 		ls2.direction = _line2End.transform.position - _line2Start.transform.position;
-		ls2.direction = ls2.direction.Normalize ();
+		//ls2.direction = ls2.direction.Normalize (); 
 		ls2.last = _line2End.transform.position;
 		
 
@@ -114,10 +114,10 @@ public class TestClosestPoints : MonoBehaviour
 		_lr_line2.SetPosition (1, _line2End.transform.position);
 
 		//비교1 : 두선분의 가장 가까운 점을 구한다.
-		//UpdateClosestPoints_LineSegment3 ();
+		UpdateClosestPoints_LineSegment3 ();
 
 		//비교2 : 두직선의 가장 가까운 점을 구한다.
-		UpdateClosestPoints_Line3 ();
+		//UpdateClosestPoints_Line3 ();
 
 
 		UpdateDistanceSquared ();

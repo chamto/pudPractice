@@ -124,6 +124,16 @@ public struct Index2
 		return false;
 	}
 
+	static public Index2 Vector3ToIndex2(Vector3 vt3 , float gridSize_x, float gridSize_y)
+	{
+		Index2 result;
+
+		result.ix = (int)(vt3.x / gridSize_x);
+		result.iy = (int)(vt3.y / gridSize_y);
+
+		return result;
+	}
+
 	static public Index2 Index1ToIndex2(int index1 , int maxColumn)
 	{
 		if (false == ValidMaxColumn (maxColumn)) 
