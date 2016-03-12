@@ -40,13 +40,13 @@ namespace PuzzAndBidurgi
 		{}
 
 
-
-
-		//Piece in Line (Line is column or row in board)
 		public class Piece
 		{
 			//드롭의 종류
 			public DropInfo.eKind kind;
+
+			//강화드롭수
+			public int reinforce; 
 
 			//활성조건을 만족하는 드롭의 시작, 끝 위치
 			public Index2 start;
@@ -70,13 +70,14 @@ namespace PuzzAndBidurgi
 
 				ML.LineSegment3.ClosestPoints(out pt1, out pt2, Piece.ToLine (this), Piece.ToLine (p));
 
-				idx1 = Index2.Vector3ToIndex2 (pt1, Single.DropMgr.boardInfo.squareWidth, Single.DropMgr.boardInfo.squareHeight);
-				idx2 = Index2.Vector3ToIndex2 (pt2, Single.DropMgr.boardInfo.squareWidth, Single.DropMgr.boardInfo.squareHeight);
+				idx1 = Index2.Vector3ToIndex2 (pt1, 1, 1);
+				idx2 = Index2.Vector3ToIndex2 (pt2, 1, 1);
 
 				diff = idx1 - idx2;
 				diff.ix = Math.Abs (diff.ix);
 				diff.iy = Math.Abs (diff.iy);
 
+				//두 드롭조각이 겹쳐있거나 붙어있는 경우를 찾는다.
 				//특정 축에 대하여 점의차가 0이면 두 선분은  특정 축에 겹쳐있다.
 				//특정 축에 대하여 점의차가 1이면 두 선분은  특정 축에 붙어있다.
 				if (diff.ix == 0 && diff.iy <= 1  ) 
@@ -94,34 +95,27 @@ namespace PuzzAndBidurgi
 
 		}
 
-		//Lines : Piece + Piece + .....
-		public class Lines : List<Piece>
+
+		public class Bundle
 		{
+			// ---> row
+			public List<Piece> row = new List<Piece>();
+			
+			// ^ column
+			public List<Piece> column = new List<Piece>();
+
+			public DropInfo.eKind kind;
+			public int totalCount; //전체 드롭수
+			public int totalReinforce; //전체 강화드롭수
+			public int shape;//드롭모양
 
 		}
 
 
-		/// <summary>
-		/// Bundle : Lines1 + Lines2 + Lines3 ...
-		/// 
-		/// 활성조건을 만족하는 한덩어리의 드롭들
-		/// 
-		/// 번들에는 활성조건을 만족하는 같은 종류의 드롭이 한덩어리만 들어가야 한다.
-		/// </summary>
-		public class Bundle
+
+		public class BundleLookup
 		{
-			public UInt16 id;
-
-			// ---> row
-			public Dictionary<Index2, Lines> row = new Dictionary<Index2, Lines> ();
-
-			// ^ column
-			public Dictionary<Index2, Lines> column = new Dictionary<Index2, Lines> ();
-
-			//row + column
-			public List<Index2> rowColumn = new List<Index2> ();
-
-
+			//public UInt16 id;
 
 		}
 
