@@ -42,6 +42,13 @@ namespace PuzzAndBidurgi
 
 		public class Piece
 		{
+			public enum eDirection
+			{
+				NONE	= 0,
+				ROW		= 1,
+				COLUMN	= 2,
+			};
+
 			//드롭의 종류
 			public DropInfo.eKind kind;
 
@@ -51,6 +58,12 @@ namespace PuzzAndBidurgi
 			//활성조건을 만족하는 드롭의 시작, 끝 위치
 			public Index2 start;
 			public Index2 end;
+			public Index2 dir;
+			public int length;
+
+			//조각의 늘어진 방향
+			//public eDirection direction;
+
 
 			static public ML.LineSegment3 ToLine(Piece p)
 			{
@@ -62,7 +75,7 @@ namespace PuzzAndBidurgi
 				return a;
 			}
 
-			//*
+
 			public bool IsJoin(Piece p)
 			{
 				ML.Vector3 pt1, pt2;
@@ -91,9 +104,11 @@ namespace PuzzAndBidurgi
 
 				return false;
 			}
-			//*/
+
 
 		}
+
+	
 
 
 		public class Bundle
@@ -103,6 +118,8 @@ namespace PuzzAndBidurgi
 			
 			// ^ column
 			public List<Piece> column = new List<Piece>();
+
+			public List<Index2> totalIndex2 = new List<Index2>();
 
 			public DropInfo.eKind kind;
 			public int totalCount; //전체 드롭수
@@ -115,7 +132,100 @@ namespace PuzzAndBidurgi
 
 		public class BundleLookup
 		{
-			//public UInt16 id;
+
+			public List<Bundle> bundleList = new List<Bundle>();
+
+			private DropMap 	_refDropMap = null;
+			private List<Piece> _rowPiece = new List<Piece>();
+			private List<Piece> _columnPiece = new List<Piece>();
+
+
+			public void SetDropMap(DropMap refDropMap)
+			{
+				_refDropMap = refDropMap;
+			}
+
+			public void Inspection(Piece.eDirection dir)
+			{
+				const int PUD_PIECE_MIN_LENGTH = 3;
+				int roopCount = 0;
+				if(Piece.eDirection.ROW == dir)
+					roopCount = _refDropMap.GetMapHeight ();
+				if(Piece.eDirection.COLUMN == dir)
+					roopCount = _refDropMap.GetMapWidth ();
+
+
+				Index2 start = Index2.Zero , end = Index2.Zero;
+				List<int> pieceCountList = null;
+				for (int i=0; i<roopCount; i++) 
+				{
+					//row
+					if(Piece.eDirection.ROW == dir)
+					{
+						start.ix = 0;
+						start.iy = i;
+						end.ix = _refDropMap.GetMapWidth() - 1;
+						end.iy = i;
+					}
+
+					//column
+					if(Piece.eDirection.COLUMN == dir)
+					{
+						start.ix = i;
+						start.iy = 0;
+						end.ix = i;
+						end.iy = _refDropMap.GetMapHeight() - 1;
+					}
+
+					if(true == _refDropMap.FindPiece(start, end, PUD_PIECE_MIN_LENGTH, out pieceCountList))
+					{
+						//todo
+					}
+
+
+				}//end for
+
+			}//end Inspection
+
+			public bool FindPiece(Index2 start, Index2 end, int minLength, out List<Piece> pieceList)
+			{
+				List<int> countList = null;
+				pieceList = new List<Piece> ();
+
+				Index2 dir = end - start;
+				//0이 아니라면 길이를 1로 만든다.
+				if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
+				if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
+
+				if(true == _refDropMap.FindPiece(start, end, minLength, out countList))
+				{
+					Piece p = null;
+					Index2 current = start;
+					for(int i=0;i<countList.Count;i++)
+					{
+						p = new Piece();
+						p.start = current;
+						p.dir = dir;
+						p.length = countList[i];
+						p.end =  current + dir * (countList[i]-1);
+						pieceList.Add(p);
+
+						current = current + dir * countList[i];
+					}
+
+
+					return true;
+				}
+
+				return false;
+			}
+
+			public void Join()
+			{
+			
+			}
+
+
 
 		}
 

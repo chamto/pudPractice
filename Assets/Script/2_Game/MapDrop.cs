@@ -588,6 +588,18 @@ namespace PuzzAndBidurgi
 		//육각형 지도 인덱스
 		//private Dictionary<Hex3,Int32> 	_hexMap = new Dictionary<Hex3,Int32>();
 
+		private UInt16 _width = 0;
+		private UInt16 _height = 0;
+
+		public UInt16 GetMapWidth() 
+		{
+			return _width;
+		}
+		public UInt16 GetMapHeight() 
+		{
+			return _height;
+		}
+
 
 		//20160221 chamto - fix me : 지정한 드롭목록에서 드롭별 확률에 맞게 반환되게 수정되어야 한다.
 		public DropInfo.eKind GetRandDrop(byte max_kind)
@@ -599,8 +611,10 @@ namespace PuzzAndBidurgi
 
 		public void CreateDropMap(UInt16 width, UInt16 height, Index2 startPos)
 		{
-
 			UInt16 MAP_SIZE = (UInt16)(width * height);
+
+			_width = width;
+			_height = height;
 
 			DropInfo.eKind defaultKind = DropInfo.eKind.Heart;
 			Index2 ixy = startPos;
@@ -625,6 +639,57 @@ namespace PuzzAndBidurgi
 
 			return drop;
 		}
+
+
+		//minLength : 조각의 최소길이 (퍼드에서는 3이다.)
+		public bool FindPiece (Index2 start, Index2 end, int minLength, out List<int> countList)
+		{
+			bool findPiece = false;
+			Index2 current = start;
+
+			Index2 dir = end - start;
+			//0이 아니라면 길이를 1로 만든다.
+			if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
+			if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
+
+			int count = 1;
+			DropInfo.eKind prevKind = _map[current].kind;
+			countList = new List<int> ();
+			while ((end-start).LengthSquared() > (current-start).LengthSquared()) 
+			{
+
+				current = current + dir; //next position
+
+				if(prevKind == _map[current].kind)
+				{
+					count++;
+
+					//조각의 최소길이를 만족하는 것이 있는 경우 : 반환값을 ‘참’으로 설정한다. 
+					if(count >= minLength)
+						findPiece = true;
+
+					//전에 것과 같고, 마지막 위치일 경우 : 조각의 수를 찾은목록에 추가하고 반복문을 빠져나온다.
+					if(current == end)
+					{
+						countList.Add(count);
+
+						break;
+					}
+				}else
+				{
+					countList.Add(count);
+
+					count = 1;  //init count
+				}//end if
+
+
+				prevKind = _map[current].kind;
+
+			}//end while
+
+			return findPiece;
+		}
+
 
 		public bool AddValue(Index3 key_index , DropInfo value)
 		{

@@ -114,6 +114,12 @@ public struct Index2
 		this.iy = iy;
 	}
 
+	public int LengthSquared()
+	{
+		return this.ix * this.ix + this.iy * this.iy;
+	}
+
+
 	static bool ValidMaxColumn(int maxColumn)
 	{
 		if (MIN_COLUMN <= maxColumn && maxColumn <= MAX_COLUMN) 
