@@ -37,13 +37,13 @@ namespace PuzzAndBidurgi
 		public eKind kind = eKind.None;
 
 		//강화드롭 상태인지를 나타냄
-		public bool  reinforcement = false;
+		public byte  reinforcement = 0;
 
 		public void Init()
 		{
 			id = NULL_ID_UINT16;
 			kind = eKind.None;
-			reinforcement = false;
+			reinforcement = 0;
 		}
 
 	}

@@ -53,7 +53,7 @@ namespace PuzzAndBidurgi
 			public DropInfo.eKind kind;
 
 			//강화드롭수
-			public int reinforce; 
+			public int reinforceCount; 
 
 			//활성조건을 만족하는 드롭의 시작, 끝 위치
 			public Index2 start;
@@ -135,16 +135,11 @@ namespace PuzzAndBidurgi
 
 			public List<Bundle> bundleList = new List<Bundle>();
 
-			private DropMap 	_refDropMap = null;
 			private List<Piece> _rowPiece = new List<Piece>();
 			private List<Piece> _columnPiece = new List<Piece>();
 
 
-			public void SetDropMap(DropMap refDropMap)
-			{
-				_refDropMap = refDropMap;
-			}
-
+			/*
 			public void Inspection(Piece.eDirection dir)
 			{
 				const int PUD_PIECE_MIN_LENGTH = 3;
@@ -186,39 +181,9 @@ namespace PuzzAndBidurgi
 				}//end for
 
 			}//end Inspection
-
-			public bool FindPiece(Index2 start, Index2 end, int minLength, out List<Piece> pieceList)
-			{
-				List<int> countList = null;
-				pieceList = new List<Piece> ();
-
-				Index2 dir = end - start;
-				//0이 아니라면 길이를 1로 만든다.
-				if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
-				if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
-
-				if(true == _refDropMap.FindPiece(start, end, minLength, out countList))
-				{
-					Piece p = null;
-					Index2 current = start;
-					for(int i=0;i<countList.Count;i++)
-					{
-						p = new Piece();
-						p.start = current;
-						p.dir = dir;
-						p.length = countList[i];
-						p.end =  current + dir * (countList[i]-1);
-						pieceList.Add(p);
-
-						current = current + dir * countList[i];
-					}
+			*/
 
 
-					return true;
-				}
-
-				return false;
-			}
 
 			public void Join()
 			{

@@ -640,9 +640,21 @@ namespace PuzzAndBidurgi
 			return drop;
 		}
 
+		private Fitting.Piece createPiece(DropInfo.eKind kind, Index2 start, Index2 dir, int reinforceCount)
+		{
+			Fitting.Piece p = new Fitting.Piece();
+			p.kind = kind;
+			p.dir = dir;
+			p.start = start;
+			p.end = start + dir;
+			p.length = 1;
+			p.reinforceCount = reinforceCount; 
+
+			return p;
+		}
 
 		//minLength : 조각의 최소길이 (퍼드에서는 3이다.)
-		public bool FindPiece (Index2 start, Index2 end, int minLength, out List<int> countList)
+		public bool FindPiece (Index2 start, Index2 end, int minLength, out List<Fitting.Piece> pieceList)
 		{
 			bool findPiece = false;
 			Index2 current = start;
@@ -652,42 +664,49 @@ namespace PuzzAndBidurgi
 			if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
 			if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
 
-			int count = 1;
-			DropInfo.eKind prevKind = _map[current].kind;
-			countList = new List<int> ();
-			while ((end-start).LengthSquared() > (current-start).LengthSquared()) 
+			//int count = 1;
+			//DropInfo.eKind prevKind = _map[current].kind;
+			DropInfo.eKind prevKind = DropInfo.eKind.None;
+			pieceList = new List<Fitting.Piece> ();
+			Fitting.Piece p = null;
+			pieceList.Add (p);
+			while ((end-start).LengthSquared() >= (current-start).LengthSquared()) 
 			{
 
-				current = current + dir; //next position
+				if( DropInfo.eKind.None == _map[current].kind )
+					continue;
 
-				if(prevKind == _map[current].kind)
+
+				if(prevKind != _map[current].kind )
 				{
-					count++;
+					p = this.createPiece (_map[current].kind, current, dir, _map[current].reinforcement);
+					pieceList.Add (p);
 
-					//조각의 최소길이를 만족하는 것이 있는 경우 : 반환값을 ‘참’으로 설정한다. 
-					if(count >= minLength)
-						findPiece = true;
-
-					//전에 것과 같고, 마지막 위치일 경우 : 조각의 수를 찾은목록에 추가하고 반복문을 빠져나온다.
-					if(current == end)
-					{
-						countList.Add(count);
-
-						break;
-					}
 				}else
 				{
-					countList.Add(count);
+					p.length++;
+					p.end = p.start + dir * p.length;
+					p.reinforceCount += _map[current].reinforcement;
 
-					count = 1;  //init count
-				}//end if
+					//조각의 최소길이를 만족하는 것이 있는 경우 : 반환값을 ‘참’으로 설정한다. 
+					if(p.length >= minLength)
+						findPiece = true;
+				}
 
 
+				current = current + dir; //next position
 				prevKind = _map[current].kind;
+
 
 			}//end while
 
 			return findPiece;
+		}
+
+		public List<Fitting.Piece> FindPieceList(Index2 start, Index2 dir)
+		{ 
+			//todo
+			return null;
 		}
 
 
