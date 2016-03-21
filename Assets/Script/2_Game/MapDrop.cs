@@ -645,6 +645,7 @@ namespace PuzzAndBidurgi
 			Fitting.Piece p = new Fitting.Piece();
 			p.kind = kind;
 			p.dir = dir;
+			p.groupList = null;
 			p.start = start;
 			p.end = start + dir;
 			p.length = 1;
@@ -652,8 +653,6 @@ namespace PuzzAndBidurgi
 
 			return p;
 		}
-
-		//public int NextSequence ();
 
 
 		public struct Area

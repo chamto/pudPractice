@@ -33,21 +33,14 @@ namespace PuzzAndBidurgi
 			}
 		}
 
+		public class GroupList : List<Piece>
+		{
 
-
-
-		public class GroupNumber
-		{}
+		}
 
 
 		public class Piece
 		{
-			public enum eDirection
-			{
-				NONE	= 0,
-				ROW		= 1,
-				COLUMN	= 2,
-			};
 
 			//드롭의 종류
 			public DropInfo.eKind kind;
@@ -56,14 +49,14 @@ namespace PuzzAndBidurgi
 			public int reinforceCount; 
 
 			//활성조건을 만족하는 드롭의 시작, 끝 위치
-			public Index2 start;
+			public Index2 start; 
 			public Index2 end;
 			public Index2 dir;
 			public int length;
 
-			//조각의 늘어진 방향
-			//public eDirection direction;
-
+			//public GroupList groupList;
+			public Bundle groupList;
+			
 
 			static public ML.LineSegment3 ToLine(Piece p)
 			{
@@ -76,8 +69,14 @@ namespace PuzzAndBidurgi
 			}
 
 
-			public bool IsJoin(Piece p)
+			public bool IsJoin(Piece p, int minLength)
 			{
+				if (p.length < minLength || this.length < minLength)
+					return false;
+				if (this.kind != p.kind) 
+					return false;
+
+
 				ML.Vector3 pt1, pt2;
 				Index2 idx1, idx2, diff;
 
@@ -91,8 +90,8 @@ namespace PuzzAndBidurgi
 				diff.iy = Math.Abs (diff.iy);
 
 				//두 드롭조각이 겹쳐있거나 붙어있는 경우를 찾는다.
-				//특정 축에 대하여 점의차가 0이면 두 선분은  특정 축에 겹쳐있다.
-				//특정 축에 대하여 점의차가 1이면 두 선분은  특정 축에 붙어있다.
+				//특정 축에 대하여 점의 차가 0이면 두 선분은  특정 축에 겹쳐있다.
+				//특정 축에 대하여 점의 차가 1이면 두 선분은  특정 축에 붙어있다.
 				if (diff.ix == 0 && diff.iy <= 1  ) 
 				{
 					return true;
@@ -106,6 +105,47 @@ namespace PuzzAndBidurgi
 			}
 
 
+			public void Join(Piece dest, int minJoinLength)
+			{
+				if(true == this.IsJoin(dest , minJoinLength))
+				{
+
+					if(null == dest.groupList && null == this.groupList)
+					{	//this 에 새그룹 생성
+						
+						this.groupList = new Bundle();
+						dest.groupList = this.groupList;
+						this.groupList.Add(this);
+						this.groupList.Add(dest);
+					}
+					else if(dest.groupList == this.groupList)
+					{	//이미 같은 그룹이다.
+						return;
+					}
+					else if(null != this.groupList && null != dest.groupList)
+					{	//this 그룹으로 합치기
+						
+						//this.groupList.AddRange(dest.groupList);
+						this.groupList.UnionWith(dest.groupList);
+						dest.groupList = this.groupList;
+					}
+					else if(null != this.groupList)
+					{	//this 그룹에 추가하기
+						
+						this.groupList.Add(dest);
+						dest.groupList = this.groupList;
+						
+					}else if(null != dest.groupList)
+					{	//dest 그룹에 추가하기
+						
+						dest.groupList.Add(this);
+						this.groupList = dest.groupList;
+					}
+					
+				}//end if
+			}
+
+
 		}
 
 		public class PieceList : Dictionary<Index2, List<Piece>>
@@ -113,21 +153,57 @@ namespace PuzzAndBidurgi
 		}
 	
 
-
-		public class Bundle
+		//같은 종류의 터질 수 있는 드롭 뭉치
+		public class Bundle : HashSet<Piece>
 		{
 			// ---> row
-			public List<Piece> row = new List<Piece>();
+			//public List<Piece> row = new List<Piece>();
+			//public HashSet<Piece> row = new HashSet<Piece> ();
 			
 			// ^ column
-			public List<Piece> column = new List<Piece>();
+			//public List<Piece> column = new List<Piece>();
+			//public HashSet<Piece> column = new HashSet<Piece> ();
 
-			public List<Index2> totalIndex2 = new List<Index2>();
+			public HashSet<Index2> totalIndex2 = null;
 
 			public DropInfo.eKind kind;
 			public int totalCount; //전체 드롭수
 			public int totalReinforce; //전체 강화드롭수
 			public int shape;//드롭모양
+
+			//20160322 chamto - nextJob : make function 
+			public void UpdateTotalIndex()
+			{
+				totalIndex2 = new HashSet<Index2>();
+
+				//todo
+
+				//totalIndex2 = ~~
+				//totalCount = ~~~
+
+				//shape = ~~
+			}
+
+			public int GetMaxLength(Index2 dir , out Piece getPiece)
+			{
+				//todo
+				getPiece = null;
+				return 0;
+			}
+
+			public int GetMaxLength_Including_Reinforce(Index2 dir , out Piece getPiece)
+			{
+				//todo
+				getPiece = null;
+				return 0;
+			}
+
+			private void findShape()
+			{
+				//todo
+				//shape  :  1 box , 2 cross , 3 etc...
+			}
+
 
 		}
 
@@ -136,60 +212,95 @@ namespace PuzzAndBidurgi
 		public class BundleLookup
 		{
 
-			public List<Bundle> bundleList = new List<Bundle>();
+			public HashSet<Bundle> bundleSet = new HashSet<Bundle>();
 
-			private List<Piece> _rowPiece = new List<Piece>();
-			private List<Piece> _columnPiece = new List<Piece>();
+			private PieceList _rowPieceList = null;
+			private PieceList _columnPieceList = null;
 
 
-			/*
-			public void Inspection(Piece.eDirection dir)
+			public void SetRowPieceList(PieceList rowList)
 			{
-				const int PUD_PIECE_MIN_LENGTH = 3;
-				int roopCount = 0;
-				if(Piece.eDirection.ROW == dir)
-					roopCount = _refDropMap.GetMapHeight ();
-				if(Piece.eDirection.COLUMN == dir)
-					roopCount = _refDropMap.GetMapWidth ();
+				_rowPieceList = rowList;
+			}
+			public void SetColumnPieceList(PieceList columnList)
+			{
+				_columnPieceList = columnList;
+			}
 
 
-				Index2 start = Index2.Zero , end = Index2.Zero;
-				List<int> pieceCountList = null;
-				for (int i=0; i<roopCount; i++) 
+			private void joinPiece(PieceList pieceList_1, PieceList pieceList_2, int minJoinLength)
+			{
+				foreach (List<Piece> srcList in pieceList_1.Values) 
 				{
-					//row
-					if(Piece.eDirection.ROW == dir)
+					foreach (List<Piece> destList in pieceList_2.Values) 
 					{
-						start.ix = 0;
-						start.iy = i;
-						end.ix = _refDropMap.GetMapWidth() - 1;
-						end.iy = i;
-					}
+						foreach(Piece srcP in srcList)
+						{
+							foreach(Piece destP in destList)
+							{
+								srcP.Join(destP, minJoinLength);
+								
+							}//end foreach1
+							
+						}//end foreach2
+						
+					}//end foreach3
+				}//end foreach4
+			}
 
-					//column
-					if(Piece.eDirection.COLUMN == dir)
-					{
-						start.ix = i;
-						start.iy = 0;
-						end.ix = i;
-						end.iy = _refDropMap.GetMapHeight() - 1;
-					}
-
-					if(true == _refDropMap.FindPiece(start, end, PUD_PIECE_MIN_LENGTH, out pieceCountList))
-					{
-						//todo
-					}
-
-
-				}//end for
-
-			}//end Inspection
-			*/
-
-
-
-			public void Join()
+			private void joinPiece(PieceList pieceList, int minJoinLength)
 			{
+				List<Piece> prevList = null;
+				foreach (List<Piece> curList in pieceList.Values) 
+				{
+					if(null != prevList || 0 != prevList.Count)
+					{
+						foreach(Piece curP in curList)
+						{
+							foreach(Piece prevP in prevList)
+							{
+								curP.Join(prevP, minJoinLength);
+								
+							}//end foreach1
+
+						}//end foreach2
+
+					}//end if3
+
+					prevList = curList;
+				}//end foreach4
+
+			}//end func
+
+
+			public void CreatePieceGroup()
+			{
+				const int MIN_PIECE_LENGTH = 3;
+				this.joinPiece (this._rowPieceList, MIN_PIECE_LENGTH);
+				this.joinPiece (this._columnPieceList, MIN_PIECE_LENGTH);
+				this.joinPiece (this._rowPieceList, this._columnPieceList, MIN_PIECE_LENGTH);
+
+
+
+
+			}
+			public void CreateBundle()
+			{
+				foreach (List<Piece> pList in _rowPieceList.Values) 
+				{
+					foreach(Piece p in pList)
+					{
+						bundleSet.Add(p.groupList);
+					}
+				}
+
+				foreach (List<Piece> pList in _columnPieceList.Values) 
+				{
+					foreach(Piece p in pList)
+					{
+						bundleSet.Add(p.groupList);
+					}
+				}
 			
 			}
 
@@ -202,148 +313,7 @@ namespace PuzzAndBidurgi
 		{
 			public List<Bundle> bundles = new List<Bundle> ();
 
-			/*
-			private bool availableJoin(MonoDrop start , out int jump)
-			{
-				if(null == d_start)
-				{
-					d_jump = 1;
-					return false;
-				}
-				
-				Index2 d_next = d_start.index2D;
-				MonoDrop d_nextDrop = null;
-				for(int i=0;i<minJoin-1;i++)
-				{
-					d_next.ix += (int)direction.x;
-					d_next.iy += (int)direction.y;
-					d_nextDrop = this.mapDrop.GetMonoDropByIndex2(d_next);
-					if(false == this.boardInfo.BelongToViewArea(d_next))
-						d_nextDrop = null;
 
-					if(null == d_nextDrop || d_start.dropKind != d_nextDrop.dropKind)
-					{
-						d_jump = i+1;
-						return false;
-					}
-				}
-				
-				d_jump = 0;
-				return true;
-			}
-
-//20160221 chamto - first job : DropMap의 드롭생성 처리를 만든후 , 연관해서 작성해야 한다. 
-			public Lines LineInspect(Index2 start, Index2 direction, UInt16 length, UInt16 minJoin)
-			{
-
-				UInt16 jumpCount = 0;
-				Index2 compareIndex = start;
-				Index2 nextIndex = start;
-				MonoDrop nextDrop = null;
-				MonoDrop compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
-				
-				List<MonoDrop> drops = null;
-				List<List<MonoDrop>> joins = new List<List<MonoDrop>> ();
-				
-				//int findGroupCount = 0;
-				BundleWithDrop refDrop = null;
-				BundleWithDrop findGroup = null;
-				
-				
-				PairIndex2 key_pairIdx;
-				direction.Normalize ();
-				key_pairIdx.direction.ix = (int)direction.x;
-				key_pairIdx.direction.iy = (int)direction.y;
-				key_pairIdx.origin = startIxy;
-				
-				//CDefine.DebugLog ("----------LineInspection : dir : " + direction + "----------"); //chamto test
-				for (int i=0; i <= lengthOfLine; i++) 
-				{
-					
-					nextIndex.ix = startIxy.ix + (int)(direction.x) * i;
-					nextIndex.iy = startIxy.iy + (int)(direction.y) * i;
-					nextDrop = this.mapDrop.GetMonoDropByIndex2(nextIndex);
-					if(false == this.boardInfo.BelongToViewArea(nextIndex))
-						nextDrop = null;
-					
-					
-					//if(0 == drops.Count)
-					if(null == drops)
-					{
-						//-------------------------------------------
-						//라인 시작지점에서 검사
-						if(false == d_availableJoin(compareDrop, out jumpCount))
-						{
-							//Debug.Log ("avJoin => false : compareIndex:"+compareIndex+" nextIxy:"+nextIndex+" compareDrop:"+compareDrop+" nextDrop:"+nextDrop+" jumpCount:"+jumpCount); //chamto test
-							
-							i+=jumpCount-1;
-							compareIndex.ix = compareIndex.ix + (int)(direction.x) * jumpCount;
-							compareIndex.iy = compareIndex.iy + (int)(direction.y) * jumpCount;
-							compareDrop = this.mapDrop.GetMonoDropByIndex2(compareIndex);
-							if(false == this.boardInfo.BelongToViewArea(compareIndex))
-								compareDrop = null;
-							
-							//CDefine.DebugLog(i+" - compareIndex : "+compareIndex); //chamto test
-							
-							continue;
-						}
-						
-						
-						drops = new List<MonoDrop>();
-						joins.Add(drops);
-						refDrop = BundleWithDrop.Create(key_pairIdx,drops);
-						refDrop.refBundle.AddRefInfo(refDrop);
-						m_groupDrop.AddRefData(refDrop.refBundle);
-						m_groupDrop.AddRefDrop(refDrop);
-						//findGroupCount = 0;
-						
-					}
-					
-					
-					if(null != compareDrop)
-					{
-						//-------------------------------------------
-						//연속되어 배치된 드롭이 있다면 드롭종류가 같은지 검사한다.
-						if(null != nextDrop && compareDrop.dropKind == nextDrop.dropKind)
-						{
-							//next add , end is not processed
-							drops.Add(nextDrop);
-							nextDrop.m_bundleInfo = refDrop;
-							//Debug.Log("i " + i +"LineInspection  listJoin.Count : " + listJoin.Count + "  index:" + nextIndex.ToString()); //chamto test
-							
-							
-							//한번 이상 찾았으면, 더이상 찾지 않는다
-							//if(0 == findGroupCount)
-							{
-								findGroup = FindJoinGroup_InFourWay(nextDrop);
-								if(null != findGroup)
-								{
-									//CDefine.DebugLog(nextDrop.index2D+ ": dir : " + direction +" : findJoinGroup : "+ findGroup + " refBundle : " + findGroup.refBundle);//chamto test
-									if(null == findGroup.refBundle.lines)
-									{
-										CDefine.DebugLogWarning("!!!! null == findGroup.refBundle.lines");
-									}
-									//CDefine.DebugLog(findGroup.refBundle.ToStringLines());
-									BundleWithDrop.EngraftBundleData(refDrop, findGroup);
-									//findGroupCount++;
-								}
-							}
-							
-						}else
-						{
-							drops = null;
-							i-=1;
-						}
-					}		
-					
-					compareIndex = nextIndex;
-					compareDrop = nextDrop;
-					
-				}
-				
-				return joins;
-			}
-			 //*/
 
 		}
 	}
