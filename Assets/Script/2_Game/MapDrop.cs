@@ -653,30 +653,86 @@ namespace PuzzAndBidurgi
 			return p;
 		}
 
-		//minLength : 조각의 최소길이 (퍼드에서는 3이다.)
-		public bool FindPiece (Index2 start, Index2 end, int minLength, out List<Fitting.Piece> pieceList)
+		//public int NextSequence ();
+
+
+		public struct Area
 		{
-			bool findPiece = false;
+			public Index2 origin;
+			public int width;
+			public int height;
+			private Index2 temp;
+
+			public Index2 LeftBottom
+			{
+				get
+				{
+					return origin;
+				}
+
+			}
+			public Index2 LeftUp
+			{
+				get
+				{
+					temp = origin;
+					temp.iy += (height - 1);
+					return temp;	
+				}
+
+			}
+			public Index2 RightBottom
+			{
+				get
+				{
+					temp = origin;
+					temp.ix += (width - 1);
+					return temp;	
+				}
+
+			}
+			public Index2 RightUp
+			{
+				get
+				{
+					temp.ix = (width - 1);
+					temp.iy = (height - 1);
+					return origin + temp;	
+				}
+
+			}
+
+			public bool IsInclude(Index2 pos)
+			{
+				if (this.LeftBottom.ix <= pos.ix && pos.ix <= this.RightBottom.ix) 
+				{
+					if(this.LeftBottom.iy <= pos.iy && pos.iy <= this.LeftUp.iy)
+						return true;
+				}
+
+				return false;
+			}
+		}
+
+		public void FindPiece (Index2 start, Index2 dir, Area area, out List<Fitting.Piece> pieceList)
+		{
 			Index2 current = start;
 
-			Index2 dir = end - start;
-			//0이 아니라면 길이를 1로 만든다.
-			if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
-			if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
+//			Index2 dir = end - start;
+//			//0이 아니라면 길이를 1로 만든다.
+//			if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
+//			if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
 
 			//int count = 1;
 			//DropInfo.eKind prevKind = _map[current].kind;
 			DropInfo.eKind prevKind = DropInfo.eKind.None;
 			pieceList = new List<Fitting.Piece> ();
 			Fitting.Piece p = null;
-			pieceList.Add (p);
-			while ((end-start).LengthSquared() >= (current-start).LengthSquared()) 
+			//while ((end-start).LengthSquared() >= (current-start).LengthSquared()) 
+			while(area.IsInclude(current))
 			{
 
-				if( DropInfo.eKind.None == _map[current].kind )
-					continue;
-
-
+				if( DropInfo.eKind.None != _map[current].kind )
 				if(prevKind != _map[current].kind )
 				{
 					p = this.createPiece (_map[current].kind, current, dir, _map[current].reinforcement);
@@ -688,9 +744,6 @@ namespace PuzzAndBidurgi
 					p.end = p.start + dir * p.length;
 					p.reinforceCount += _map[current].reinforcement;
 
-					//조각의 최소길이를 만족하는 것이 있는 경우 : 반환값을 ‘참’으로 설정한다. 
-					if(p.length >= minLength)
-						findPiece = true;
 				}
 
 
@@ -700,12 +753,78 @@ namespace PuzzAndBidurgi
 
 			}//end while
 
-			return findPiece;
+
 		}
 
-		public List<Fitting.Piece> FindPieceList(Index2 start, Index2 dir)
+		public Fitting.PieceList FindPieceList(Index2 findingDir, Area area)
 		{ 
 			//todo
+
+			//const int PUD_PIECE_MIN_LENGTH = 3;
+
+			//조각을 찾는 방향에 따른 루프방향 구하기 (찾는 방향과 루프방향은 서로 직각이다)
+			Index2 nextDir;
+			Index2 loopDir;
+			Index2 loopStart;
+			int loopLength;
+			if (findingDir == Index2.Right) 
+			{
+				loopDir = Index2.Up;
+				nextDir = loopDir;
+				loopStart = area.LeftBottom;
+				loopLength = area.height;
+			} else 
+			if (findingDir == Index2.Up) 
+			{
+				loopDir = Index2.Right;
+				nextDir = loopDir;
+				loopStart = area.LeftBottom;
+				loopLength = area.width;
+			} else
+			if (findingDir == Index2.RightUp) 
+			{
+				loopDir = Index2.LeftUp;
+				nextDir = loopDir.X_AxisSeparation;
+				loopStart = area.RightBottom;
+				loopLength = area.width + area.height;
+			} else
+			if (findingDir == Index2.LeftUp) 
+			{
+				loopDir = Index2.RightUp;
+				nextDir = loopDir.X_AxisSeparation;
+				loopStart = area.LeftBottom;
+				loopLength = area.width + area.height;
+			} else 
+			{
+				return null;
+			}
+
+			Fitting.PieceList fullList = new Fitting.PieceList ();
+			List<Fitting.Piece> someList = null; 
+
+			Index2 nextPos = loopStart;
+			for (int i=0; i<loopLength; i++) 
+			{
+
+				this.FindPiece(nextPos, findingDir, area, out someList);
+				if(0 != someList.Count)
+				{
+					fullList.Add(nextPos,someList);
+				}
+
+				//다음위치가 조각 구하는 영역을 벗어났을 경우 : 증가 방향을 바꾸어 준다. 
+				//이는 조각찾는 방향이 우상,좌상 일때만 해당한다.  findingDir : rightup , leftup
+				if (findingDir == Index2.RightUp || findingDir == Index2.LeftUp)
+				if(false == area.IsInclude(nextPos + nextDir))
+				{
+					nextDir = loopDir.Y_AxisSeparation;
+				}
+
+				nextPos += nextDir;
+
+			}//end for
+
+
 			return null;
 		}
 

@@ -75,6 +75,36 @@ public struct Index2
 			return new Index2(1, 0);
 		}
 	}
+	static public Index2 RightUp
+	{
+		get
+		{
+			return new Index2(1, 1);
+		}
+	}
+	static public Index2 LeftUp
+	{
+		get
+		{
+			return new Index2(-1, 1);
+		}
+	}
+
+	public Index2 X_AxisSeparation
+	{
+		get
+		{
+			return new Index2(this.ix, 0);
+		}
+	}
+
+	public Index2 Y_AxisSeparation
+	{
+		get
+		{
+			return new Index2(0, this.iy);
+		}
+	}
 
 	public int this [int index]
 	{

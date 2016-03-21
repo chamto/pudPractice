@@ -108,6 +108,9 @@ namespace PuzzAndBidurgi
 
 		}
 
+		public class PieceList : Dictionary<Index2, List<Piece>>
+		{
+		}
 	
 
 
