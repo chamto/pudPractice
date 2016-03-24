@@ -58,6 +58,19 @@ namespace PuzzAndBidurgi
 			public Bundle groupList;
 			
 
+			static public List<Index2> ToList(Piece p)
+			{
+				List<Index2> list = new List<Index2> ();
+				Index2 current;
+				for (int i=0; i<p.length; i++) 
+				{
+					current = p.start + p.dir * i;
+					list.Add(current);
+				}
+				
+				return list;
+			}
+
 			static public ML.LineSegment3 ToLine(Piece p)
 			{
 				ML.LineSegment3 a;
@@ -156,32 +169,37 @@ namespace PuzzAndBidurgi
 		//같은 종류의 터질 수 있는 드롭 뭉치
 		public class Bundle : HashSet<Piece>
 		{
-			// ---> row
-			//public List<Piece> row = new List<Piece>();
-			//public HashSet<Piece> row = new HashSet<Piece> ();
-			
-			// ^ column
-			//public List<Piece> column = new List<Piece>();
-			//public HashSet<Piece> column = new HashSet<Piece> ();
+			public enum eShapeKind
+			{
+				NONE = 0,
+				FIVE_CROSS = 1,
+			}
+
 
 			public HashSet<Index2> totalIndex2 = null;
 
 			public DropInfo.eKind kind;
 			public int totalCount; //전체 드롭수
 			public int totalReinforce; //전체 강화드롭수
-			public int shape;//드롭모양
+			public eShapeKind eShape;//드롭모양
 
-			//20160322 chamto - nextJob : make function 
+
 			public void UpdateTotalIndex()
 			{
 				totalIndex2 = new HashSet<Index2>();
+				foreach (Piece p in this) 
+				{
+					foreach(Index2 id2 in Piece.ToList(p))
+					{
+						totalIndex2.Add(id2);
+					}
+				}
 
-				//todo
+				totalCount = totalIndex2.Count;
+				eShape = this.findShape ();
+				kind = this.ElementAt (0).kind;
 
-				//totalIndex2 = ~~
-				//totalCount = ~~~
-
-				//shape = ~~
+				totalReinforce = -1; //강화드롭의 전체개수는 DropMap 을 직접조회해서 구해야 한다.
 			}
 
 			public int GetMaxLength(Index2 dir , out Piece getPiece)
@@ -198,12 +216,50 @@ namespace PuzzAndBidurgi
 				return 0;
 			}
 
-			private void findShape()
+			private eShapeKind findShape()
 			{
-				//todo
-				//shape  :  1 box , 2 cross , 3 etc...
-			}
+				eShapeKind kind = eShapeKind.NONE;
 
+				if (true == findShape_FiveCross ()) 
+				{
+					kind = eShapeKind.FIVE_CROSS;
+				}
+
+				return kind;
+			}
+			private bool findShape_FiveCross()
+			{
+
+				//five_cross
+				const int FIVE_CROSS_COUNT = 5;
+				const int CROSS_WIDTH_LENGTH = 3;
+				if (FIVE_CROSS_COUNT == this.totalCount) 
+				{
+					Index2 cross_center_row = Index2.None;
+					Index2 cross_center_column = Index2.None;
+					foreach(Piece p in this)
+					{
+						if(CROSS_WIDTH_LENGTH == p.length)
+						{
+							if(Index2.Right == p.dir)
+							{
+								cross_center_row = p.start + p.dir * 2;
+							}
+							if(Index2.Up == p.dir)
+							{
+								cross_center_column = p.start + p.dir * 2;
+							}
+						}
+					}
+					if(Index2.None != cross_center_row && 
+					   cross_center_row == cross_center_column)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
 
 		}
 
@@ -280,10 +336,8 @@ namespace PuzzAndBidurgi
 				this.joinPiece (this._columnPieceList, MIN_PIECE_LENGTH);
 				this.joinPiece (this._rowPieceList, this._columnPieceList, MIN_PIECE_LENGTH);
 
-
-
-
 			}
+
 			public void CreateBundle()
 			{
 				foreach (List<Piece> pList in _rowPieceList.Values) 
