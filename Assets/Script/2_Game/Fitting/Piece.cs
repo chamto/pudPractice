@@ -38,6 +38,18 @@ namespace PuzzAndBidurgi
 			//public GroupList groupList;
 			public Bundle groupList;
 
+			public Piece(DropInfo.eKind kind, int reinforce, Index2 start, Index2 dir, int length)
+			{
+				this.kind = kind;
+				this.reinforceCount = reinforce;
+				this.start = start;
+				this.dir = dir;
+				this.length = length;
+
+				this.end = this.start + this.dir * this.length;
+				this.groupList = null;
+			}
+
 			static public List<Index2> ToList(Piece p)
 			{
 				List<Index2> list = new List<Index2> ();

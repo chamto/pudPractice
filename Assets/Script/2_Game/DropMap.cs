@@ -8,14 +8,74 @@ namespace PuzzAndBidurgi
 {
 
 
-//	public enum eMapKind
-//	{
-//		eGRID_MAP = 0,
-//		eHEX_MAP = 1,
-//	}
-//	
-//	public struct Hex3
-//	{}
+	public struct Area
+	{
+		public Index2 origin;
+		public int width;
+		public int height;
+		private Index2 temp;
+		
+		public Index2 LeftBottom
+		{
+			get
+			{
+				return origin;
+			}
+			
+		}
+		public Index2 LeftUp
+		{
+			get
+			{
+				temp = origin;
+				temp.iy += (height - 1);
+				return temp;	
+			}
+			
+		}
+		public Index2 RightBottom
+		{
+			get
+			{
+				temp = origin;
+				temp.ix += (width - 1);
+				return temp;	
+			}
+			
+		}
+		public Index2 RightUp
+		{
+			get
+			{
+				temp.ix = (width - 1);
+				temp.iy = (height - 1);
+				return origin + temp;	
+			}
+			
+		}
+		
+		public bool IsInclude(Index2 pos)
+		{
+			if (this.LeftBottom.ix <= pos.ix && pos.ix <= this.RightBottom.ix) 
+			{
+				if(this.LeftBottom.iy <= pos.iy && pos.iy <= this.LeftUp.iy)
+					return true;
+			}
+			
+			return false;
+		}
+	}
+
+
+	//	public enum eMapKind
+	//	{
+	//		eGRID_MAP = 0,
+	//		eHEX_MAP = 1,
+	//	}
+	//	
+	//	public struct Hex3
+	//	{}
+
 
 	//"model" - controller - view
 	public class DropMap
@@ -81,123 +141,57 @@ namespace PuzzAndBidurgi
 			return drop;
 		}
 
-		private Fitting.Piece createPiece(DropInfo.eKind kind, Index2 start, Index2 dir, int reinforceCount)
+		public Index2 FindPiece(Index2 start, Index2 dir, Area area, out Fitting.Piece p, int pieceMinLength)
 		{
-			Fitting.Piece p = new Fitting.Piece();
-			p.kind = kind;
-			p.dir = dir;
-			p.groupList = null;
-			p.start = start;
-			p.end = start + dir;
-			p.length = 1;
-			p.reinforceCount = reinforceCount; 
+			p = null;
+			int count = 0;
+			int reinforce = 0;
+			Index2 current = start;
+			DropInfo.eKind startKind = _map[current].kind;
+			while (	area.IsInclude(current) &&
+					DropInfo.eKind.None != startKind &&
+			       	startKind == _map[current].kind
+			       )
+			{
+				reinforce += _map[current].reinforcement;
+				count++;
+				current = current + dir; //next position
+			}
 
-			return p;
+			if (count >= pieceMinLength) 
+			{
+				p = new Fitting.Piece(startKind, reinforce, start, dir, count);
+			}
+			
+			return current;
 		}
 
-		public struct Area
-		{
-			public Index2 origin;
-			public int width;
-			public int height;
-			private Index2 temp;
 
-			public Index2 LeftBottom
-			{
-				get
-				{
-					return origin;
-				}
-
-			}
-			public Index2 LeftUp
-			{
-				get
-				{
-					temp = origin;
-					temp.iy += (height - 1);
-					return temp;	
-				}
-
-			}
-			public Index2 RightBottom
-			{
-				get
-				{
-					temp = origin;
-					temp.ix += (width - 1);
-					return temp;	
-				}
-
-			}
-			public Index2 RightUp
-			{
-				get
-				{
-					temp.ix = (width - 1);
-					temp.iy = (height - 1);
-					return origin + temp;	
-				}
-
-			}
-
-			public bool IsInclude(Index2 pos)
-			{
-				if (this.LeftBottom.ix <= pos.ix && pos.ix <= this.RightBottom.ix) 
-				{
-					if(this.LeftBottom.iy <= pos.iy && pos.iy <= this.LeftUp.iy)
-						return true;
-				}
-
-				return false;
-			}
-		}
-
-		public void FindPiece (Index2 start, Index2 dir, Area area, out List<Fitting.Piece> pieceList)
+		public void FindPieceLine (Index2 start, Index2 dir, Area area, out List<Fitting.Piece> pieceList, int pieceMinLength)
 		{
 			Index2 current = start;
 
-//			Index2 dir = end - start;
-//			//0이 아니라면 길이를 1로 만든다.
-//			if(dir.ix != 0) dir.ix = dir.ix / dir.ix; 
-//			if(dir.iy != 0) dir.iy = dir.iy / dir.iy;
-
-			//int count = 1;
-			//DropInfo.eKind prevKind = _map[current].kind;
 			DropInfo.eKind prevKind = DropInfo.eKind.None;
 			pieceList = new List<Fitting.Piece> ();
 			Fitting.Piece p = null;
-			//while ((end-start).LengthSquared() >= (current-start).LengthSquared()) 
 			while(area.IsInclude(current))
 			{
 
-				if( DropInfo.eKind.None != _map[current].kind )
-				if(prevKind != _map[current].kind )
+				current = this.FindPiece(current,dir,area,out p,pieceMinLength);
+				if(null != p)
 				{
-					p = this.createPiece (_map[current].kind, current, dir, _map[current].reinforcement);
-					pieceList.Add (p);
-
-				}else
-				{
-					p.length++;
-					p.end = p.start + dir * p.length;
-					p.reinforceCount += _map[current].reinforcement;
-
+					pieceList.Add(p);
 				}
-
-				current = current + dir; //next position
-				prevKind = _map[current].kind;
 
 			}//end while
 
 		}
 
-		public Fitting.PieceList FindPieceList(Index2 findingDir, Area area)
+		//이 함수는 짝이되는 방향값으로 총 두번 호출되어야 한다.
+		//만약 findingDir이 Up이라면 Right도 호출해주어야 한다.
+		//예시 : RightUp => LeftUp , Up => Right , LeftUp => RightUp , Right => Up
+		public Fitting.PieceList FindPieceList(Index2 findingDir, Area area, int pieceMinLength)
 		{ 
-			//todo
-
-			//const int PUD_PIECE_MIN_LENGTH = 3;
-
 			//조각을 찾는 방향에 따른 루프방향 구하기 (찾는 방향과 루프방향은 서로 직각이다)
 			Index2 nextDir;
 			Index2 loopDir;
@@ -242,7 +236,7 @@ namespace PuzzAndBidurgi
 			for (int i=0; i<loopLength; i++) 
 			{
 
-				this.FindPiece(nextPos, findingDir, area, out someList);
+				this.FindPieceLine(nextPos, findingDir, area, out someList, pieceMinLength);
 				if(0 != someList.Count)
 				{
 					fullList.Add(nextPos,someList);

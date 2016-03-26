@@ -202,15 +202,4 @@ namespace PuzzAndBidurgi
 
 	}
 
-//	public enum eMapKind
-//	{
-//		eGRID_MAP = 0,
-//		eHEX_MAP = 1,
-//	}
-//	
-//	public struct Hex3
-//	{}
-
-	//"model" - controller - view
-	
 }//end namespace
